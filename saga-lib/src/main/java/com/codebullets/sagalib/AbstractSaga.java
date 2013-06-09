@@ -8,7 +8,7 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
     private boolean completed;
 
     /**
-     * Generates a new instance of AbstractSaga
+     * Generates a new instance of AbstractSaga.
      */
     protected AbstractSaga() {
         completed = false;
@@ -20,6 +20,14 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
     @Override
     public SAGA_STATE state() {
         return state;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setState(SAGA_STATE state) {
+        this.state = state;
     }
 
     /**
