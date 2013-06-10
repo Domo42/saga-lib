@@ -27,7 +27,7 @@ public interface StateStorage {
     void delete(String sagaId);
 
     /**
-     * Load a list of saga states based on type and instance id. The instance id is chosen
+     * Load a list of saga states based on saga type and instance id. The instance id is chosen
      * by the saga implementer and should in ideal cases only return on instance inside the collection.
      *
      * @return List of found saga state instances.
