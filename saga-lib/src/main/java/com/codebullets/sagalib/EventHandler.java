@@ -15,13 +15,19 @@
  */
 package com.codebullets.sagalib;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * Add messages and events to the steam so that they are processed and
- * trigger saga events.
+ * Methods marked with this annotation on a saga indicate will be called
+ * as a message of the exact type is added to the {@link MessageStream}.
+ * This will only work for messages where a saga has already been started. For
+ * a message to start a new sage us the {@link StartsSaga} annotation.<p/>
+ * The method needs to return void and have only one parameter.
  */
-public interface MessageStream {
-    /**
-     * Add a new message to be processed by the saga lib. The message can be of any type.
-     */
-    void add(Object message);
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface EventHandler {
 }
