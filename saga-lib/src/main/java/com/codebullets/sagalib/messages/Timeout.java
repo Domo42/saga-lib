@@ -39,7 +39,7 @@ public class Timeout implements Serializable {
     /**
      * Sets the id of the saga.
      */
-    public void setSagaId(String sagaId) {
+    public void setSagaId(final String sagaId) {
         this.sagaId = sagaId;
     }
 
@@ -47,14 +47,14 @@ public class Timeout implements Serializable {
      * Gets the data the timeout expired is triggered.
      */
     public Date getExpiredAt() {
-        return expiredAt;
+        return expiredAt != null ? new Date(expiredAt.getTime()) : null;
     }
 
     /**
      * Sets the date the timeout expired is triggered.
      */
-    public void setExpiredAt(Date expiredAt) {
-        this.expiredAt = expiredAt;
+    public void setExpiredAt(final Date expiredAt) {
+        this.expiredAt = expiredAt != null ? new Date(expiredAt.getTime()) : null;
     }
 
     /**
