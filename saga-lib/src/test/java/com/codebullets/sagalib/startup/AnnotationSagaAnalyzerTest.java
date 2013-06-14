@@ -75,7 +75,7 @@ public class AnnotationSagaAnalyzerTest {
         assertThat("Expected entry of key TestSage.class", scanResult.containsKey(TestSaga.class), is(true));
 
         SagaHandlersMap handlers = scanResult.get(TestSaga.class);
-        assertThat("Expected two total message handlers for saga.", handlers.messagesHandlesBySaga(), hasSize(2));
+        assertThat("Expected two total message handlers for saga.", handlers.messageHandlers(), hasSize(2));
     }
 
     /**
@@ -95,7 +95,7 @@ public class AnnotationSagaAnalyzerTest {
         SagaHandlersMap handlers = scanResult.get(TestSaga.class);
         assertThat(
                 "Handler has entry with start saga flag set.",
-                handlers.messagesHandlesBySaga(),
+                handlers.messageHandlers(),
                 hasItem(samePropertyValuesAs(new MessageHandler(String.class, TestSaga.class, true))));
     }
 
@@ -116,7 +116,7 @@ public class AnnotationSagaAnalyzerTest {
         SagaHandlersMap handlers = scanResult.get(TestSaga.class);
         assertThat(
                 "Handler has entry with start saga flag set.",
-                handlers.messagesHandlesBySaga(),
+                handlers.messageHandlers(),
                 hasItem(samePropertyValuesAs(new MessageHandler(Integer.class, TestSaga.class, false))));
     }
 

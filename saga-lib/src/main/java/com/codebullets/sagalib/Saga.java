@@ -25,9 +25,11 @@ public interface Saga<SAGA_STATE extends SagaState> {
     SAGA_STATE state();
 
     /**
-     * Sets the current state of the sage. This method is called by the saga-lib before
-     * any of the handler methods are called. Once set the {@link #state()} method should return
-     * the provided instance.
+     * Sets the current state of the sage. When {@link #createNewState()} is called the implementer
+     * should use this method to set the specific saga instance state.<br/>
+     * When loading an already running saga this method is called by the saga-lib before
+     * any of the handler methods are called.<p/>
+     * Once set the {@link #state()} method should return the provided instance.
      */
     void setState(SAGA_STATE state);
 

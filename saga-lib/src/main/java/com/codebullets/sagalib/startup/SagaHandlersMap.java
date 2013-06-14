@@ -53,7 +53,7 @@ public class SagaHandlersMap {
     /**
      * Returns a collection of message types handled by a saga.
      */
-    public Collection<MessageHandler> messagesHandlesBySaga() {
+    public Collection<MessageHandler> messageHandlers() {
         return Collections.unmodifiableCollection(supportedHandlers);
     }
 }
