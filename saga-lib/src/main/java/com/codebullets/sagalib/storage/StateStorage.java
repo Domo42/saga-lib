@@ -37,7 +37,6 @@ public interface StateStorage {
 
     /**
      * Delete the state of
-     * @param sagaId
      */
     void delete(String sagaId);
 
@@ -47,5 +46,5 @@ public interface StateStorage {
      *
      * @return List of found saga state instances.
      */
-    Collection<SagaState> load(String type, String instanceKey);
+    Collection<? extends SagaState> load(String type, String instanceKey);
 }

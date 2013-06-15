@@ -21,6 +21,7 @@ import com.codebullets.sagalib.StartsSaga;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,11 +33,14 @@ import java.util.Map;
  */
 public class AnnotationSagaAnalyzer implements SagaAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(AnnotationSagaAnalyzer.class);
+    private final Object sync = new Object();
     private final TypeScanner scanner;
+    private Map<Class<? extends Saga>, SagaHandlersMap> scanResult;
 
     /**
      * Constructs a new AnnotationSagaAnalyzer instance.
      */
+    @Inject
     public AnnotationSagaAnalyzer(final TypeScanner typeScanner) {
         scanner = typeScanner;
     }
@@ -46,15 +50,29 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
      */
     @Override
     public Map<Class<? extends Saga>, SagaHandlersMap> scanHandledMessageTypes() {
-        Map<Class<? extends Saga>, SagaHandlersMap> scanResult = new HashMap<>();
-        Collection<Class<? extends Saga>> sagaTypes = scanner.scanForSagas();
-
-        for (Class<? extends Saga> sagaType : sagaTypes) {
-            SagaHandlersMap messageHandlers = determineMessageHandlers(sagaType);
-            scanResult.put(sagaType, messageHandlers);
+        if (scanResult == null) {
+            populateSagaHandlers();
         }
 
         return scanResult;
+    }
+
+    /**
+     * Creates entries in the scan result map containing the messages handlers
+     * of the sagas provided by the injected scanner.
+     */
+    private void populateSagaHandlers() {
+        synchronized (sync) {
+            if (scanResult == null) {
+                scanResult = new HashMap<>();
+                Collection<Class<? extends Saga>> sagaTypes = scanner.scanForSagas();
+
+                for (Class<? extends Saga> sagaType : sagaTypes) {
+                    SagaHandlersMap messageHandlers = determineMessageHandlers(sagaType);
+                    scanResult.put(sagaType, messageHandlers);
+                }
+            }
+        }
     }
 
     /**
