@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.AbstractSaga;
+import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.TestSagaState;
@@ -28,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,6 +152,11 @@ public class SagaFactoryTest {
         @Override
         public void createNewState() {
             setState(new TestSagaState());
+        }
+
+        @Override
+        public Collection<KeyReader> keyReaders() {
+            return new ArrayList<>();
         }
     }
 }

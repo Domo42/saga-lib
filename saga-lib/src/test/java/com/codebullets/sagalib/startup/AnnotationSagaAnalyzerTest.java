@@ -2,6 +2,7 @@ package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.EventHandler;
+import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.StartsSaga;
 import com.codebullets.sagalib.TestSagaState;
@@ -135,6 +136,11 @@ public class AnnotationSagaAnalyzerTest {
         @Override
         public void createNewState() {
             setState(new TestSagaState());
+        }
+
+        @Override
+        public Collection<KeyReader> keyReaders() {
+            return new ArrayList<>();
         }
     }
 }

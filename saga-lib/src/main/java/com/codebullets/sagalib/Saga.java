@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import java.util.Collection;
+
 /**
  * Represents a single saga. A saga contains state and handles different messages and events.
  */
@@ -44,4 +46,13 @@ public interface Saga<SAGA_STATE extends SagaState> {
      * @return True if saga is complete; otherwise false.
      */
     boolean isCompleted();
+
+    /**
+     * Returns a list of readers which are used to determine the instance key of
+     * an incoming message assigned to the saga. This key is used to load the
+     * existing state when a saga is continued.<br/> A key reader must be provided
+     * for all messages handled defined by the {@link EventHandler} annotations of the saga.
+     * A key reader is not needed for messages starting a saga.
+     */
+    Collection<KeyReader> keyReaders();
 }
