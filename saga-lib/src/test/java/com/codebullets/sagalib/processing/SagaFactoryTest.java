@@ -15,10 +15,9 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.AbstractSaga;
-import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
+import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
@@ -29,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.inject.Provider;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -130,8 +128,8 @@ public class SagaFactoryTest {
 
     private Map<Class<? extends Saga>, SagaHandlersMap> createFakeTestSagaHandlersMap() {
         SagaHandlersMap handlers = new SagaHandlersMap(TestSaga.class);
-        handlers.add(new MessageHandler(String.class, TestSaga.class, true));
-        handlers.add(new MessageHandler(Integer.class, TestSaga.class));
+        handlers.add(new MessageHandler(String.class, null, true));
+        handlers.add(new MessageHandler(Integer.class, null));
 
         Map<Class<? extends Saga>, SagaHandlersMap> map = new HashMap<>();
         map.put(TestSaga.class, handlers);
@@ -144,19 +142,6 @@ public class SagaFactoryTest {
         @Override
         public TestSaga get() {
             return new TestSaga();
-        }
-    }
-
-    private static class TestSaga extends AbstractSaga<TestSagaState> {
-
-        @Override
-        public void createNewState() {
-            setState(new TestSagaState());
-        }
-
-        @Override
-        public Collection<KeyReader> keyReaders() {
-            return new ArrayList<>();
         }
     }
 }

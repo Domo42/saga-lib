@@ -1,11 +1,7 @@
 package com.codebullets.sagalib.startup;
 
-import com.codebullets.sagalib.AbstractSaga;
-import com.codebullets.sagalib.EventHandler;
-import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.Saga;
-import com.codebullets.sagalib.StartsSaga;
-import com.codebullets.sagalib.TestSagaState;
+import com.codebullets.sagalib.TestSaga;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -85,7 +81,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Returns a start handler with handling type string.
      */
     @Test
-    public void scanHandledMessageTypes_testSagaFound_returnsStartHandlerOfTypeString() {
+    public void scanHandledMessageTypes_testSagaFound_returnsStartHandlerOfTypeString() throws NoSuchMethodException {
         // given
         sagaTypes.add(TestSaga.class);
 
@@ -97,7 +93,7 @@ public class AnnotationSagaAnalyzerTest {
         assertThat(
                 "Handler has entry with start saga flag set.",
                 handlers.messageHandlers(),
-                hasItem(samePropertyValuesAs(new MessageHandler(String.class, TestSaga.class, true))));
+                hasItem(samePropertyValuesAs(new MessageHandler(String.class, TestSaga.startupMethod(), true))));
     }
 
     /**
@@ -106,7 +102,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Returns a normal handler with handling type Integer.
      */
     @Test
-    public void scanHandledMessageTypes_testSagaFound_returnsNormalHandlerOfTypeInteger() {
+    public void scanHandledMessageTypes_testSagaFound_returnsNormalHandlerOfTypeInteger() throws NoSuchMethodException {
         // given
         sagaTypes.add(TestSaga.class);
 
@@ -118,29 +114,6 @@ public class AnnotationSagaAnalyzerTest {
         assertThat(
                 "Handler has entry with start saga flag set.",
                 handlers.messageHandlers(),
-                hasItem(samePropertyValuesAs(new MessageHandler(Integer.class, TestSaga.class, false))));
-    }
-
-    /**
-     * Tests class containing expected annotations.
-     */
-    private static class TestSaga extends AbstractSaga<TestSagaState> {
-        @StartsSaga
-        public void sagaStartup(String startedByString) {
-        }
-
-        @EventHandler
-        public void handlersIntegerType(Integer intValue) {
-        }
-
-        @Override
-        public void createNewState() {
-            setState(new TestSagaState());
-        }
-
-        @Override
-        public Collection<KeyReader> keyReaders() {
-            return new ArrayList<>();
-        }
+                hasItem(samePropertyValuesAs(new MessageHandler(Integer.class, TestSaga.handlerMethod(), false))));
     }
 }

@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib.startup;
 
-import com.codebullets.sagalib.Saga;
+import java.lang.reflect.Method;
 
 /**
  * Information about method handling a message on a saga.
@@ -23,21 +23,21 @@ import com.codebullets.sagalib.Saga;
 public class MessageHandler {
     private final boolean startsSaga;
     private final Class<?> messageType;
-    private final Class<? extends Saga> sagaType;
+    private final Method methodToInvoke;
 
     /**
      * Generates a new instance of MessageHandler.
      */
-    public MessageHandler(Class<?> messageType, Class<? extends Saga> sagaType) {
-        this(messageType, sagaType, false);
+    public MessageHandler(final Class<?> messageType, final Method methodToInvoke) {
+        this(messageType, methodToInvoke, false);
     }
 
     /**
      * Generates a new instance of MessageHandler.
      */
-    public MessageHandler(Class<?> messageType, Class<? extends Saga> sagaType, boolean startsSaga) {
+    public MessageHandler(final Class<?> messageType, final Method methodToInvoke, final boolean startsSaga) {
         this.startsSaga = startsSaga;
-        this.sagaType = sagaType;
+        this.methodToInvoke = methodToInvoke;
         this.messageType = messageType;
     }
 
@@ -57,9 +57,9 @@ public class MessageHandler {
     }
 
     /**
-     * Gets the type of the saga the handler is attached to.
+     * Gets the method to invoke to trigger the message handler.
      */
-    public Class<? extends Saga> getSagaType() {
-        return sagaType;
+    public Method getMethodToInvoke() {
+        return methodToInvoke;
     }
 }
