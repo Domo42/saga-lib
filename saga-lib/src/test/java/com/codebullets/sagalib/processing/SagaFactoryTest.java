@@ -110,6 +110,7 @@ public class SagaFactoryTest {
      * Then  => Returns saga with existing saga state attached.
      */
     @Test
+    @SuppressWarnings("unchecked")
     public void create_messageContinuesSaga_assignsExistingStateToSagaInstance() {
         // given
         Integer message = 42;
