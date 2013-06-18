@@ -25,6 +25,10 @@ public class SagaMessageStream implements MessageStream {
      * {@inheritDoc}
      */
     @Override
-    public void add(Object message) {
+    public void add(final Object message) {
+    }
+
+    @Override
+    public void handle(final Object message) {
     }
 }

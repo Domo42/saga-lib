@@ -22,6 +22,13 @@ package com.codebullets.sagalib;
 public interface MessageStream {
     /**
      * Add a new message to be processed by the saga lib. The message can be of any type.
+     * Message is handled in the background and not necessarily a synchronous operation
+     * depending on the execution strategy.
      */
     void add(Object message);
+
+    /**
+     * Handles the given message on synchronously on the the calling thread.
+     */
+    void handle(Object message);
 }
