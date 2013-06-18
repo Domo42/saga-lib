@@ -15,10 +15,29 @@
  */
 package com.codebullets.sagalib.startup;
 
+import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.processing.HandlerInvoker;
+import com.codebullets.sagalib.processing.KeyExtractor;
+import com.codebullets.sagalib.processing.ReflectionInvoker;
+import com.codebullets.sagalib.processing.SagaFactory;
+import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
+import com.codebullets.sagalib.processing.SagaMessageStream;
+import com.codebullets.sagalib.processing.SagaProviderFactory;
+import com.codebullets.sagalib.storage.StateStorage;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Creates a new instance of an {@link com.codebullets.sagalib.MessageStream} to run the saga lib.
  */
 public final class EventStreamBuilder implements StreamBuilder {
+    private HandlerInvoker invoker;
+    private SagaAnalyzer sagaAnalyzer;
+    private TypeScanner scanner;
+    private StateStorage storage;
+    private SagaProviderFactory providerFactory;
+
+
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
      */
@@ -31,5 +50,63 @@ public final class EventStreamBuilder implements StreamBuilder {
      */
     public static StreamBuilder configure() {
         return new EventStreamBuilder();
+    }
+
+    @Override
+    public MessageStream build() {
+        if (providerFactory == null) {
+            throw new UnsupportedOperationException("The saga provider factory has to be set to build the event stream.");
+        }
+
+        buildTypeScanner();
+        buildSagaAnalyzer();
+        buildInvoker();
+
+        KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
+        SagaFactory sagaFactory = new SagaFactory(sagaAnalyzer, providerFactory, extractor, storage);
+
+        return new SagaMessageStream(sagaFactory, invoker, storage);
+    }
+
+    @Override
+    public StreamBuilder usingScanner(final TypeScanner scanner) {
+        checkNotNull(scanner, "Scanner to use must not be null.");
+
+        this.scanner = scanner;
+        return this;
+    }
+
+    @Override
+    public StreamBuilder usingStorage(final StateStorage storage) {
+        checkNotNull(storage, "Storage to use must not be null.");
+
+        this.storage = storage;
+        return this;
+    }
+
+    @Override
+    public StreamBuilder usingSagaProviderFactory(final SagaProviderFactory providerFactory) {
+        checkNotNull(providerFactory, "Provider factory must be set.");
+
+        this.providerFactory = providerFactory;
+        return this;
+    }
+
+    private void buildTypeScanner() {
+        if (scanner != null) {
+            // scanner = new
+        }
+    }
+
+    private void buildSagaAnalyzer() {
+        if (sagaAnalyzer == null) {
+            sagaAnalyzer = new AnnotationSagaAnalyzer(scanner);
+        }
+    }
+
+    private void buildInvoker() {
+        if (invoker == null) {
+            invoker = new ReflectionInvoker(sagaAnalyzer);
+        }
     }
 }

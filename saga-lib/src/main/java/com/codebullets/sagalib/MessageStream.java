@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Add messages and events to the steam so that they are processed and
  * trigger saga events.
@@ -29,6 +31,8 @@ public interface MessageStream {
 
     /**
      * Handles the given message on synchronously on the the calling thread.
+     * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
+     * @throws IllegalAccessException Thrown when access to the method to invoke is denied.
      */
-    void handle(Object message);
+    void handle(Object message) throws InvocationTargetException, IllegalAccessException;
 }

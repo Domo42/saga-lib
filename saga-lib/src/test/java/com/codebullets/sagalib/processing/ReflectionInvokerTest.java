@@ -61,6 +61,7 @@ public class ReflectionInvokerTest {
         // given
         String startMessage = "any string";
         TestSaga saga = new TestSaga();
+        saga.createNewState();
 
         // when
         sut.invoke(saga, startMessage);
@@ -79,6 +80,7 @@ public class ReflectionInvokerTest {
         // given
         Integer handlerMessage = 5;
         TestSaga saga = new TestSaga();
+        saga.createNewState();
 
         // when
         sut.invoke(saga, handlerMessage);

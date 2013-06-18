@@ -15,25 +15,29 @@
  */
 package com.codebullets.sagalib;
 
+import com.google.common.collect.Lists;
+
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * Tests class containing expected annotations.
  */
 public class TestSaga extends AbstractSaga<TestSagaState> {
+    public static final int INSTANCE_KEY = 42;
     private boolean startupCalled;
     private boolean handerCalled;
 
     @StartsSaga
     public void sagaStartup(String startedByString) {
+        state().setInstanceKey(String.valueOf(INSTANCE_KEY));
         startupCalled = true;
     }
 
     @EventHandler
     public void handlesIntegerType(Integer intValue) {
         handerCalled = true;
+        setAsCompleted();
     }
 
     public boolean startupCalled() {
@@ -51,7 +55,18 @@ public class TestSaga extends AbstractSaga<TestSagaState> {
 
     @Override
     public Collection<KeyReader> keyReaders() {
-        return new ArrayList<>();
+        KeyReader reader = FunctionKeyReader.create(
+                Integer.class,
+                new KeyReadFunction<Integer>() {
+
+                    @Override
+                    public String key(final Integer integer) {
+                        return integer.toString();
+                    }
+                }
+        );
+
+        return Lists.newArrayList(reader);
     }
 
     public static Method startupMethod() throws NoSuchMethodException {

@@ -36,7 +36,7 @@ public interface StateStorage {
     SagaState load(String sagaId);
 
     /**
-     * Delete the state of
+     * Delete the state of a saga. If no entry exists nothing happens.
      */
     void delete(String sagaId);
 
