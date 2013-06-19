@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.codebullets.saga-lib</groupId>
+    <artifactId>saga-lib</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>saga-lib</name>
+    <description>Java saga pattern library to organize and handle domain events.</description>
+    <url>https://github.com/Domo42/saga-lib</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>code.google.com</system>
+        <url>https://github.com/Domo42/saga-lib/issues</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/Domo42/saga-lib</url>
+        <connection>https://github.com/Domo42/saga-lib.git</connection>
+        <developerConnection>https://github.com/Domo42/saga-lib.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>domo</id>
+            <name>Stefan Domnanovits</name>
+            <email>stefan@codebullets.com</email>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.2</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
