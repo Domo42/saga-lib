@@ -65,8 +65,7 @@ public class SagaMessageStream implements MessageStream {
         Collection<Saga> sagas = sagaFactory.create(message);
         if (sagas.isEmpty()) {
             LOG.warn("No saga found to handle message. {}", message);
-        }
-        else {
+        } else {
             for (Saga saga : sagas) {
                 invoker.invoke(saga, message);
                 updateStateStorage(saga);

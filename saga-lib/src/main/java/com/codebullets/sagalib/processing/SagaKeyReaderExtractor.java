@@ -40,7 +40,7 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
      */
     public SagaKeyReaderExtractor(final SagaProviderFactory sagaProviderFactory) {
         this.sagaProviderFactory = sagaProviderFactory;
-        knownReaders = CacheBuilder.newBuilder().maximumSize(1000).build();
+        knownReaders = CacheBuilder.newBuilder().build();
     }
 
     /**
@@ -54,8 +54,7 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
         KeyReader reader = findReader(sagaReaders, message);
         if (reader != null) {
             keyValue = reader.readKey(message);
-        }
-        else {
+        } else {
             LOG.warn("No reader available to extract saga key from {} for saga {}", message, sagaClazz);
         }
 
@@ -86,7 +85,7 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
     /**
      * Search for reader based on message class.
      */
-    private KeyReader findReader(Collection<KeyReader> sagaKeyReaders, final Object message) {
+    private KeyReader findReader(final Collection<KeyReader> sagaKeyReaders, final Object message) {
         KeyReader messageKeyReader = null;
         Class messageClass = message.getClass();
 

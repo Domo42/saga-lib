@@ -67,7 +67,7 @@ public class Timeout implements Serializable {
     /**
      * Sets an optional name of the timeout.
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 }

@@ -106,12 +106,10 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length == 1) {
                     isHandler = true;
-                }
-                else {
+                } else {
                     LOG.warn("Method {}.{} marked for saga does not have the expected single parameter.", method.getDeclaringClass(), method.getName());
                 }
-            }
-            else {
+            } else {
                 LOG.warn("Method {}.{} marked for saga event handling but does return a value.", method.getDeclaringClass(), method.getName());
             }
         }

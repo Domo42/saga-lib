@@ -126,7 +126,7 @@ public class ReflectionInvoker implements HandlerInvoker {
         public boolean equals(final Object obj) {
             boolean isEqual = false;
 
-            if (obj != null && obj instanceof InvokerKey) {
+            if (obj instanceof InvokerKey) {
                 InvokerKey other = (InvokerKey) obj;
                 isEqual = Objects.equals(msgClazz, other.msgClazz) &&
                           Objects.equals(sagaClazz, other.sagaClazz);
@@ -135,7 +135,7 @@ public class ReflectionInvoker implements HandlerInvoker {
             return isEqual;
         }
 
-        public static InvokerKey create(Saga sagaInstance, Object msgInstance) {
+        public static InvokerKey create(final Saga sagaInstance, final Object msgInstance) {
             return new InvokerKey(sagaInstance.getClass(), msgInstance.getClass());
         }
 
