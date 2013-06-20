@@ -95,6 +95,9 @@ public class MemoryStorage implements StateStorage {
         return items;
     }
 
+    /**
+     * Combined key of saga type and saga key instance value.
+     */
     private static final class SagaMultiKey {
         private final String type;
         private final String instanceKey;
@@ -110,10 +113,10 @@ public class MemoryStorage implements StateStorage {
         public boolean equals(final Object o) {
             boolean isEqual = false;
 
-            if (o != null && o instanceof SagaMultiKey) {
-                SagaMultiKey other = (SagaMultiKey)o;
-                isEqual = Objects.equals(type, other.type) &&
-                          Objects.equals(instanceKey, other.instanceKey);
+            if (o instanceof SagaMultiKey) {
+                SagaMultiKey other = (SagaMultiKey) o;
+                isEqual = Objects.equals(type, other.type)
+                       && Objects.equals(instanceKey, other.instanceKey);
             }
 
             return isEqual;
@@ -124,7 +127,7 @@ public class MemoryStorage implements StateStorage {
             return Objects.hash(type, instanceKey);
         }
 
-        public static SagaMultiKey create(SagaState sagaState) {
+        public static SagaMultiKey create(final SagaState sagaState) {
             return new SagaMultiKey(sagaState.getType(), sagaState.instanceKey());
         }
 

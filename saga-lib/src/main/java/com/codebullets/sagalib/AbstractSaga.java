@@ -17,6 +17,8 @@ package com.codebullets.sagalib;
 
 /**
  * Base implementation of the {@link Saga} interface.
+ *
+ * @param <SAGA_STATE> Type of the state object attached to this saga.
  */
 public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga<SAGA_STATE> {
     private SAGA_STATE state;
@@ -41,7 +43,7 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      * {@inheritDoc}
      */
     @Override
-    public void setState(SAGA_STATE state) {
+    public void setState(final SAGA_STATE state) {
         this.state = state;
     }
 

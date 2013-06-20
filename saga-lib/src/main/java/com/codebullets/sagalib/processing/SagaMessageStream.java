@@ -39,7 +39,7 @@ public class SagaMessageStream implements MessageStream {
     /**
      * Creates a new SagaMessageStream instance.
      */
-    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, StateStorage storage) {
+    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
@@ -65,8 +65,7 @@ public class SagaMessageStream implements MessageStream {
         Collection<Saga> sagas = sagaFactory.create(message);
         if (sagas.isEmpty()) {
             LOG.warn("No saga found to handle message. {}", message);
-        }
-        else {
+        } else {
             for (Saga saga : sagas) {
                 invoker.invoke(saga, message);
                 updateStateStorage(saga);
@@ -77,7 +76,7 @@ public class SagaMessageStream implements MessageStream {
     /**
      * Updates the state storage depending on whether the saga is completed or keeps on running.
      */
-    private void updateStateStorage(Saga saga) {
+    private void updateStateStorage(final Saga saga) {
         if (saga.isCompleted()) {
             storage.delete(saga.state().getSagaId());
         } else {

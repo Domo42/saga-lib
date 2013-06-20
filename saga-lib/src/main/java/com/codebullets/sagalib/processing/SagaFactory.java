@@ -96,7 +96,7 @@ public class SagaFactory {
     /**
      * Creates a new saga instance and attaches the existing saga state.
      */
-    private Saga continueSaga(final Class<? extends Saga> sagaToContinue, SagaState existingSate) {
+    private Saga continueSaga(final Class<? extends Saga> sagaToContinue, final SagaState existingSate) {
         Saga saga = null;
         try {
             saga = providers.get(sagaToContinue).get();
@@ -152,7 +152,7 @@ public class SagaFactory {
     /**
      * Creates a new provider on demand.
      */
-    private static class ProviderLoader extends CacheLoader<Class<? extends Saga>, Provider<? extends Saga>> {
+    private final static class ProviderLoader extends CacheLoader<Class<? extends Saga>, Provider<? extends Saga>> {
         private final SagaProviderFactory providerFactory;
 
         private ProviderLoader(final SagaProviderFactory providerFactory) {

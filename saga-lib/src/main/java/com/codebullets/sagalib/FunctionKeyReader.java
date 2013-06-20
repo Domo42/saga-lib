@@ -20,6 +20,8 @@ package com.codebullets.sagalib;
  * the message class and function to extract the key as ctor arguments.
  * Use the static {@link #create(Class, KeyReadFunction)} method
  * to create a new instance.
+ *
+ * @param <MESSAGE> The type of the message to read the key from.
  */
 public final class FunctionKeyReader<MESSAGE> implements KeyReader<MESSAGE> {
     private final KeyReadFunction<MESSAGE> readFunction;
@@ -28,7 +30,7 @@ public final class FunctionKeyReader<MESSAGE> implements KeyReader<MESSAGE> {
     /**
      * Generates a new instance of FunctionKeyReader.
      */
-    private FunctionKeyReader(Class<MESSAGE> messageClass, KeyReadFunction<MESSAGE> readFunction) {
+    private FunctionKeyReader(final Class<MESSAGE> messageClass, final KeyReadFunction<MESSAGE> readFunction) {
         this.messageClass = messageClass;
         this.readFunction = readFunction;
     }
@@ -52,7 +54,7 @@ public final class FunctionKeyReader<MESSAGE> implements KeyReader<MESSAGE> {
     /**
      * Creates new key capable of extracting a saga instance key from a message.
      */
-    public static <MESSAGE> FunctionKeyReader<MESSAGE> create(Class<MESSAGE> messageClazz, KeyReadFunction<MESSAGE> readFunction) {
+    public static <MESSAGE> FunctionKeyReader<MESSAGE> create(final Class<MESSAGE> messageClazz, final KeyReadFunction<MESSAGE> readFunction) {
         return new FunctionKeyReader<>(messageClazz, readFunction);
     }
 }

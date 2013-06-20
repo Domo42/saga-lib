@@ -37,13 +37,11 @@ public final class EventStreamBuilder implements StreamBuilder {
     private StateStorage storage;
     private SagaProviderFactory providerFactory;
 
-
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
      */
     private EventStreamBuilder() {
     }
-
 
     /**
      * Start configuration and creation of the saga lib event stream.
@@ -69,26 +67,26 @@ public final class EventStreamBuilder implements StreamBuilder {
     }
 
     @Override
-    public StreamBuilder usingScanner(final TypeScanner scanner) {
-        checkNotNull(scanner, "Scanner to use must not be null.");
+    public StreamBuilder usingScanner(final TypeScanner typeScanner) {
+        checkNotNull(typeScanner, "Scanner to use must not be null.");
 
-        this.scanner = scanner;
+        this.scanner = typeScanner;
         return this;
     }
 
     @Override
-    public StreamBuilder usingStorage(final StateStorage storage) {
-        checkNotNull(storage, "Storage to use must not be null.");
+    public StreamBuilder usingStorage(final StateStorage stateStorage) {
+        checkNotNull(stateStorage, "Storage to use must not be null.");
 
-        this.storage = storage;
+        this.storage = stateStorage;
         return this;
     }
 
     @Override
-    public StreamBuilder usingSagaProviderFactory(final SagaProviderFactory providerFactory) {
-        checkNotNull(providerFactory, "Provider factory must be set.");
+    public StreamBuilder usingSagaProviderFactory(final SagaProviderFactory sagaProviderFactory) {
+        checkNotNull(sagaProviderFactory, "Provider factory must be set.");
 
-        this.providerFactory = providerFactory;
+        this.providerFactory = sagaProviderFactory;
         return this;
     }
 
