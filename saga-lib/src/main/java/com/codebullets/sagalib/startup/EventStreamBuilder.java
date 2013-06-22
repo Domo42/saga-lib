@@ -24,6 +24,10 @@ import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
+import com.codebullets.sagalib.timeout.TimeoutManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -31,11 +35,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Creates a new instance of an {@link com.codebullets.sagalib.MessageStream} to run the saga lib.
  */
 public final class EventStreamBuilder implements StreamBuilder {
+    private static final Logger LOG = LoggerFactory.getLogger(EventStreamBuilder.class);
+
     private HandlerInvoker invoker;
     private SagaAnalyzer sagaAnalyzer;
     private TypeScanner scanner;
     private StateStorage storage;
     private SagaProviderFactory providerFactory;
+    private TimeoutManager timeoutManager;
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -57,13 +64,14 @@ public final class EventStreamBuilder implements StreamBuilder {
         }
 
         buildTypeScanner();
+        buildTimeoutManager();
         buildSagaAnalyzer();
         buildInvoker();
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
         SagaFactory sagaFactory = new SagaFactory(sagaAnalyzer, providerFactory, extractor, storage);
 
-        return new SagaMessageStream(sagaFactory, invoker, storage);
+        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager);
     }
 
     @Override
@@ -79,6 +87,14 @@ public final class EventStreamBuilder implements StreamBuilder {
         checkNotNull(stateStorage, "Storage to use must not be null.");
 
         this.storage = stateStorage;
+        return this;
+    }
+
+    @Override
+    public StreamBuilder usingTimeoutManager(final TimeoutManager timeoutManager) {
+        checkNotNull(timeoutManager, "Timeout manager must not be null.");
+
+        this.timeoutManager = timeoutManager;
         return this;
     }
 
@@ -105,6 +121,35 @@ public final class EventStreamBuilder implements StreamBuilder {
     private void buildInvoker() {
         if (invoker == null) {
             invoker = new ReflectionInvoker(sagaAnalyzer);
+        }
+    }
+
+    private void buildTimeoutManager() {
+        if (timeoutManager == null) {
+            timeoutManager = new InMemoryTimeoutManager();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void close() {
+        tryClose(timeoutManager);
+        tryClose(storage);
+    }
+
+    /**
+     * Calls close if object implements {@link AutoCloseable} interface.
+     */
+    private void tryClose(Object objectToClose) {
+        try {
+            if (objectToClose instanceof AutoCloseable) {
+                AutoCloseable closeable = (AutoCloseable) objectToClose;
+                closeable.close();
+            }
+        } catch (Exception ex) {
+            LOG.error("Error closing object {}.", objectToClose, ex);
         }
     }
 }

@@ -18,18 +18,16 @@ package com.codebullets.sagalib.timeout;
 import com.codebullets.sagalib.messages.Timeout;
 
 /**
- * Triggers timeout events after the time they have been requested.
+ * Reports timeouts placed on in memory state and timers.
  */
-public interface TimeoutManager {
-    /**
-     * Registers a callback handler for expired timeouts.
-      @param callback The method to call as the timeout has expired.
-     */
-    void addExpiredCallback(TimeoutExpired callback);
+public class InMemoryTimeoutManager implements TimeoutManager {
+    // private ScheduledExecutorService scheduledService;
 
-    /**
-     * Request a timeout event to be triggered in the future.
-     * @param timeout Contains the timeout data.
-     */
-    void requestTimeout(Timeout timeout);
+    @Override
+    public void addExpiredCallback(final TimeoutExpired callback) {
+    }
+
+    @Override
+    public void requestTimeout(final Timeout timeout) {
+    }
 }

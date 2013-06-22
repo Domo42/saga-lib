@@ -16,13 +16,16 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.MessageStream;
-import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.messages.Timeout;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.TimeoutExpired;
+import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,10 +42,18 @@ public class SagaMessageStream implements MessageStream {
     /**
      * Creates a new SagaMessageStream instance.
      */
-    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage) {
+    @Inject
+    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, TimeoutManager timeoutManager) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
+
+        timeoutManager.addExpiredCallback(new TimeoutExpired() {
+            @Override
+            public void expired(final Timeout timeout) {
+                timeoutHasExpired(timeout);
+            }
+        });
     }
 
     /**
@@ -50,37 +61,29 @@ public class SagaMessageStream implements MessageStream {
      */
     @Override
     public void add(final Object message) {
+        checkNotNull(message, "Message to handle must not be null.");
+
+        throw new NotImplementedException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void handle(final Object message) throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");
-        handleSagaMessage(message);
+
+        SagaExecutionTask executor = createExecutor(message);
+        executor.handle();
     }
 
     /**
-     * Perform handling of a single message.
+     * Called whenever the timeout manager reports an expired timeout.
      */
-    private void handleSagaMessage(final Object message) throws InvocationTargetException, IllegalAccessException {
-        Collection<Saga> sagas = sagaFactory.create(message);
-        if (sagas.isEmpty()) {
-            LOG.warn("No saga found to handle message. {}", message);
-        } else {
-            for (Saga saga : sagas) {
-                invoker.invoke(saga, message);
-                updateStateStorage(saga);
-            }
-        }
+    private void timeoutHasExpired(final Timeout timeout) {
     }
 
-    /**
-     * Updates the state storage depending on whether the saga is completed or keeps on running.
-     */
-    private void updateStateStorage(final Saga saga) {
-        if (saga.isCompleted()) {
-            storage.delete(saga.state().getSagaId());
-        } else {
-            storage.save(saga.state());
-        }
+    private SagaExecutionTask createExecutor(final Object message) {
+        return new SagaExecutionTask(sagaFactory, invoker, storage, message);
     }
 }

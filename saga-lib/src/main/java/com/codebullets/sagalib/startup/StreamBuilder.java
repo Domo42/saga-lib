@@ -18,11 +18,12 @@ package com.codebullets.sagalib.startup;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.TimeoutManager;
 
 /**
  * Configures and builds a new saga event stream.
  */
-public interface StreamBuilder {
+public interface StreamBuilder extends AutoCloseable {
     /**
      * Creates a new message stream instance.
      */
@@ -41,6 +42,12 @@ public interface StreamBuilder {
      * @param storage The storage engine to use.
      */
     StreamBuilder usingStorage(StateStorage storage);
+
+    /**
+     * Optional: Sets the manager responsible to collect and trigger timeouts. If
+     * not set timeouts will be persisted in memory and triggered by JVM timers.
+     */
+    StreamBuilder usingTimeoutManager(TimeoutManager timeoutManager);
 
     /**
      * Must be set. A factory returning JSR-330 providers for saga instances.
