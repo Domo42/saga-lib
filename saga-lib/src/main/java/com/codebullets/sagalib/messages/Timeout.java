@@ -30,17 +30,16 @@ public class Timeout implements Serializable {
     private String name;
 
     /**
+     * Use static builder method to create instance.
+     */
+    private Timeout() {
+    }
+
+    /**
      * Gets the id of the matching saga.
      */
     public String getSagaId() {
         return sagaId;
-    }
-
-    /**
-     * Sets the id of the saga.
-     */
-    public void setSagaId(final String sagaId) {
-        this.sagaId = sagaId;
     }
 
     /**
@@ -51,13 +50,6 @@ public class Timeout implements Serializable {
     }
 
     /**
-     * Sets the date the timeout expired is triggered.
-     */
-    public void setExpiredAt(final Date expiredAt) {
-        this.expiredAt = expiredAt != null ? new Date(expiredAt.getTime()) : null;
-    }
-
-    /**
      * Gets an optional name of the timeout.
      */
     public String getName() {
@@ -65,9 +57,14 @@ public class Timeout implements Serializable {
     }
 
     /**
-     * Sets an optional name of the timeout.
+     * Creates a new Timeout instance.
      */
-    public void setName(final String name) {
-        this.name = name;
+    public static Timeout create(final String sagaId, final String name, final Date expiredAt) {
+        Timeout timeout = new Timeout();
+        timeout.sagaId = sagaId;
+        timeout.expiredAt = expiredAt;
+        timeout.name = name;
+
+        return timeout;
     }
 }

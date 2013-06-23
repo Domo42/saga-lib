@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import com.codebullets.sagalib.messages.Timeout;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Triggers timeout events after the time they have been requested.
@@ -23,13 +23,21 @@ import com.codebullets.sagalib.messages.Timeout;
 public interface TimeoutManager {
     /**
      * Registers a callback handler for expired timeouts.
-      @param callback The method to call as the timeout has expired.
+     * @param callback The method to call as the timeout has expired.
      */
     void addExpiredCallback(TimeoutExpired callback);
 
     /**
      * Request a timeout event to be triggered in the future.
-     * @param timeout Contains the timeout data.
+     * @param sagaId The id of the saga requesting the timeout.
+     * @param name A custom name for the timeout. Is returned once timeout expired.
+     * @param delay Time to wait until timeout expires.
+     * @param timeUnit Specifies the unit of the {@code delay} argument.
      */
-    void requestTimeout(Timeout timeout);
+    void requestTimeout(String sagaId, String name, long delay, TimeUnit timeUnit);
+
+    /**
+     * Cancel all timeouts of a saga. If no timeout exist does nothing.
+     */
+    void cancelTimeouts(String sagaId);
 }

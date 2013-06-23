@@ -16,18 +16,107 @@
 package com.codebullets.sagalib.timeout;
 
 import com.codebullets.sagalib.messages.Timeout;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Reports timeouts placed on in memory state and timers.
  */
 public class InMemoryTimeoutManager implements TimeoutManager {
-    // private ScheduledExecutorService scheduledService;
+    private static final Logger LOG = LoggerFactory.getLogger(InMemoryTimeoutManager.class);
+    private static final int TIMER_THREAD_POOL_SIZE = 50;
 
-    @Override
-    public void addExpiredCallback(final TimeoutExpired callback) {
+    private final Collection<TimeoutExpired> callbacks = Collections.synchronizedCollection(new ArrayList<TimeoutExpired>());
+    private final Multimap<String, ScheduledFuture> openTimeouts = Multimaps.synchronizedMultimap(HashMultimap.<String, ScheduledFuture>create());
+    private final ScheduledExecutorService scheduledService;
+    private final Clock clock;
+
+    /**
+     * Generates a new instance of InMemoryTimeoutManager.
+     */
+    public InMemoryTimeoutManager() {
+        this.scheduledService = Executors.newScheduledThreadPool(TIMER_THREAD_POOL_SIZE);
+        this.clock = new SystemClock();
     }
 
+    /**
+     * Generates a new instance of InMemoryTimeoutManager.
+     */
+    public InMemoryTimeoutManager(final ScheduledExecutorService scheduledService, final Clock clock) {
+        this.scheduledService = scheduledService;
+        this.clock = clock;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void requestTimeout(final Timeout timeout) {
+    public void addExpiredCallback(final TimeoutExpired callback) {
+        checkNotNull(callback, "Expired callback not allowed to be null.");
+
+        callbacks.add(callback);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void requestTimeout(final String sagaId, final String name, final long delay, final TimeUnit timeUnit) {
+        checkNotNull(sagaId, "SagaId not allowed to be null.");
+
+        SagaTimeoutTask timeoutTask = new SagaTimeoutTask(
+                sagaId,
+                name,
+                new TimeoutExpired() {
+                    @Override
+                    public void expired(final Timeout timeout) {
+                        timeoutExpired(timeout);
+                    }
+                },
+                clock);
+
+        ScheduledFuture future = scheduledService.schedule(timeoutTask, delay, timeUnit);
+        openTimeouts.put(sagaId, future);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void cancelTimeouts(final String sagaId) {
+        checkNotNull(sagaId, "SagaId parameter must not be null.");
+
+        Collection<ScheduledFuture> sagaTimeouts = new ArrayList<>(openTimeouts.get(sagaId));
+        for (ScheduledFuture timeout : sagaTimeouts) {
+            timeout.cancel(false);
+            openTimeouts.remove(sagaId, timeout);
+        }
+    }
+
+    /**
+     * Called by timeout task once timeout has expired.
+     */
+    private void timeoutExpired(Timeout timeout) {
+        try {
+            for (TimeoutExpired callback : callbacks) {
+                callback.expired(timeout);
+            }
+        } catch (Exception ex) {
+            // catch all exceptions. otherwise calling timeout thread of timers thread pool will be terminated.
+            LOG.error("Error handling timeout.", ex);
+        }
     }
 }
