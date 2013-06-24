@@ -20,12 +20,10 @@ import com.codebullets.sagalib.messages.Timeout;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import java.lang.reflect.InvocationTargetException;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import javax.inject.Inject;
-import java.lang.reflect.InvocationTargetException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -43,7 +41,7 @@ public class SagaMessageStream implements MessageStream {
      * Creates a new SagaMessageStream instance.
      */
     @Inject
-    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, TimeoutManager timeoutManager) {
+    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
@@ -63,7 +61,7 @@ public class SagaMessageStream implements MessageStream {
     public void add(final Object message) {
         checkNotNull(message, "Message to handle must not be null.");
 
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**
