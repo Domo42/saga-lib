@@ -26,27 +26,27 @@ public interface SagaState {
      * Gets the identifier of the saga. The id is generated automatically
      * as a new saga and saga state is created.
      */
-    public String getSagaId();
+    String getSagaId();
 
     /**
      * Sets the saga id. Called by the saga library to assign a new saga id.
      */
-    public void setSagaId(String sagaId);
+    void setSagaId(String sagaId);
 
     /**
      * Gets a string identifying one specific type of saga.
      */
-    public String getType();
+    String getType();
 
     /**
      * Sets the saga type string. Called by the saga lib as a new state is created.
      */
-    public void setType(String type);
+    void setType(String type);
 
     /**
      * Gets a string to identify a saga in combination with the type. For example a request id
      * from the external API. Any kind of id tied the saga type and messages expected. Can be changed
      * as the events are handled by the saga.
      */
-    public String instanceKey();
+    String instanceKey();
 }

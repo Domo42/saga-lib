@@ -27,6 +27,9 @@ public interface HandlerInvoker {
     /**
      * Invokes the handler method on the target saga. If no handler method is
      * found do nothing.
+     *
+     * @throws InvocationTargetException Thrown when invocation of the handler method fails.
+     * @throws IllegalAccessException Thrown when access to the handler method fails.
      */
     void invoke(Saga saga, Object message) throws InvocationTargetException, IllegalAccessException;
 }

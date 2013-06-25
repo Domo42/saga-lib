@@ -109,7 +109,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
     /**
      * Called by timeout task once timeout has expired.
      */
-    private void timeoutExpired(Timeout timeout) {
+    private void timeoutExpired(final Timeout timeout) {
         try {
             for (TimeoutExpired callback : callbacks) {
                 callback.expired(timeout);

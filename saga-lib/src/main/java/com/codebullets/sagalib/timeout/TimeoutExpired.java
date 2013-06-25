@@ -25,5 +25,5 @@ public interface TimeoutExpired {
      * Called as a timeout has expired.
      * @param timeout The timeout event containing the original timeout request data.
      */
-    void expired (Timeout timeout);
+    void expired(Timeout timeout);
 }

@@ -49,6 +49,9 @@ public class SagaExecutionTask implements Runnable {
 
     /**
      * Performs synchronous saga handling of the message provided in ctor.
+     *
+     * @throws InvocationTargetException Thrown when invocation of the handler method fails.
+     * @throws IllegalAccessException Thrown when access to the handler method fails.
      */
     public void handle() throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");
@@ -58,13 +61,13 @@ public class SagaExecutionTask implements Runnable {
     /**
      * Perform handling of a single message.
      */
-    private void handleSagaMessage(final Object message) throws InvocationTargetException, IllegalAccessException {
-        Collection<Saga> sagas = sagaFactory.create(message);
+    private void handleSagaMessage(final Object invokeParam) throws InvocationTargetException, IllegalAccessException {
+        Collection<Saga> sagas = sagaFactory.create(invokeParam);
         if (sagas.isEmpty()) {
-            LOG.warn("No saga found to handle message. {}", message);
+            LOG.warn("No saga found to handle message. {}", invokeParam);
         } else {
             for (Saga saga : sagas) {
-                invoker.invoke(saga, message);
+                invoker.invoke(saga, invokeParam);
                 updateStateStorage(saga);
             }
         }

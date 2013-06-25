@@ -76,6 +76,9 @@ public class ReflectionInvoker implements HandlerInvoker {
         return methodToInvoke;
     }
 
+    /**
+     * Searches for a specific handler method in the scanned map of handlers.
+     */
     private static class MethodSearcher extends CacheLoader<InvokerKey, Method> {
         private final Map<Class<? extends Saga>, SagaHandlersMap> handlersMapMap;
 
@@ -100,6 +103,9 @@ public class ReflectionInvoker implements HandlerInvoker {
         }
     }
 
+    /**
+     * Combined key of saga type and message being handled.
+     */
     private static class InvokerKey {
         private final Class sagaClazz;
         private final Class msgClazz;
@@ -128,8 +134,8 @@ public class ReflectionInvoker implements HandlerInvoker {
 
             if (obj instanceof InvokerKey) {
                 InvokerKey other = (InvokerKey) obj;
-                isEqual = Objects.equals(msgClazz, other.msgClazz) &&
-                          Objects.equals(sagaClazz, other.sagaClazz);
+                isEqual = Objects.equals(msgClazz, other.msgClazz)
+                       && Objects.equals(sagaClazz, other.sagaClazz);
             }
 
             return isEqual;

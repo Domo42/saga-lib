@@ -22,7 +22,7 @@ import java.util.Date;
  * Created by the saga lib if a saga has requested a timeout and
  * the defined time has expired.
  */
-public class Timeout implements Serializable {
+public final class Timeout implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String sagaId;

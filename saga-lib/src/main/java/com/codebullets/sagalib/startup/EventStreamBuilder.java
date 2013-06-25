@@ -74,6 +74,9 @@ public final class EventStreamBuilder implements StreamBuilder {
         return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public StreamBuilder usingScanner(final TypeScanner typeScanner) {
         checkNotNull(typeScanner, "Scanner to use must not be null.");
@@ -82,6 +85,9 @@ public final class EventStreamBuilder implements StreamBuilder {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public StreamBuilder usingStorage(final StateStorage stateStorage) {
         checkNotNull(stateStorage, "Storage to use must not be null.");
@@ -90,14 +96,20 @@ public final class EventStreamBuilder implements StreamBuilder {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public StreamBuilder usingTimeoutManager(final TimeoutManager timeoutManager) {
-        checkNotNull(timeoutManager, "Timeout manager must not be null.");
+    public StreamBuilder usingTimeoutManager(final TimeoutManager manager) {
+        checkNotNull(manager, "Timeout manager must not be null.");
 
-        this.timeoutManager = timeoutManager;
+        this.timeoutManager = manager;
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public StreamBuilder usingSagaProviderFactory(final SagaProviderFactory sagaProviderFactory) {
         checkNotNull(sagaProviderFactory, "Provider factory must be set.");
@@ -107,9 +119,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     }
 
     private void buildTypeScanner() {
-        if (scanner != null) {
-            // scanner = new
-        }
+        // TODO: create default scanner.
     }
 
     private void buildSagaAnalyzer() {
@@ -142,7 +152,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     /**
      * Calls close if object implements {@link AutoCloseable} interface.
      */
-    private void tryClose(Object objectToClose) {
+    private void tryClose(final Object objectToClose) {
         try {
             if (objectToClose instanceof AutoCloseable) {
                 AutoCloseable closeable = (AutoCloseable) objectToClose;

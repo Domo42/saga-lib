@@ -19,6 +19,8 @@ import java.util.Collection;
 
 /**
  * Represents a single saga. A saga contains state and handles different messages and events.
+ *
+ * @param <SAGA_STATE> Type of the saga state persisted between message handling.
  */
 public interface Saga<SAGA_STATE extends SagaState> {
     /**

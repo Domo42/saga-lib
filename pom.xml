@@ -59,6 +59,26 @@
 
     <build>
         <plugins>
+            <!-- define consistent code style check -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.10</version>
+                <configuration>
+                    <enableRulesSummary>false</enableRulesSummary>
+                    <configLocation>analysis/checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- specify expected java version -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
