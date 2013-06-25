@@ -100,13 +100,6 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
-        <module name="ImportOrder">
-            <property name="groups" value="/.*/,com.frequentis"/>
-            <property name="ordered" value="false"/>
-            <property name="separated" value="true"/>
-            <property name="option" value="bottom"/>
-        </module>
-
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
         <module name="LineLength">
