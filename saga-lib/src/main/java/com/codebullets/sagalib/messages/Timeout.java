@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib.messages;
 
+import com.google.common.base.Objects;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -66,5 +68,17 @@ public final class Timeout implements Serializable {
         timeout.name = name;
 
         return timeout;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("sagaId", sagaId)
+                .add("expiredAt", expiredAt)
+                .add("name", name)
+                .toString();
     }
 }

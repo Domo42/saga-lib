@@ -19,6 +19,7 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
+import com.codebullets.sagalib.messages.Timeout;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
@@ -29,6 +30,7 @@ import org.junit.Test;
 
 import javax.inject.Provider;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -125,6 +127,27 @@ public class SagaFactoryTest {
         // then
         assertThat("Expected a saga to be created.", sagas, hasSize(1));
         assertThat("Saga state assigned has to be the existing one.", sagas.iterator().next().state(), sameInstance((SagaState)existingState));
+    }
+
+    /**
+     * Given => Timeout message for saga.
+     * When  => create is called
+     * Then  => Returns existing saga based on timeout.
+     */
+    @Test
+    public void create_timeoutMessage_returnsExistingSagaInstance() {
+        // given
+        Timeout timeout = Timeout.create("sagaId", "timeoutName", new Date());
+        TestSagaState existingState = new TestSagaState();
+        existingState.setType(TestSaga.class.getName());
+        when(stateStorage.load(timeout.getSagaId())).thenReturn(existingState);
+
+        // when
+        Collection<Saga> sagas = sut.create(timeout);
+
+        // then
+        assertThat("Expected one saga entry for single timeout.", sagas, hasSize(1));
+        assertThat("Returned saga has existing state attached.", sagas.iterator().next().state(), sameInstance((SagaState) existingState));
     }
 
     private Map<Class<? extends Saga>, SagaHandlersMap> createFakeTestSagaHandlersMap() {

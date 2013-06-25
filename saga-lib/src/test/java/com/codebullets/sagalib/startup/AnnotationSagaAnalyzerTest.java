@@ -72,7 +72,7 @@ public class AnnotationSagaAnalyzerTest {
         assertThat("Expected entry of key TestSage.class", scanResult.containsKey(TestSaga.class), is(true));
 
         SagaHandlersMap handlers = scanResult.get(TestSaga.class);
-        assertThat("Expected two total message handlers for saga.", handlers.messageHandlers(), hasSize(2));
+        assertThat("Expected three total message handlers for saga.", handlers.messageHandlers(), hasSize(3));
     }
 
     /**

@@ -2,6 +2,7 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
+import com.codebullets.sagalib.messages.Timeout;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
@@ -55,20 +56,47 @@ public class SagaFactory {
     public Collection<Saga> create(final Object message) {
         Collection<Saga> sagaInstances = new ArrayList<>();
 
-        // create and start a new saga if message has been flagged as such
-        Collection<Class<? extends Saga>> startingSagaTypes = messagesStartingSagas.get(message.getClass());
-        for (Class<? extends Saga> sagaType : startingSagaTypes) {
-            sagaInstances.add(startNewSaga(sagaType));
-        }
+        if (message instanceof Timeout) {
+            // timeout is special. Has only one specific saga state and
+            // saga id is already known
+            Timeout timeout = (Timeout) message;
+            Saga saga = createSagaForTimeoutHandling(timeout);
+            if (saga != null) {
+                sagaInstances.add(saga);
+            }
+        } else {
+            // create and start a new saga if message has been flagged as such
+            Collection<Class<? extends Saga>> startingSagaTypes = messagesStartingSagas.get(message.getClass());
+            for (Class<? extends Saga> sagaType : startingSagaTypes) {
+                sagaInstances.add(startNewSaga(sagaType));
+            }
 
-        // Search for existing saga states and attach them to created instances.
-        Collection <Class<? extends Saga>> existingSagaTypes = messagesToContinueSaga.get(message.getClass());
-        for (Class<? extends Saga> sagaType : existingSagaTypes) {
-            Collection<Saga> sagas = continueSagas(sagaType, message);
-            sagaInstances.addAll(sagas);
+            // Search for existing saga states and attach them to created instances.
+            Collection <Class<? extends Saga>> existingSagaTypes = messagesToContinueSaga.get(message.getClass());
+            for (Class<? extends Saga> sagaType : existingSagaTypes) {
+                Collection<Saga> sagas = continueSagas(sagaType, message);
+                sagaInstances.addAll(sagas);
+            }
         }
 
         return sagaInstances;
+    }
+
+    /**
+     * Search for saga state based on id directly and create instance with attached state.
+     */
+    private Saga createSagaForTimeoutHandling(final Timeout timeout) {
+        Saga saga = null;
+
+        // timeout does not need key extraction
+        SagaState state = stateStorage.load(timeout.getSagaId());
+        if (state != null) {
+            saga = continueSaga(state.getType(), state);
+        } else {
+            LOG.warn("No open saga state found. Timeout = {}", timeout);
+        }
+
+        return saga;
     }
 
     /**
@@ -97,12 +125,30 @@ public class SagaFactory {
      * Creates a new saga instance and attaches the existing saga state.
      */
     private Saga continueSaga(final Class<? extends Saga> sagaToContinue, final SagaState existingSate) {
-        Saga saga = null;
+        Saga saga;
+
         try {
             saga = providers.get(sagaToContinue).get();
             saga.setState(existingSate);
         } catch (Exception ex) {
+            saga = null;
             LOG.error("Unable to create new instance of saga type {}.", sagaToContinue, ex);
+        }
+
+        return saga;
+    }
+
+    /**
+     * Create a new saga instance based on fully qualified name and the existing saga state.
+     */
+    private Saga continueSaga(final String sagaToContinue, final SagaState existingState) {
+        Saga saga = null;
+
+        try {
+            Class clazz = Class.forName(sagaToContinue);
+            saga = continueSaga(clazz, existingState);
+        } catch (Exception ex) {
+            LOG.error("Error creating instance for saga type string {}", sagaToContinue);
         }
 
         return saga;

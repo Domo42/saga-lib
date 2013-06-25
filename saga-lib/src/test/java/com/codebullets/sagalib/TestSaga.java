@@ -15,29 +15,53 @@
  */
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.messages.Timeout;
+import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests class containing expected annotations.
  */
 public class TestSaga extends AbstractSaga<TestSagaState> {
     public static final int INSTANCE_KEY = 42;
+    private final TimeoutManager timeoutManager;
     private boolean startupCalled;
     private boolean handerCalled;
+
+    /**
+     * Generates a new instance of TestSaga.
+     */
+    public TestSaga() {
+        timeoutManager = null;
+    }
+
+    public TestSaga(final TimeoutManager timeoutManager) {
+        this.timeoutManager = timeoutManager;
+    }
 
     @StartsSaga
     public void sagaStartup(String startedByString) {
         state().setInstanceKey(String.valueOf(INSTANCE_KEY));
         startupCalled = true;
+
+        if (timeoutManager != null) {
+            timeoutManager.requestTimeout(state().getSagaId(), "myTimeoutName", 5, TimeUnit.SECONDS);
+        }
     }
 
     @EventHandler
     public void handlesIntegerType(Integer intValue) {
         handerCalled = true;
         setAsCompleted();
+    }
+
+    @EventHandler
+    public void handleTimeout(Timeout timeout) {
+        state().setTimoutHandled(true);
     }
 
     public boolean startupCalled() {

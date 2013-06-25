@@ -7,6 +7,7 @@ public class TestSagaState implements SagaState {
     private String sagaId;
     private String type;
     private String instanceKey;
+    private boolean timoutHandled;
 
     @Override
     public String getSagaId() {
@@ -33,5 +34,13 @@ public class TestSagaState implements SagaState {
 
     public void setInstanceKey(final String instanceKey) {
         this.instanceKey = instanceKey;
+    }
+
+    public boolean isTimoutHandled() {
+        return timoutHandled;
+    }
+
+    public void setTimoutHandled(final boolean timoutHandled) {
+        this.timoutHandled = timoutHandled;
     }
 }

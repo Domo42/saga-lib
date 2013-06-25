@@ -20,10 +20,11 @@ import com.codebullets.sagalib.messages.Timeout;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import java.lang.reflect.InvocationTargetException;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.lang.reflect.InvocationTargetException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -79,6 +80,11 @@ public class SagaMessageStream implements MessageStream {
      * Called whenever the timeout manager reports an expired timeout.
      */
     private void timeoutHasExpired(final Timeout timeout) {
+        try {
+            handle(timeout);
+        } catch (Exception ex) {
+            LOG.error("Error handling timeout {}", timeout, ex);
+        }
     }
 
     private SagaExecutionTask createExecutor(final Object message) {
