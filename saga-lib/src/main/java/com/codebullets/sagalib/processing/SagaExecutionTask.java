@@ -17,6 +17,7 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,15 +36,18 @@ public class SagaExecutionTask implements Runnable {
     private final SagaFactory sagaFactory;
     private final HandlerInvoker invoker;
     private final StateStorage storage;
+    private final TimeoutManager timeoutManager;
     private final Object message;
 
     /**
      * Generates a new instance of SagaExecutionTask.
      */
-    public SagaExecutionTask(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final Object message) {
+    public SagaExecutionTask(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
+                             final Object message) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
+        this.timeoutManager = timeoutManager;
         this.message = message;
     }
 
@@ -79,6 +83,7 @@ public class SagaExecutionTask implements Runnable {
     private void updateStateStorage(final Saga saga) {
         if (saga.isCompleted()) {
             storage.delete(saga.state().getSagaId());
+            timeoutManager.cancelTimeouts(saga.state().getSagaId());
         } else {
             storage.save(saga.state());
         }

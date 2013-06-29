@@ -37,6 +37,7 @@ public class SagaMessageStream implements MessageStream {
     private final SagaFactory sagaFactory;
     private final HandlerInvoker invoker;
     private final StateStorage storage;
+    private final TimeoutManager timeoutManager;
 
     /**
      * Creates a new SagaMessageStream instance.
@@ -46,6 +47,7 @@ public class SagaMessageStream implements MessageStream {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
+        this.timeoutManager = timeoutManager;
 
         timeoutManager.addExpiredCallback(new TimeoutExpired() {
             @Override
@@ -88,6 +90,6 @@ public class SagaMessageStream implements MessageStream {
     }
 
     private SagaExecutionTask createExecutor(final Object message) {
-        return new SagaExecutionTask(sagaFactory, invoker, storage, message);
+        return new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, message);
     }
 }

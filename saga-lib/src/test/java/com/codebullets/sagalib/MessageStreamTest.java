@@ -41,8 +41,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,13 +56,14 @@ public class MessageStreamTest {
     private MessageStream sut;
     private StateStorage storage;
     ScheduledExecutorService scheduler;
+    ScheduledFuture timeout;
 
     @Before
     @SuppressWarnings("unchecked")
     public void init() {
         storage = new MemoryStorage();
         scheduler = mock(ScheduledExecutorService.class);
-        ScheduledFuture timeout = mock(ScheduledFuture.class);
+        timeout = mock(ScheduledFuture.class);
         TimeoutManager timeoutManager = new InMemoryTimeoutManager(scheduler, new SystemClock());
 
         when(scheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(timeout);
@@ -131,7 +135,43 @@ public class MessageStreamTest {
         assertThat("Expected timeout to be called.", knownState.isTimoutHandled(), equalTo(true));
     }
 
-    private <T> Collection<T> convertToCollection(Collection<? extends T> source) {
+    /**
+     * Given => Saga is started and completed.
+     * When  => Last message is handled.
+     * Then  => Timeout is canceled.
+     */
+    @Test
+    public void handle_sagaIsCompleted_runningTimeoutIsCanceled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        String startMsg = "startMsg_" + RandomStringUtils.randomAlphanumeric(10);
+        Integer msg2 = TestSaga.INSTANCE_KEY;
+        sut.handle(startMsg);
+
+        // when
+        sut.handle(msg2);
+
+        // then
+        verify(timeout).cancel(eq(false));
+    }
+
+    /**
+     * Given => Saga is started but not completed.
+     * When  => Message is handled.
+     * Then  => Timeout is not canceled.
+     */
+    @Test
+    public void handle_sagaNotCompleted_doNotCancelTimeouts() throws InvocationTargetException, IllegalAccessException {
+        // given
+        String startMsg = "startMsg_" + RandomStringUtils.randomAlphanumeric(10);
+
+        // when
+        sut.handle(startMsg);
+
+        // then
+        verify(timeout, never()).cancel(anyBoolean());
+    }
+
+    private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
         Collection<T> newCollection = new ArrayList<>(source.size());
         for (T entry : source) {
             newCollection.add(entry);
