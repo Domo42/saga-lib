@@ -1,7 +1,8 @@
 @ECHO OFF
-SET targetVersion=0.1
+SET targetVersion=0.2
 SET baseDir=%~dp0
 SET targetUrl=https://oss.sonatype.org/service/local/staging/deploy/maven2
+REM SET targetUrl=file://v:\temp\repo
 
 REM change version number in project tree
 CD ..
@@ -24,27 +25,37 @@ gpg -u AA9AEC3C --sign --detach-sign -o %pomAscFile% -a saga-lib.pom.xml
 
 
 REM deploy base artifacts
+ECHO.
+ECHO -------- Deploy Binaries ----------
+ECHO.
 call mvn deploy:deploy-file -Durl=%targetUrl% ^
                             -DrepositoryId=sonatype-nexus-staging ^
                             -Dfile=%baseDir%\..\saga-lib\target\saga-lib-%targetVersion%.jar ^
                             -DpomFile=%baseDir%\saga-lib.pom.xml ^
                             -Djavadoc=%baseDir%\..\saga-lib\target\saga-lib-%targetVersion%-javadoc.jar ^
                             -Dsources=%baseDir%\..\saga-lib\target\saga-lib-%targetVersion%-sources.jar
-                            -Dfiles
 
 REM deploy signatures
+ECHO.
+ECHO -------- Deploy POM Signature ----------
+ECHO.
 call mvn deploy:deploy-file -Durl=%targetUrl% ^
                             -DrepositoryId=sonatype-nexus-staging ^
                             -Dfile=%baseDir%\%pomAscFile% ^
                             -DpomFile=%baseDir%\saga-lib.pom.xml ^
                             -Dpackaging=pom.asc
 
+ECHO.
+ECHO -------- Deploy lib Signature ----------
+ECHO.
 call mvn deploy:deploy-file -Durl=%targetUrl% ^
                             -DrepositoryId=sonatype-nexus-staging ^
                             -Dfile=%baseDir%\..\saga-lib\target\saga-lib-%targetVersion%.jar.asc ^
                             -DpomFile=%baseDir%\saga-lib.pom.xml ^
                             -Dpackaging=jar.asc
-
+ECHO.
+ECHO -------- Deploy JavaDoc Signature ----------
+ECHO.
 call mvn deploy:deploy-file -Durl=%targetUrl% ^
                             -DrepositoryId=sonatype-nexus-staging ^
                             -Dfile=%baseDir%\..\saga-lib\target\saga-lib-%targetVersion%-javadoc.jar.asc ^
@@ -52,6 +63,9 @@ call mvn deploy:deploy-file -Durl=%targetUrl% ^
                             -Dclassifier=javadoc ^
                             -Dpackaging=jar.asc
 
+ECHO.
+ECHO -------- Deploy Sources Signature ----------
+ECHO.
 call mvn deploy:deploy-file -Durl=%targetUrl% ^
                             -DrepositoryId=sonatype-nexus-staging ^
                             -Dfile=%baseDir%\..\saga-lib\target\saga-lib-%targetVersion%-sources.jar.asc ^

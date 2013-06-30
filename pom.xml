@@ -6,7 +6,7 @@
 
     <groupId>com.codebullets.saga-lib</groupId>
     <artifactId>saga-lib-root</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
     <packaging>pom</packaging>
 
     <modules>
