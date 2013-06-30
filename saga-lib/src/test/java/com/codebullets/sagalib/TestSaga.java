@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests class containing expected annotations.
  */
-public class TestSaga extends AbstractSaga<TestSagaState> {
+public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSagaState> {
     public static final int INSTANCE_KEY = 42;
     private final TimeoutManager timeoutManager;
     private boolean startupCalled;

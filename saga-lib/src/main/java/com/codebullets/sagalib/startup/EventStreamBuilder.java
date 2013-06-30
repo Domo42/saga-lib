@@ -119,7 +119,9 @@ public final class EventStreamBuilder implements StreamBuilder {
     }
 
     private void buildTypeScanner() {
-        // TODO: create default scanner.
+        if (scanner == null) {
+            scanner = new ReflectionsTypeScanner();
+        }
     }
 
     private void buildSagaAnalyzer() {
