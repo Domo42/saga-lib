@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib.messages;
+package com.codebullets.sagalib.timeout;
 
 import com.google.common.base.Objects;
 

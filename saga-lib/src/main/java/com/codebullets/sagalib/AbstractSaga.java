@@ -15,14 +15,20 @@
  */
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.timeout.NeedTimeouts;
+import com.codebullets.sagalib.timeout.TimeoutManager;
+
+import java.util.concurrent.TimeUnit;
+
 /**
  * Base implementation of the {@link Saga} interface.
  *
  * @param <SAGA_STATE> Type of the state object attached to this saga.
  */
-public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga<SAGA_STATE> {
+public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga<SAGA_STATE>, NeedTimeouts {
     private SAGA_STATE state;
     private boolean completed;
+    private TimeoutManager timeoutManager;
 
     /**
      * Generates a new instance of AbstractSaga.
@@ -61,5 +67,27 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      */
     protected void setAsCompleted() {
         completed = true;
+    }
+
+    /**
+     * Requests a timeout event to be sent back to this saga.
+     */
+    protected void requestTimeout(final long delay, final TimeUnit unit) {
+        requestTimeout(delay, unit, null);
+    }
+
+    /**
+     * Requests a timeout event with a specific name to this saga. The name can
+     * be used to distinguish the timeout if multiple ones have been requested by the saga.
+     */
+    protected  void requestTimeout(final long delay, final TimeUnit unit, final String name) {
+        timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setTimeoutManager(final TimeoutManager timeoutManager) {
+        this.timeoutManager = timeoutManager;
     }
 }

@@ -69,7 +69,7 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildInvoker();
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
-        SagaFactory sagaFactory = new SagaFactory(sagaAnalyzer, providerFactory, extractor, storage);
+        SagaFactory sagaFactory = new SagaFactory(sagaAnalyzer, providerFactory, extractor, storage, timeoutManager);
 
         return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager);
     }

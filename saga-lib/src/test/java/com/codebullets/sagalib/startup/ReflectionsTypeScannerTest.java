@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ReflectionsTypeScanner} class.
  */
+@SuppressWarnings("unchecked")
 public class ReflectionsTypeScannerTest {
     /**
      * Given => Scanner is created with default ctor.

@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib;
 
-import com.codebullets.sagalib.messages.Timeout;
+import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
 
@@ -30,7 +30,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     public static final int INSTANCE_KEY = 42;
     private final TimeoutManager timeoutManager;
     private boolean startupCalled;
-    private boolean handerCalled;
+    private boolean handlerCalled;
 
     /**
      * Generates a new instance of TestSaga.
@@ -55,7 +55,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
 
     @EventHandler
     public void handlesIntegerType(Integer intValue) {
-        handerCalled = true;
+        handlerCalled = true;
         setAsCompleted();
     }
 
@@ -68,8 +68,8 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
         return startupCalled;
     }
 
-    public boolean handerCalled() {
-        return handerCalled;
+    public boolean handlerCalled() {
+        return handlerCalled;
     }
 
     @Override

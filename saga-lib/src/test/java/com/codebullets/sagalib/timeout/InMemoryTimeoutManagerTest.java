@@ -15,7 +15,6 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import com.codebullets.sagalib.messages.Timeout;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;

@@ -16,12 +16,15 @@
 package com.codebullets.sagalib.timeout;
 
 /**
- * Callback interface triggered by the {@link TimeoutManager} as a timeout has expired.
+ * Implement this interface on your saga to request the timeout manager. The
+ * timeout manager can be used to request future timeouts to be triggered.<br/>
+ * The {@link com.codebullets.sagalib.AbstractSaga} already implements the
+ * interface and will provides some convenient methods to request timeout handling.
  */
-public interface TimeoutExpired {
+public interface NeedTimeouts {
     /**
-     * Called as a timeout has expired.
-     * @param timeout The timeout event containing the original timeout request data.
+     * When a saga implements the {@link NeedTimeouts} interface this method
+     * is called during creation providing access to configured timeouts manager instance.
      */
-    void expired(Timeout timeout);
+    void setTimeoutManager(TimeoutManager timeoutManager);
 }

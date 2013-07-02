@@ -16,7 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.MessageStream;
-import com.codebullets.sagalib.messages.Timeout;
+import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;

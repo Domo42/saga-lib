@@ -2,11 +2,13 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
-import com.codebullets.sagalib.messages.Timeout;
+import com.codebullets.sagalib.timeout.NeedTimeouts;
+import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -25,11 +27,13 @@ import java.util.UUID;
 /**
  * Responsible to create new instances of sagas.
  */
+@SuppressWarnings("unchecked")
 public class SagaFactory {
     private static final Logger LOG = LoggerFactory.getLogger(SagaFactory.class);
     private final Multimap<Class, Class<? extends Saga>> messagesToContinueSaga = HashMultimap.create();
     private final Multimap<Class, Class<? extends Saga>> messagesStartingSagas = HashMultimap.create();
     private final LoadingCache<Class<? extends Saga>, Provider<? extends Saga>> providers;
+    private final TimeoutManager timeoutManager;
     private KeyExtractor keyExtractor;
     private StateStorage stateStorage;
 
@@ -38,9 +42,11 @@ public class SagaFactory {
      */
     @Inject
     public SagaFactory(final SagaAnalyzer sagaAnalyzer, final SagaProviderFactory providerFactory, final KeyExtractor keyExtractor,
-                       final StateStorage stateStorage) {
+                       final StateStorage stateStorage, final TimeoutManager timeoutManager) {
         this.keyExtractor = keyExtractor;
         this.stateStorage = stateStorage;
+        this.timeoutManager = timeoutManager;
+
         // Create providers when needed. Cache providers for later use.
         providers = CacheBuilder.newBuilder().build(new ProviderLoader(providerFactory));
 
@@ -128,7 +134,7 @@ public class SagaFactory {
         Saga saga;
 
         try {
-            saga = providers.get(sagaToContinue).get();
+            saga = createNewSagaInstance(sagaToContinue);
             saga.setState(existingSate);
         } catch (Exception ex) {
             saga = null;
@@ -161,8 +167,7 @@ public class SagaFactory {
         Saga createdSaga = null;
 
         try {
-            Provider<? extends Saga> sagaProvider = providers.get(sagaToStart);
-            createdSaga = sagaProvider.get();
+            createdSaga = createNewSagaInstance(sagaToStart);
             createdSaga.createNewState();
 
             SagaState newState = createdSaga.state();
@@ -170,6 +175,20 @@ public class SagaFactory {
             newState.setType(sagaToStart.getName());
         } catch (Exception ex) {
             LOG.error("Unable to create new instance of saga type {}.", sagaToStart, ex);
+        }
+
+        return createdSaga;
+    }
+
+    /**
+     * Creates a new saga instances with the requested type.
+     * @throws Exception Forwards possible exceptions from the provider get method.
+     */
+    private Saga createNewSagaInstance(final Class<? extends Saga> sagaType) throws Exception {
+        Provider<? extends Saga> sagaProvider = providers.get(sagaType);
+        Saga createdSaga = sagaProvider.get();
+        if (createdSaga instanceof NeedTimeouts) {
+            ((NeedTimeouts) createdSaga).setTimeoutManager(timeoutManager);
         }
 
         return createdSaga;

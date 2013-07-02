@@ -19,11 +19,12 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
-import com.codebullets.sagalib.messages.Timeout;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.Timeout;
+import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class SagaFactoryTest {
         SagaAnalyzer sagaAnalyzer = mock(SagaAnalyzer.class);
         when(sagaAnalyzer.scanHandledMessageTypes()).thenReturn(createFakeTestSagaHandlersMap());
 
-        sut = new SagaFactory(sagaAnalyzer, sagaProviderFactory, keyExtractor, stateStorage);
+        sut = new SagaFactory(sagaAnalyzer, sagaProviderFactory, keyExtractor, stateStorage, mock(TimeoutManager.class));
     }
 
     /**

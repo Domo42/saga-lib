@@ -15,8 +15,6 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import com.codebullets.sagalib.messages.Timeout;
-
 /**
  * Calls the {@code expiredCallback} method when executed.
  */

@@ -15,7 +15,6 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import com.codebullets.sagalib.messages.Timeout;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;

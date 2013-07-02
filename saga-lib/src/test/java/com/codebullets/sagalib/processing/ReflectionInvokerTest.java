@@ -86,6 +86,6 @@ public class ReflectionInvokerTest {
         sut.invoke(saga, handlerMessage);
 
         // then
-        assertThat("Expected saga handler method to be called.", saga.handerCalled(), equalTo(true));
+        assertThat("Expected saga handler method to be called.", saga.handlerCalled(), equalTo(true));
     }
 }
