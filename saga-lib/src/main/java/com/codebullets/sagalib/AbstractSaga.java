@@ -65,7 +65,7 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      * Marks this saga as completed. Resulting in the deletion of all saga state
      * associated.
      */
-    protected void setAsCompleted() {
+    protected void setCompleted() {
         completed = true;
     }
 

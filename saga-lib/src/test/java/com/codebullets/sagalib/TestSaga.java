@@ -56,7 +56,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     @EventHandler
     public void handlesIntegerType(Integer intValue) {
         handlerCalled = true;
-        setAsCompleted();
+        setCompleted();
     }
 
     @EventHandler
