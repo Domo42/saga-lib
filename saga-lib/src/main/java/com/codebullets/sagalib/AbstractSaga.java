@@ -87,6 +87,7 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setTimeoutManager(final TimeoutManager timeoutManager) {
         this.timeoutManager = timeoutManager;
     }
