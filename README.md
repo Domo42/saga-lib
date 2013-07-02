@@ -37,14 +37,14 @@ The above code will create a *MessageStream* instance. Use this instance to brin
 object *sagaProvider* from the example above is responsible to return individual
 [JSR-330](http://jcp.org/en/jsr/detail?id=330) providers used to request new instances of the respective saga type.
 [Guice](https://code.google.com/p/google-guice/) as well as [Spring](http://www.springsource.org/spring-framework) both support JSR-330
-so it quite easy to create a custom provider.
+so it is quite easy to create a custom provider.
 
 The above example will persist the state of the saga in memory, timeouts will be triggered based on Java timers and available Sagas will be automatically
-determined by scanning the current classpath. All of this behaviour can be customized by providing own implementions calling one of the *using* methods.
+determined by scanning the current classpath. All of this behaviour can be customized by providing own implementions and calling one of the *using* methods.
 
-A simple saga may look like the example below. The messages handled are simple POJOs holding the event data. They can be of any object type. The *MySagaState*
+A saga may look like the example below. The messages handled are POJOs holding only the event data. They can be of any object type. The *MySagaState* type
 is a expected to be a POJO as well implementing the *SagaState* interface. The method starting the sage is indicated by the *@StartsSaga* annotation while
-all further handler need to annotated with *@EventHandler*. There can only one message starting a saga. There is no limit to the number of further
+all further handlers need to be annotated with *@EventHandler*. There can only one message starting a saga. There is no limit to the number of further
 event handlers.
 
 ```java
