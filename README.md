@@ -28,7 +28,7 @@ The lib is started using the provided builder class. It will use default impleme
 if not specified otherwise. The *build()* method returns an instance ready to be used.
 
 ```java
-MessageSteam msgSteam = EventStreamBuilder.configure()
+MessageStream msgStream = EventStreamBuilder.configure()
         .usingSagaProviderFactory(sagaProvider)
         .build();
 ```
