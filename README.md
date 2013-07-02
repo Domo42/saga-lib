@@ -88,7 +88,7 @@ public class MySaga extends AbstractSaga<MySagaState> {
 
                     @Override
                     public String key(final OtherMessage message) {
-                        return message.get();
+                        return message.getId();
                     }
                 }
         );
