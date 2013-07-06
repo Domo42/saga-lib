@@ -1,31 +1,11 @@
 package com.codebullets.sagalib;
 
 /**
- * x
+ * State used during tests.
  */
-public class TestSagaState implements SagaState {
-    private String sagaId;
-    private String type;
+public class TestSagaState extends AbstractSagaState {
     private String instanceKey;
-    private boolean timoutHandled;
-
-    @Override
-    public String getSagaId() {
-        return sagaId;
-    }
-
-    public void setSagaId(final String sagaId) {
-        this.sagaId = sagaId;
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    public void setType(final String type) {
-        this.type = type;
-    }
+    private boolean timeoutHandled;
 
     @Override
     public String instanceKey() {
@@ -36,11 +16,11 @@ public class TestSagaState implements SagaState {
         this.instanceKey = instanceKey;
     }
 
-    public boolean isTimoutHandled() {
-        return timoutHandled;
+    public boolean isTimeoutHandled() {
+        return timeoutHandled;
     }
 
-    public void setTimoutHandled(final boolean timoutHandled) {
-        this.timoutHandled = timoutHandled;
+    public void setTimeoutHandled(final boolean timeoutHandled) {
+        this.timeoutHandled = timeoutHandled;
     }
 }

@@ -22,6 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -38,6 +39,7 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
     /**
      * Generates a new instance of SagaKeyReaderExtractor.
      */
+    @Inject
     public SagaKeyReaderExtractor(final SagaProviderFactory sagaProviderFactory) {
         this.sagaProviderFactory = sagaProviderFactory;
         knownReaders = CacheBuilder.newBuilder().build();

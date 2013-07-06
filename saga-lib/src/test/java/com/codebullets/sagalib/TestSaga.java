@@ -61,7 +61,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
 
     @EventHandler
     public void handleTimeout(Timeout timeout) {
-        state().setTimoutHandled(true);
+        state().setTimeoutHandled(true);
     }
 
     public boolean startupCalled() {

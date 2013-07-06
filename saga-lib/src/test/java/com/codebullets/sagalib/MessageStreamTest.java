@@ -132,7 +132,7 @@ public class MessageStreamTest {
         Collection<SagaState> sagaStates = convertToCollection(storage.load(TestSaga.class.getName(), String.valueOf(TestSaga.INSTANCE_KEY)));
         TestSagaState knownState = (TestSagaState) sagaStates.iterator().next();
 
-        assertThat("Expected timeout to be called.", knownState.isTimoutHandled(), equalTo(true));
+        assertThat("Expected timeout to be called.", knownState.isTimeoutHandled(), equalTo(true));
     }
 
     /**
