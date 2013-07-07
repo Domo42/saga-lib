@@ -15,13 +15,17 @@
  */
 package com.codebullets.sagalib;
 
+import java.io.Serializable;
+
 /**
  * Abstract state implementation already containing the basic
  * properties expected from {@link SagaState}.<p/>
  * The instance key method is intentionally missing. This one should
  * be modelled and implemented individually for each saga.
  */
-public abstract class AbstractSagaState implements SagaState {
+public abstract class AbstractSagaState implements SagaState, Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String sagaId;
     private String sagaType;
 

@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.AbstractSaga;
+import com.codebullets.sagalib.AbstractSingleEventSaga;
 import com.codebullets.sagalib.Saga;
 import com.google.common.collect.Sets;
 import org.reflections.Reflections;
@@ -25,6 +26,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Uses reflections library to scan for saga instances.<p/>
@@ -55,10 +57,14 @@ public class ReflectionsTypeScanner implements TypeScanner {
     public Collection<Class<? extends Saga>> scanForSagas() {
         Set<Class<? extends Saga>> sagaTypes = reflections.getSubTypesOf(Saga.class);
 
-        // separate search in case saga-lib is in embedded jar when performing directory scanning
+        // separate searches in case saga-lib is in embedded jar when performing directory scanning
         Set<Class<? extends AbstractSaga>> abstractSagaTypes = reflections.getSubTypesOf(AbstractSaga.class);
+        Set<Class<? extends AbstractSingleEventSaga>> singleEventSagaTypes = reflections.getSubTypesOf(AbstractSingleEventSaga.class);
 
-        return removeAbstractTypes(Sets.union(sagaTypes, abstractSagaTypes));
+        Set<Class<? extends Saga>> foundTypes = Sets.union(sagaTypes, abstractSagaTypes);
+        Set<Class<? extends Saga>> mergedSet = Sets.union(foundTypes, copy(singleEventSagaTypes));
+
+        return removeAbstractTypes(mergedSet);
     }
 
     /**
@@ -74,5 +80,14 @@ public class ReflectionsTypeScanner implements TypeScanner {
         }
 
         return sagaTypes;
+    }
+
+    private Set<Class<? extends Saga>> copy(final Set<Class<? extends AbstractSingleEventSaga>> source) {
+        Set<Class<? extends Saga>> target = new TreeSet<>();
+        for (Class<? extends Saga> entry : source) {
+            target.add(entry);
+        }
+
+        return target;
     }
 }

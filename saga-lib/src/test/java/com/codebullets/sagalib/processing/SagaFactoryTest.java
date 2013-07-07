@@ -25,6 +25,7 @@ import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,9 +38,8 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Mockito.mock;
@@ -80,11 +80,13 @@ public class SagaFactoryTest {
         String message = "using string as input message";
 
         // when
-        Collection<Saga> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(message);
 
         // then
         assertThat("Expected only one saga to be created.", sagas, hasSize(1));
-        assertThat("Expected an instance of TestSaga.", sagas, hasItem(isA(TestSaga.class)));
+
+        SagaInstanceDescription instance = Iterables.get(sagas, 0);
+        assertThat("Expected an instance of TestSaga.", instance.getSaga(), instanceOf(TestSaga.class));
     }
 
     /**
@@ -98,13 +100,54 @@ public class SagaFactoryTest {
         String message = "using string as input message";
 
         // when
-        Collection<Saga> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(message);
 
         // then
-        TestSaga saga = (TestSaga) sagas.iterator().next();
+        TestSaga saga = (TestSaga) Iterables.get(sagas, 0).getSaga();
         assertThat("Saga needs to have a saga state.", saga.state(), notNullValue());
         assertThat("Saga state needs a new id.", saga.state().getSagaId(), notNullValue());
         assertThat("Saga state needs type of originating saga.", saga.state().getType(), equalTo(TestSaga.class.getName()));
+    }
+
+    /**
+     * Given => Message to start a new saga.
+     * When  => create is called.
+     * Then  => The saga description object returns true for new started saga.
+     */
+    @Test
+    public void create_messageStartingTheSaga_descriptionDefinesStartingSagaTrue() {
+        // given
+        String message = "using string as input message";
+
+        // when
+        Collection<SagaInstanceDescription> sagas = sut.create(message);
+
+        // then
+        SagaInstanceDescription description = Iterables.get(sagas, 0);
+        assertThat("Expected starting info to be true.", description.isStarting(), equalTo(true));
+    }
+
+    /**
+     * Given => Message to continue an existing saga.
+     * When  => create is called.
+     * Then  => The returned saga description indicates saga is not starting.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void create_messageContinuesSaga_descriptionDefinesSagaStartingFalse() {
+        // given
+        Integer message = 42;
+        TestSagaState existingState = new TestSagaState();
+        String instanceKey = "theInstanceKey";
+        when(keyExtractor.findSagaInstanceKey(TestSaga.class, message)).thenReturn(instanceKey);
+        when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection)Lists.newArrayList(existingState));
+
+        // when
+        Collection<SagaInstanceDescription> sagas = sut.create(message);
+
+        // then
+        SagaInstanceDescription description = Iterables.get(sagas, 0);
+        assertThat("Saga description should indicate false for continued sagas.", description.isStarting(), equalTo(false));
     }
 
     /**
@@ -120,14 +163,14 @@ public class SagaFactoryTest {
         TestSagaState existingState = new TestSagaState();
         String instanceKey = "theInstanceKey";
         when(keyExtractor.findSagaInstanceKey(TestSaga.class, message)).thenReturn(instanceKey);
-        when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection)Lists.newArrayList(existingState));
+        when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection) Lists.newArrayList(existingState));
 
         // when
-        Collection<Saga> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(message);
 
         // then
         assertThat("Expected a saga to be created.", sagas, hasSize(1));
-        assertThat("Saga state assigned has to be the existing one.", sagas.iterator().next().state(), sameInstance((SagaState)existingState));
+        assertThat("Saga state assigned has to be the existing one.", Iterables.get(sagas, 0).getSaga().state(), sameInstance((SagaState) existingState));
     }
 
     /**
@@ -144,11 +187,32 @@ public class SagaFactoryTest {
         when(stateStorage.load(timeout.getSagaId())).thenReturn(existingState);
 
         // when
-        Collection<Saga> sagas = sut.create(timeout);
+        Collection<SagaInstanceDescription> sagas = sut.create(timeout);
 
         // then
         assertThat("Expected one saga entry for single timeout.", sagas, hasSize(1));
-        assertThat("Returned saga has existing state attached.", sagas.iterator().next().state(), sameInstance((SagaState) existingState));
+        assertThat("Returned saga has existing state attached.", Iterables.get(sagas, 0).getSaga().state(), sameInstance((SagaState) existingState));
+    }
+
+    /**
+     * Given => Timeout message for saga.
+     * When  => create is called
+     * Then  => Return description indicates false for timeout.
+     */
+    @Test
+    public void create_timeoutMessage_descriptionDefinesSagaStartingFalse() {
+        // given
+        Timeout timeout = Timeout.create("sagaId", "timeoutName", new Date());
+        TestSagaState existingState = new TestSagaState();
+        existingState.setType(TestSaga.class.getName());
+        when(stateStorage.load(timeout.getSagaId())).thenReturn(existingState);
+
+        // when
+        Collection<SagaInstanceDescription> sagas = sut.create(timeout);
+
+        // then
+        SagaInstanceDescription description = Iterables.get(sagas, 0);
+        assertThat("Expected started info to be false for timeouts.", description.isStarting(), equalTo(false));
     }
 
     private Map<Class<? extends Saga>, SagaHandlersMap> createFakeTestSagaHandlersMap() {

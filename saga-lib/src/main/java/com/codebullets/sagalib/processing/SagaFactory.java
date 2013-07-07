@@ -59,8 +59,8 @@ public class SagaFactory {
      * Creates new instances based on the message type provided.
      * @return Returns a saga instance.
      */
-    public Collection<Saga> create(final Object message) {
-        Collection<Saga> sagaInstances = new ArrayList<>();
+    public Collection<SagaInstanceDescription> create(final Object message) {
+        Collection<SagaInstanceDescription> sagaInstances = new ArrayList<>();
 
         if (message instanceof Timeout) {
             // timeout is special. Has only one specific saga state and
@@ -68,20 +68,23 @@ public class SagaFactory {
             Timeout timeout = (Timeout) message;
             Saga saga = createSagaForTimeoutHandling(timeout);
             if (saga != null) {
-                sagaInstances.add(saga);
+                sagaInstances.add(SagaInstanceDescription.define(saga, false));
             }
         } else {
             // create and start a new saga if message has been flagged as such
             Collection<Class<? extends Saga>> startingSagaTypes = messagesStartingSagas.get(message.getClass());
             for (Class<? extends Saga> sagaType : startingSagaTypes) {
-                sagaInstances.add(startNewSaga(sagaType));
+                Saga newSaga = startNewSaga(sagaType);
+                sagaInstances.add(SagaInstanceDescription.define(newSaga, true));
             }
 
             // Search for existing saga states and attach them to created instances.
             Collection <Class<? extends Saga>> existingSagaTypes = messagesToContinueSaga.get(message.getClass());
             for (Class<? extends Saga> sagaType : existingSagaTypes) {
                 Collection<Saga> sagas = continueSagas(sagaType, message);
-                sagaInstances.addAll(sagas);
+                for (Saga saga : sagas) {
+                    sagaInstances.add(SagaInstanceDescription.define(saga, false));
+                }
             }
         }
 

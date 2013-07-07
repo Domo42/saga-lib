@@ -66,13 +66,13 @@ public class SagaExecutionTask implements Runnable {
      * Perform handling of a single message.
      */
     private void handleSagaMessage(final Object invokeParam) throws InvocationTargetException, IllegalAccessException {
-        Collection<Saga> sagas = sagaFactory.create(invokeParam);
-        if (sagas.isEmpty()) {
+        Collection<SagaInstanceDescription> sagaDescriptions = sagaFactory.create(invokeParam);
+        if (sagaDescriptions.isEmpty()) {
             LOG.warn("No saga found to handle message. {}", invokeParam);
         } else {
-            for (Saga saga : sagas) {
-                invoker.invoke(saga, invokeParam);
-                updateStateStorage(saga);
+            for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
+                invoker.invoke(sagaDescription.getSaga(), invokeParam);
+                updateStateStorage(sagaDescription);
             }
         }
     }
@@ -80,8 +80,13 @@ public class SagaExecutionTask implements Runnable {
     /**
      * Updates the state storage depending on whether the saga is completed or keeps on running.
      */
-    private void updateStateStorage(final Saga saga) {
-        if (saga.isCompleted()) {
+    private void updateStateStorage(final SagaInstanceDescription description) {
+        Saga saga = description.getSaga();
+
+        // if saga has finished delete existing state and possible timeouts
+        // if saga has just been created state has never been save and there
+        // is no need to delete it.
+        if (saga.isCompleted() && !description.isStarting()) {
             storage.delete(saga.state().getSagaId());
             timeoutManager.cancelTimeouts(saga.state().getSagaId());
         } else {
