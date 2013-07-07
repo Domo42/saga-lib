@@ -60,15 +60,15 @@ public class MySaga extends AbstractSaga<MySagaState> {
 
     @EventHandler
     public void continueSagaWithOtherMessage(OtherMessage message) {
-        // perform custom logic and mark saga as completed
-        setCompleted();
+        // perform custom logic and mark saga as finished
+        setFinished();
     }
 
     @EventHandler
     public void handleTimeout(Timeout timeout) {
         // perform timeout logic
-        // timeout finishes saga therfore call setCompleted()
-        setCompleted();
+        // timeout finishes saga therfore call setFinished()
+        setFinished();
     }
 
     @Override
