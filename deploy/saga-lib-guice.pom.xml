@@ -5,17 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.codebullets.saga-lib</groupId>
-    <artifactId>saga-lib</artifactId>
+    <artifactId>saga-lib-guice</artifactId>
     <version>0.3</version>
-    <packaging>jar</packaging>
 
-    <name>saga-lib</name>
-    <description>Java saga pattern library to organize and handle domain events.</description>
+    <name>saga-lib-guice</name>
+    <description>Guice integration for com.codebullets.saga-lib</description>
     <url>https://github.com/Domo42/saga-lib</url>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
     <licenses>
         <license>
@@ -46,29 +41,16 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>3.0</version>
         </dependency>
 
         <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-            <version>1</version>
+            <groupId>com.codebullets.saga-lib</groupId>
+            <artifactId>saga-lib</artifactId>
+            <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.8</version>
-        </dependency>
-
     </dependencies>
 
 </project>
