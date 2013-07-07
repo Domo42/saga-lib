@@ -86,7 +86,7 @@ public class SagaExecutionTask implements Runnable {
         // if saga has finished delete existing state and possible timeouts
         // if saga has just been created state has never been save and there
         // is no need to delete it.
-        if (saga.isCompleted() && !description.isStarting()) {
+        if (saga.isFinished() && !description.isStarting()) {
             storage.delete(saga.state().getSagaId());
             timeoutManager.cancelTimeouts(saga.state().getSagaId());
         } else {

@@ -57,15 +57,15 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      * {@inheritDoc}
      */
     @Override
-    public boolean isCompleted() {
+    public boolean isFinished() {
         return completed;
     }
 
     /**
-     * Marks this saga as completed. Resulting in the deletion of all saga state
+     * Marks this saga as finished. Resulting in the deletion of all saga state
      * associated.
      */
-    protected void setCompleted() {
+    protected void setFinished() {
         completed = true;
     }
 

@@ -44,10 +44,11 @@ public interface Saga<SAGA_STATE extends SagaState> {
     void createNewState();
 
     /**
-     * Indicates whether the saga has completed.
+     * Indicates whether the saga has finished. A finished saga will result in the state and
+     * open timeouts becoming deleted.
      * @return True if saga is complete; otherwise false.
      */
-    boolean isCompleted();
+    boolean isFinished();
 
     /**
      * Returns a list of readers which are used to determine the instance key of

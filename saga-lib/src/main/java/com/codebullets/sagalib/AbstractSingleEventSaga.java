@@ -55,7 +55,7 @@ public abstract class AbstractSingleEventSaga implements Saga {
      * Always returns true, resulting in no state to be saved ever.
      */
     @Override
-    public boolean isCompleted() {
+    public boolean isFinished() {
         return true;
     }
 

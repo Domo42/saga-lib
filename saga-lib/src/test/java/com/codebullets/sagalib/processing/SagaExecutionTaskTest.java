@@ -69,7 +69,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_sagaNotCompleted_saveSagaState() {
         // given
-        when(saga.isCompleted()).thenReturn(false);
+        when(saga.isFinished()).thenReturn(false);
 
         // when
         sut.run();
@@ -86,7 +86,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_sagaIsStartedAndFinished_doesNotSaveSate() {
         // given
-        when(saga.isCompleted()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceDescription.isStarting()).thenReturn(false);
 
         // when
@@ -107,7 +107,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_sagaIsStartedAndFinished_doesNotDeleteSate() {
         // given
-        when(saga.isCompleted()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceDescription.isStarting()).thenReturn(true);
 
         // when
@@ -129,7 +129,7 @@ public class SagaExecutionTaskTest {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
-        when(saga.isCompleted()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceDescription.isStarting()).thenReturn(false);
 
         // when
@@ -151,7 +151,7 @@ public class SagaExecutionTaskTest {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
-        when(saga.isCompleted()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceDescription.isStarting()).thenReturn(false);
 
         // when
@@ -171,7 +171,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_sagaIsStartedAndIsFinished_doNotCancelTimeouts() {
         // given
-        when(saga.isCompleted()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceDescription.isStarting()).thenReturn(true);
 
         // when
