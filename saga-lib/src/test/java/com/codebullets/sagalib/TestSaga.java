@@ -49,7 +49,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
         startupCalled = true;
 
         if (timeoutManager != null) {
-            timeoutManager.requestTimeout(state().getSagaId(), "myTimeoutName", 5, TimeUnit.SECONDS);
+            timeoutManager.requestTimeout(state().getSagaId(), "myTimeoutName", 5, TimeUnit.SECONDS, null);
         }
     }
 

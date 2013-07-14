@@ -73,7 +73,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
      * {@inheritDoc}
      */
     @Override
-    public void requestTimeout(final String sagaId, final String name, final long delay, final TimeUnit timeUnit) {
+    public void requestTimeout(final String sagaId, final String name, final long delay, final TimeUnit timeUnit, final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
 
         SagaTimeoutTask timeoutTask = new SagaTimeoutTask(
@@ -85,7 +85,8 @@ public class InMemoryTimeoutManager implements TimeoutManager {
                         timeoutExpired(timeout);
                     }
                 },
-                clock);
+                clock,
+                data);
 
         ScheduledFuture future = scheduledService.schedule(timeoutTask, delay, timeUnit);
         openTimeouts.put(sagaId, future);

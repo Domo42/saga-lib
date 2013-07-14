@@ -81,7 +81,22 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      * be used to distinguish the timeout if multiple ones have been requested by the saga.
      */
     protected  void requestTimeout(final long delay, final TimeUnit unit, final String name) {
-        timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit);
+        timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit, null);
+    }
+
+    /**
+     * Requests a timeout event attaching specific timeout data. This data is returned
+     * with the timeout message received.
+     */
+    protected void requestTimeout(final long delay, final TimeUnit unit, final Object data) {
+        timeoutManager.requestTimeout(state().getSagaId(), null, delay, unit, data);
+    }
+
+    /**
+     * Requests a timeout event with a specific name and attached data.
+     */
+    protected void requestTimeout(final long delay, final TimeUnit unit, final String name, final Object data) {
+        timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit, data);
     }
 
     /**

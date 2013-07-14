@@ -33,11 +33,12 @@ public interface TimeoutManager {
     /**
      * Request a timeout event to be triggered in the future.
      * @param sagaId The id of the saga requesting the timeout.
-     * @param name A custom name for the timeout. Is returned once timeout expired.
+     * @param name A custom name for the timeout. Is returned as timeout has expired.
      * @param delay Time to wait until timeout expires.
      * @param timeUnit Specifies the unit of the {@code delay} argument.
+     * @param data Optional data object associated with the timeout. Can be null.
      */
-    void requestTimeout(String sagaId, String name, long delay, TimeUnit timeUnit);
+    void requestTimeout(String sagaId, String name, long delay, TimeUnit timeUnit, Object data);
 
     /**
      * Cancel all timeouts of a saga. If no timeout exist does nothing.

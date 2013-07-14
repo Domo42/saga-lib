@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -62,7 +63,7 @@ public class InMemoryTimeoutManagerTest {
         long timeoutInSec = 5;
 
         // when
-        sut.requestTimeout("anySagaId", "anyName", timeoutInSec, TimeUnit.SECONDS);
+        sut.requestTimeout("anySagaId", "anyName", timeoutInSec, TimeUnit.SECONDS, null);
 
         // then
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
@@ -80,13 +81,14 @@ public class InMemoryTimeoutManagerTest {
     public void timeoutTriggered_callbackAdded_callbackTriggered() {
         // given
         int delayInSec = 5;
+        Object expectedData = new Object();
         Date expectedTimeoutIn = new Date(clock.now().getTime() + TimeUnit.SECONDS.toMillis(delayInSec));
         TimeoutExpired expiredCallback = mock(TimeoutExpired.class);
         sut.addExpiredCallback(expiredCallback);
-        Timeout expected = Timeout.create("theSagaId", "theTimoutName", expectedTimeoutIn);
+        Timeout expected = Timeout.create("theSagaId", "theTimeoutName", expectedTimeoutIn, expectedData);
 
         // when
-        requestAndTriggerTimeout(expected.getSagaId(), expected.getName(), delayInSec, TimeUnit.SECONDS);
+        requestAndTriggerTimeout(expected.getSagaId(), expected.getName(), delayInSec, TimeUnit.SECONDS, expectedData);
 
         // then
         ArgumentCaptor<Timeout> captor = ArgumentCaptor.forClass(Timeout.class);
@@ -95,6 +97,7 @@ public class InMemoryTimeoutManagerTest {
         assertThat("Saga id does not match.", captor.getValue().getSagaId(), equalTo(expected.getSagaId()));
         assertThat("Timeout name does not match.", captor.getValue().getName(), equalTo(expected.getName()));
         assertThat("Expiration time stamp does not match.", captor.getValue().getExpiredAt(), equalTo(expected.getExpiredAt()));
+        assertThat("Data object does not match.", captor.getValue().getData(), sameInstance(expectedData));
     }
 
     /**
@@ -123,11 +126,12 @@ public class InMemoryTimeoutManagerTest {
                 RandomStringUtils.randomAlphanumeric(10),
                 RandomStringUtils.randomAlphanumeric(10),
                 10,
-                TimeUnit.HOURS);
+                TimeUnit.HOURS,
+                null);
     }
 
-    private void requestAndTriggerTimeout(final String sagaId, final String name, final long delay, final TimeUnit unit) {
-        sut.requestTimeout(sagaId, name, delay, unit);
+    private void requestAndTriggerTimeout(final String sagaId, final String name, final long delay, final TimeUnit unit, final Object data) {
+        sut.requestTimeout(sagaId, name, delay, unit, data);
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
         verify(executor).schedule(captor.capture(), eq(delay), eq(unit));
 

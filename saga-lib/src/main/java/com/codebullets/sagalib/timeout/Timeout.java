@@ -30,6 +30,7 @@ public final class Timeout implements Serializable {
     private String sagaId;
     private Date expiredAt;
     private String name;
+    private Object data;
 
     /**
      * Use static builder method to create instance.
@@ -59,13 +60,28 @@ public final class Timeout implements Serializable {
     }
 
     /**
+     * Gets the data object of the timeout.
+     */
+    public Object getData() {
+        return data;
+    }
+
+    /**
      * Creates a new Timeout instance.
      */
     public static Timeout create(final String sagaId, final String name, final Date expiredAt) {
+        return Timeout.create(sagaId, name, expiredAt, null);
+    }
+
+    /**
+     * Creates a new Timeout instance.
+     */
+    public static Timeout create(final String sagaId, final String name, final Date expiredAt, final Object data) {
         Timeout timeout = new Timeout();
         timeout.sagaId = sagaId;
         timeout.expiredAt = expiredAt;
         timeout.name = name;
+        timeout.data = data;
 
         return timeout;
     }
