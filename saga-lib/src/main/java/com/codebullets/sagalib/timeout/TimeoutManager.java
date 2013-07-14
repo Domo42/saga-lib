@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.timeout;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,7 +39,7 @@ public interface TimeoutManager {
      * @param timeUnit Specifies the unit of the {@code delay} argument.
      * @param data Optional data object associated with the timeout. Can be null.
      */
-    void requestTimeout(String sagaId, String name, long delay, TimeUnit timeUnit, Object data);
+    void requestTimeout(String sagaId, @Nullable String name, long delay, TimeUnit timeUnit, @Nullable Object data);
 
     /**
      * Cancel all timeouts of a saga. If no timeout exist does nothing.

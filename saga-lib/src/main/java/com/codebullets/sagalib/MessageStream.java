@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -27,12 +28,12 @@ public interface MessageStream {
      * Message is handled in the background and not necessarily a synchronous operation
      * depending on the execution strategy.
      */
-    void add(Object message);
+    void add(@Nonnull Object message);
 
     /**
      * Handles the given message on synchronously on the the calling thread.
      * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
      * @throws IllegalAccessException Thrown when access to the method to invoke is denied.
      */
-    void handle(Object message) throws InvocationTargetException, IllegalAccessException;
+    void handle(@Nonnull Object message) throws InvocationTargetException, IllegalAccessException;
 }

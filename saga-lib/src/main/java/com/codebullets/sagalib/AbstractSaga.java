@@ -18,6 +18,7 @@ package com.codebullets.sagalib;
 import com.codebullets.sagalib.timeout.NeedTimeouts;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,29 +74,29 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      * Requests a timeout event to be sent back to this saga.
      */
     protected void requestTimeout(final long delay, final TimeUnit unit) {
-        requestTimeout(delay, unit, null);
+        requestTimeout(delay, unit, null, null);
     }
 
     /**
      * Requests a timeout event with a specific name to this saga. The name can
      * be used to distinguish the timeout if multiple ones have been requested by the saga.
      */
-    protected  void requestTimeout(final long delay, final TimeUnit unit, final String name) {
-        timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit, null);
+    protected  void requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name) {
+        requestTimeout(delay, unit, name, null);
     }
 
     /**
      * Requests a timeout event attaching specific timeout data. This data is returned
      * with the timeout message received.
      */
-    protected void requestTimeout(final long delay, final TimeUnit unit, final Object data) {
-        timeoutManager.requestTimeout(state().getSagaId(), null, delay, unit, data);
+    protected void requestTimeout(final long delay, final TimeUnit unit, @Nullable final Object data) {
+        requestTimeout(delay, unit, null, data);
     }
 
     /**
      * Requests a timeout event with a specific name and attached data.
      */
-    protected void requestTimeout(final long delay, final TimeUnit unit, final String name, final Object data) {
+    protected void requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name, @Nullable final Object data) {
         timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit, data);
     }
 

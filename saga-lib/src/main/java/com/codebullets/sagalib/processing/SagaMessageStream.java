@@ -23,6 +23,7 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 
@@ -61,7 +62,7 @@ public class SagaMessageStream implements MessageStream {
      * {@inheritDoc}
      */
     @Override
-    public void add(final Object message) {
+    public void add(@Nonnull final Object message) {
         checkNotNull(message, "Message to handle must not be null.");
 
         throw new UnsupportedOperationException("Not implemented");
@@ -71,7 +72,7 @@ public class SagaMessageStream implements MessageStream {
      * {@inheritDoc}
      */
     @Override
-    public void handle(final Object message) throws InvocationTargetException, IllegalAccessException {
+    public void handle(@Nonnull final Object message) throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");
 
         SagaExecutionTask executor = createExecutor(message);

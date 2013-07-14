@@ -49,7 +49,7 @@ public class SagaInstanceDescription {
 
     /**
      * Create a new instance description containing the actual instance
-     * and the information whether the saga is currently starting or continouing
+     * and the information whether the saga is currently starting or continuing
      * and existing workflow.
      */
     public static SagaInstanceDescription define(final Saga saga, final boolean isStarting) {

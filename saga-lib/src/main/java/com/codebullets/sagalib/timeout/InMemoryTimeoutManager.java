@@ -21,6 +21,7 @@ import com.google.common.collect.Multimaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -73,7 +74,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
      * {@inheritDoc}
      */
     @Override
-    public void requestTimeout(final String sagaId, final String name, final long delay, final TimeUnit timeUnit, final Object data) {
+    public void requestTimeout(final String sagaId, @Nullable final String name, final long delay, final TimeUnit timeUnit, @Nullable final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
 
         SagaTimeoutTask timeoutTask = new SagaTimeoutTask(
