@@ -74,7 +74,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
      * {@inheritDoc}
      */
     @Override
-    public void requestTimeout(final String sagaId, @Nullable final String name, final long delay, final TimeUnit timeUnit, @Nullable final Object data) {
+    public void requestTimeout(final String sagaId, final long delay, final TimeUnit timeUnit, @Nullable final String name, @Nullable final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
 
         SagaTimeoutTask timeoutTask = new SagaTimeoutTask(

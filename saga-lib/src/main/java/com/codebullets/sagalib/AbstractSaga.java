@@ -97,7 +97,7 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
      * Requests a timeout event with a specific name and attached data.
      */
     protected void requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name, @Nullable final Object data) {
-        timeoutManager.requestTimeout(state().getSagaId(), name, delay, unit, data);
+        timeoutManager.requestTimeout(state().getSagaId(), delay, unit, name, data);
     }
 
     /**

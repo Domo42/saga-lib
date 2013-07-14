@@ -63,7 +63,7 @@ public class InMemoryTimeoutManagerTest {
         long timeoutInSec = 5;
 
         // when
-        sut.requestTimeout("anySagaId", "anyName", timeoutInSec, TimeUnit.SECONDS, null);
+        sut.requestTimeout("anySagaId", timeoutInSec, TimeUnit.SECONDS, "anyName", null);
 
         // then
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
@@ -131,7 +131,7 @@ public class InMemoryTimeoutManagerTest {
     }
 
     private void requestAndTriggerTimeout(final String sagaId, final String name, final long delay, final TimeUnit unit, final Object data) {
-        sut.requestTimeout(sagaId, name, delay, unit, data);
+        sut.requestTimeout(sagaId, delay, unit, name, data);
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
         verify(executor).schedule(captor.capture(), eq(delay), eq(unit));
 
