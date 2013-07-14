@@ -1,5 +1,7 @@
 package com.codebullets.sagalib;
 
+import javax.annotation.Nullable;
+
 /**
  * Defines a way to read the saga instance key from a message.
  *
@@ -9,7 +11,9 @@ public interface KeyReader<MESSAGE> {
 
     /**
      * Read the saga instance key from the provided message.
+     * @return instance key of the message or null if key is empty or not found.
      */
+    @Nullable
     String readKey(MESSAGE message);
 
     /**

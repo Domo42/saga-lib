@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import javax.annotation.Nullable;
+
 /**
  * Defines a way to read the saga instance key from a message. This key reader takes
  * the message class and function to extract the key as ctor arguments.
@@ -39,6 +41,7 @@ public final class FunctionKeyReader<MESSAGE> implements KeyReader<MESSAGE> {
      * Read the saga instance key from the provided message.
      */
     @Override
+    @Nullable
     public String readKey(final MESSAGE message) {
         return readFunction.key(message);
     }
