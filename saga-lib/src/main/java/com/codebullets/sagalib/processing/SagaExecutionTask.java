@@ -89,7 +89,7 @@ public class SagaExecutionTask implements Runnable {
         if (saga.isFinished() && !description.isStarting()) {
             storage.delete(saga.state().getSagaId());
             timeoutManager.cancelTimeouts(saga.state().getSagaId());
-        } else {
+        } else if (!saga.isFinished()) {
             storage.save(saga.state());
         }
     }

@@ -87,7 +87,7 @@ public class SagaExecutionTaskTest {
     public void run_sagaIsStartedAndFinished_doesNotSaveSate() {
         // given
         when(saga.isFinished()).thenReturn(true);
-        when(sagaInstanceDescription.isStarting()).thenReturn(false);
+        when(sagaInstanceDescription.isStarting()).thenReturn(true);
 
         // when
         sut.run();
