@@ -6,7 +6,7 @@
 
     <groupId>com.codebullets.saga-lib</groupId>
     <artifactId>saga-lib</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.5</version>
     <packaging>jar</packaging>
 
     <name>saga-lib</name>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.5</version>
         </dependency>
 
         <dependency>
