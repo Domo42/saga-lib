@@ -24,6 +24,8 @@ import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.Module;
 
+import javax.annotation.Nullable;
+
 /**
  * Creates a Guice module to bind all saga lib dependencies.
  * Use this module when create a Guice Injector instance.<p/>
@@ -69,37 +71,69 @@ public final class SagaModuleBuilder {
 
     /**
      * Set the class to use to save saga state. If not called all saga state will be
-     * stored in memory.
+     * stored in memory. If null clears the default implementation.
      */
-    public SagaModuleBuilder useStateStorage(final Class<? extends StateStorage> stateStorageClass) {
+    public SagaModuleBuilder useStateStorage(@Nullable final Class<? extends StateStorage> stateStorageClass) {
         this.stateStorage = stateStorageClass;
         return this;
     }
 
     /**
-     * Sets the class to use for timeout management. If not called the saga timeouts will
-     * be triggered by JVM timers and not be persisted.
+     * Clears the default state storage implementation binding.
      */
-    public SagaModuleBuilder useTimeoutManager(final Class<? extends TimeoutManager> timeoutMgrClass) {
+    public SagaModuleBuilder clearStateStorageBinding() {
+        this.stateStorage = null;
+        return this;
+    }
+
+    /**
+     * Sets the class to use for timeout management. If not called the saga timeouts will
+     * be triggered by JVM timers and not be persisted. If null clears the default binding implementation.
+     */
+    public SagaModuleBuilder useTimeoutManager(@Nullable final Class<? extends TimeoutManager> timeoutMgrClass) {
         this.timeoutMgr = timeoutMgrClass;
         return this;
     }
 
     /**
-     * Sets the scanner to use searching for available saga classes. If not called the
-     * lib will search for all available classes in the classpath.
+     * Clears the default timeout manager binding.
      */
-    public SagaModuleBuilder useSagaScanner(final Class<? extends TypeScanner> scannerClass) {
+    public SagaModuleBuilder clearTimeoutManagerBinding() {
+        this.timeoutMgr = null;
+        return this;
+    }
+
+    /**
+     * Sets the scanner to use searching for available saga classes. If not called the
+     * lib will search for all available classes in the classpath. If null clears the default binding implementation.
+     */
+    public SagaModuleBuilder useSagaScanner(@Nullable final Class<? extends TypeScanner> scannerClass) {
         this.scanner = scannerClass;
         return this;
     }
 
     /**
-     * Use custom provider factory for individual saga creation. If not called the lib
-     * will use Guice to create saga instance providers.
+     * Clears the default scanner binding.
      */
-    public SagaModuleBuilder useProviderFactory(final Class<? extends SagaProviderFactory> providerFactoryClass) {
+    public SagaModuleBuilder clearSagaScannerBinding() {
+        this.scanner = null;
+        return this;
+    }
+
+    /**
+     * Use custom provider factory for individual saga creation. If not called the lib
+     * will use Guice to create saga instance providers. If null clears the default binding implementation.
+     */
+    public SagaModuleBuilder useProviderFactory(@Nullable final Class<? extends SagaProviderFactory> providerFactoryClass) {
         providerFactory = providerFactoryClass;
+        return this;
+    }
+
+    /**
+     * Clears the default instance provider factory binding.
+     */
+    public SagaModuleBuilder clearProviderFactory() {
+        providerFactory = null;
         return this;
     }
 

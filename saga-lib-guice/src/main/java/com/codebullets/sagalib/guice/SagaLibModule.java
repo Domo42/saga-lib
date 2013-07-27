@@ -30,6 +30,7 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.AbstractModule;
 
+import javax.annotation.Nullable;
 import javax.inject.Singleton;
 
 /**
@@ -46,10 +47,10 @@ class SagaLibModule extends AbstractModule {
      */
     @Override
     protected void configure() {
-        bind(StateStorage.class).to(stateStorage).in(Singleton.class);
-        bind(TimeoutManager.class).to(timeoutManager).in(Singleton.class);
-        bind(TypeScanner.class).to(scanner).in(Singleton.class);
-        bind(SagaProviderFactory.class).to(providerFactory).in(Singleton.class);
+        bindIfNotNull(StateStorage.class, stateStorage);
+        bindIfNotNull(TimeoutManager.class, timeoutManager);
+        bindIfNotNull(TypeScanner.class, scanner);
+        bindIfNotNull(SagaProviderFactory.class, providerFactory);
 
         bind(SagaFactory.class).in(Singleton.class);
         bind(HandlerInvoker.class).to(ReflectionInvoker.class);
@@ -59,30 +60,39 @@ class SagaLibModule extends AbstractModule {
     }
 
     /**
+     * Perform binding to interface only if implementation type is not null.
+     */
+    private <T> void bindIfNotNull(final Class<T> interfaceType, @Nullable final Class<? extends T> implementationType) {
+        if (implementationType != null) {
+            bind(interfaceType).to(implementationType).in(Singleton.class);
+        }
+    }
+
+    /**
      * Sets the storage interface to use for saga state.
      */
-    public void setStateStorage(final Class<? extends StateStorage> stateStorage) {
+    public void setStateStorage(@Nullable final Class<? extends StateStorage> stateStorage) {
         this.stateStorage = stateStorage;
     }
 
     /**
      * Sets the timeout manager to use.
      */
-    public void setTimeoutManager(final Class<? extends TimeoutManager> timeoutManager) {
+    public void setTimeoutManager(@Nullable final Class<? extends TimeoutManager> timeoutManager) {
         this.timeoutManager = timeoutManager;
     }
 
     /**
      * Sets the saga type scanner to use.
      */
-    public void setScanner(final Class<? extends TypeScanner> scanner) {
+    public void setScanner(@Nullable final Class<? extends TypeScanner> scanner) {
         this.scanner = scanner;
     }
 
     /**
      * Sets the saga instance provider factory.
      */
-    public void setProviderFactory(final Class<? extends SagaProviderFactory> providerFactory) {
+    public void setProviderFactory(@Nullable final Class<? extends SagaProviderFactory> providerFactory) {
         this.providerFactory = providerFactory;
     }
 }
