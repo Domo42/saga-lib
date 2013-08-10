@@ -9,6 +9,15 @@
     <version>0.6-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <profiles>
+        <profile>
+            <id>perftest</id>
+            <modules>
+                <module>saga-lib-perftest</module>
+            </modules>
+        </profile>
+
+    </profiles>
     <modules>
         <module>saga-lib</module>
         <module>saga-lib-guice</module>

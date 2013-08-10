@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.codebullets.saga-lib</groupId>
+        <artifactId>saga-lib-root</artifactId>
+        <version>0.6-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>saga-lib-perftest</artifactId>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.codebullets.saga-lib</groupId>
+            <artifactId>saga-lib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.codebullets.saga-lib</groupId>
+            <artifactId>saga-lib-guice</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Needs to be added manually to local maven repository as it is currently not available in central. -->
+        <!-- https://github.com/giltene/HdrHistogram -->
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>hdrhistogram</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+    
+</project>
