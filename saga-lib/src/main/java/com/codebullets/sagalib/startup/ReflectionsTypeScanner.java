@@ -25,8 +25,8 @@ import org.reflections.util.ClasspathHelper;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Uses reflections library to scan for saga instances.<p/>
@@ -83,7 +83,7 @@ public class ReflectionsTypeScanner implements TypeScanner {
     }
 
     private Set<Class<? extends Saga>> copy(final Set<Class<? extends AbstractSingleEventSaga>> source) {
-        Set<Class<? extends Saga>> target = new TreeSet<>();
+        Set<Class<? extends Saga>> target = new HashSet<>();
         for (Class<? extends Saga> entry : source) {
             target.add(entry);
         }

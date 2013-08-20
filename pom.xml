@@ -16,8 +16,8 @@
                 <module>saga-lib-perftest</module>
             </modules>
         </profile>
-
     </profiles>
+
     <modules>
         <module>saga-lib</module>
         <module>saga-lib-guice</module>

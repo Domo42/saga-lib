@@ -18,7 +18,6 @@ package com.codebullets.sagalib.startup;
 import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.TestSaga;
-import com.google.common.collect.Iterables;
 import org.junit.Test;
 import org.reflections.Reflections;
 
@@ -53,8 +52,7 @@ public class ReflectionsTypeScannerTest {
         Collection<Class<? extends Saga>> foundSagas = sut.scanForSagas();
 
         // then
-        Object foundSaga = Iterables.getFirst(foundSagas, null);
-        assertThat("Expected TestSaga from class path to be found.", foundSaga, equalTo((Object)TestSaga.class));
+        assertThat("Expected TestSaga from class path to be found.", foundSagas, hasItem((Class<? extends Saga>) TestSaga.class));
     }
 
     /**
