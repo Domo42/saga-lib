@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
  * Uses the saga keyReaders() method to extract the saga
  * key of a message.
  */
+@SuppressWarnings("unchecked")
 public class SagaKeyReaderExtractor implements KeyExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(SagaKeyReaderExtractor.class);
     private final SagaProviderFactory sagaProviderFactory;

@@ -15,13 +15,9 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
-import com.codebullets.sagalib.startup.MessageHandler;
-import com.codebullets.sagalib.startup.SagaAnalyzer;
-import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutManager;
@@ -31,10 +27,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.inject.Provider;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -50,23 +45,20 @@ import static org.mockito.Mockito.when;
  */
 public class SagaFactoryTest {
     private SagaFactory sut;
-    private KeyExtractor keyExtractor;
     private StateStorage stateStorage;
+    private Organizer organizer;
 
     @Before
     @SuppressWarnings("unchecked")
     public void init() {
-        keyExtractor = mock(KeyExtractor.class);
+        organizer = mock(Organizer.class);
         stateStorage = mock(StateStorage.class);
 
         SagaProviderFactory sagaProviderFactory = mock(SagaProviderFactory.class);
         Provider provider = new TestSagaProvider();
         when(sagaProviderFactory.createProvider(TestSaga.class)).thenReturn(provider);
 
-        SagaAnalyzer sagaAnalyzer = mock(SagaAnalyzer.class);
-        when(sagaAnalyzer.scanHandledMessageTypes()).thenReturn(createFakeTestSagaHandlersMap());
-
-        sut = new SagaFactory(sagaAnalyzer, sagaProviderFactory, keyExtractor, stateStorage, mock(TimeoutManager.class));
+        sut = new SagaFactory(sagaProviderFactory, stateStorage, mock(TimeoutManager.class), organizer);
     }
 
     /**
@@ -78,6 +70,7 @@ public class SagaFactoryTest {
     public void create_messageStartingTheSaga_returnsNewSagaInstance() {
         // given
         String message = "using string as input message";
+        mockMessageToCreateSaga(message);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(message);
@@ -98,6 +91,7 @@ public class SagaFactoryTest {
     public void create_messageStartingTheSaga_newSagaStateHasIdAndType() {
         // given
         String message = "using string as input message";
+        mockMessageToCreateSaga(message);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(message);
@@ -118,6 +112,7 @@ public class SagaFactoryTest {
     public void create_messageStartingTheSaga_descriptionDefinesStartingSagaTrue() {
         // given
         String message = "using string as input message";
+        mockMessageToCreateSaga(message);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(message);
@@ -137,10 +132,9 @@ public class SagaFactoryTest {
     public void create_messageContinuesSaga_descriptionDefinesSagaStartingFalse() {
         // given
         Integer message = 42;
-        TestSagaState existingState = new TestSagaState();
         String instanceKey = "theInstanceKey";
-        when(keyExtractor.findSagaInstanceKey(TestSaga.class, message)).thenReturn(instanceKey);
-        when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection)Lists.newArrayList(existingState));
+        TestSagaState existingState = new TestSagaState(instanceKey);
+        mockMessageToContinueSaga(message, instanceKey, existingState);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(message);
@@ -160,10 +154,9 @@ public class SagaFactoryTest {
     public void create_messageContinuesSaga_assignsExistingStateToSagaInstance() {
         // given
         Integer message = 42;
-        TestSagaState existingState = new TestSagaState();
         String instanceKey = "theInstanceKey";
-        when(keyExtractor.findSagaInstanceKey(TestSaga.class, message)).thenReturn(instanceKey);
-        when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection) Lists.newArrayList(existingState));
+        TestSagaState existingState = new TestSagaState(instanceKey);
+        mockMessageToContinueSaga(message, instanceKey, existingState);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(message);
@@ -184,7 +177,7 @@ public class SagaFactoryTest {
         Timeout timeout = Timeout.create("sagaId", "timeoutName", new Date());
         TestSagaState existingState = new TestSagaState();
         existingState.setType(TestSaga.class.getName());
-        when(stateStorage.load(timeout.getSagaId())).thenReturn(existingState);
+        mockTimeoutToContinueSaga(timeout, existingState);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(timeout);
@@ -205,7 +198,7 @@ public class SagaFactoryTest {
         Timeout timeout = Timeout.create("sagaId", "timeoutName", new Date());
         TestSagaState existingState = new TestSagaState();
         existingState.setType(TestSaga.class.getName());
-        when(stateStorage.load(timeout.getSagaId())).thenReturn(existingState);
+        mockTimeoutToContinueSaga(timeout, existingState);
 
         // when
         Collection<SagaInstanceDescription> sagas = sut.create(timeout);
@@ -215,15 +208,28 @@ public class SagaFactoryTest {
         assertThat("Expected started info to be false for timeouts.", description.isStarting(), equalTo(false));
     }
 
-    private Map<Class<? extends Saga>, SagaHandlersMap> createFakeTestSagaHandlersMap() {
-        SagaHandlersMap handlers = new SagaHandlersMap(TestSaga.class);
-        handlers.add(new MessageHandler(String.class, null, true));
-        handlers.add(new MessageHandler(Integer.class, null));
+    private void mockMessageToCreateSaga(final Object message) {
+        Collection<SagaType> sagaTypes = new ArrayList<>();
+        sagaTypes.add(SagaType.startsNewSaga(TestSaga.class));
 
-        Map<Class<? extends Saga>, SagaHandlersMap> map = new HashMap<>();
-        map.put(TestSaga.class, handlers);
+        when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
+    }
 
-        return map;
+    @SuppressWarnings("unchecked")
+    private void mockMessageToContinueSaga(final Object message, final String instanceKey, final TestSagaState existingState) {
+        Collection<SagaType> sagaTypes = new ArrayList<>();
+        sagaTypes.add(SagaType.continueSaga(TestSaga.class, instanceKey));
+
+        when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
+        when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection) Lists.newArrayList(existingState));
+    }
+
+    private void mockTimeoutToContinueSaga(final Timeout message, final TestSagaState existingState) {
+        Collection<SagaType> sagaTypes = new ArrayList<>();
+        sagaTypes.add(SagaType.sagaFromTimeout(message.getSagaId()));
+
+        when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
+        when(stateStorage.load(message.getSagaId())).thenReturn(existingState);
     }
 
     private static class TestSagaProvider implements Provider<TestSaga> {

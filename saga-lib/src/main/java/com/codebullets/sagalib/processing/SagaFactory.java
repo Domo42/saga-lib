@@ -2,18 +2,12 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
-import com.codebullets.sagalib.timeout.NeedTimeouts;
-import com.codebullets.sagalib.timeout.Timeout;
-import com.codebullets.sagalib.startup.MessageHandler;
-import com.codebullets.sagalib.startup.SagaAnalyzer;
-import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.NeedTimeouts;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +15,6 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -30,29 +23,25 @@ import java.util.UUID;
 @SuppressWarnings("unchecked")
 public class SagaFactory {
     private static final Logger LOG = LoggerFactory.getLogger(SagaFactory.class);
-    private final Multimap<Class, Class<? extends Saga>> messagesToContinueSaga = HashMultimap.create();
-    private final Multimap<Class, Class<? extends Saga>> messagesStartingSagas = HashMultimap.create();
     private final LoadingCache<Class<? extends Saga>, Provider<? extends Saga>> providers;
     private final TimeoutManager timeoutManager;
-    private KeyExtractor keyExtractor;
+    private final Organizer organizer;
     private StateStorage stateStorage;
 
     /**
      * Generates a new instance of SagaFactory.
      */
     @Inject
-    public SagaFactory(final SagaAnalyzer sagaAnalyzer, final SagaProviderFactory providerFactory, final KeyExtractor keyExtractor,
-                       final StateStorage stateStorage, final TimeoutManager timeoutManager) {
-        this.keyExtractor = keyExtractor;
+    public SagaFactory(final SagaProviderFactory providerFactory,
+                       final StateStorage stateStorage,
+                       final TimeoutManager timeoutManager,
+                       final Organizer organizer) {
         this.stateStorage = stateStorage;
         this.timeoutManager = timeoutManager;
+        this.organizer = organizer;
 
         // Create providers when needed. Cache providers for later use.
         providers = CacheBuilder.newBuilder().build(new ProviderLoader(providerFactory));
-
-        // scan for sagas and their messages being handled
-        Map<Class<? extends Saga>, SagaHandlersMap> handlersMap = sagaAnalyzer.scanHandledMessageTypes();
-        initializeMessageMappings(handlersMap);
     }
 
     /**
@@ -62,26 +51,12 @@ public class SagaFactory {
     public Collection<SagaInstanceDescription> create(final Object message) {
         Collection<SagaInstanceDescription> sagaInstances = new ArrayList<>();
 
-        if (message instanceof Timeout) {
-            // timeout is special. Has only one specific saga state and
-            // saga id is already known
-            Timeout timeout = (Timeout) message;
-            Saga saga = createSagaForTimeoutHandling(timeout);
-            if (saga != null) {
-                sagaInstances.add(SagaInstanceDescription.define(saga, false));
-            }
-        } else {
-            // create and start a new saga if message has been flagged as such
-            Collection<Class<? extends Saga>> startingSagaTypes = messagesStartingSagas.get(message.getClass());
-            for (Class<? extends Saga> sagaType : startingSagaTypes) {
-                Saga newSaga = startNewSaga(sagaType);
+        for (SagaType sagaType : organizer.sagaTypesForMessage(message)) {
+            if (sagaType.isStartingNewSaga()) {
+                Saga newSaga = startNewSaga(sagaType.getSagaClass());
                 sagaInstances.add(SagaInstanceDescription.define(newSaga, true));
-            }
-
-            // Search for existing saga states and attach them to created instances.
-            Collection <Class<? extends Saga>> existingSagaTypes = messagesToContinueSaga.get(message.getClass());
-            for (Class<? extends Saga> sagaType : existingSagaTypes) {
-                Collection<Saga> sagas = continueSagas(sagaType, message);
+            } else {
+                Collection<Saga> sagas = continueExistingSaga(sagaType);
                 for (Saga saga : sagas) {
                     sagaInstances.add(SagaInstanceDescription.define(saga, false));
                 }
@@ -92,39 +67,51 @@ public class SagaFactory {
     }
 
     /**
-     * Search for saga state based on id directly and create instance with attached state.
+     * Create a new saga instance with already existing saga state.
      */
-    private Saga createSagaForTimeoutHandling(final Timeout timeout) {
-        Saga saga = null;
+    private Collection<Saga> continueExistingSaga(final SagaType sagaType) {
+        Collection<Saga> sagas = new ArrayList<>();
 
-        // timeout does not need key extraction
-        SagaState state = stateStorage.load(timeout.getSagaId());
-        if (state != null) {
-            saga = continueSaga(state.getType(), state);
+        String sagaId = sagaType.getSagaId();
+        if (sagaId != null) {
+            // saga id is know -> we can create saga directly from know state.
+            Saga saga = createSagaBasedOnId(sagaId);
+            sagas.add(saga);
         } else {
-            LOG.warn("No open saga state found. Timeout = {}", timeout);
+            // no saga id available, search for existing state based on instance key.
+            Collection<Saga> existingSagas = continueSagas(sagaType);
+            sagas.addAll(existingSagas);
         }
 
-        return saga;
+        return sagas;
+    }
+
+    private Saga createSagaBasedOnId(final String sagaId) {
+        Saga sagaToContinue = null;
+
+        // saga id is know -> we can create saga directly from know state.
+        SagaState state = stateStorage.load(sagaId);
+        if (state != null) {
+            sagaToContinue = continueSaga(state.getType(), state);
+        } else {
+            LOG.warn("No open saga state found. saga id = {}", sagaId);
+        }
+
+        return sagaToContinue;
     }
 
     /**
      * Search for existing saga states and attach them to saga instances.
      */
-    private Collection<Saga> continueSagas(final Class<? extends Saga> sagaToContinue, final Object message) {
+    private Collection<Saga> continueSagas(final SagaType sagaType) {
         Collection<Saga> sagas = new ArrayList<>();
 
-        String key = keyExtractor.findSagaInstanceKey(sagaToContinue, message);
-        if (key != null) {
-            Collection<? extends SagaState> sagaStates = stateStorage.load(sagaToContinue.getName(), key);
-            for (SagaState sagaState : sagaStates) {
-                Saga saga = continueSaga(sagaToContinue, sagaState);
-                if (saga != null) {
-                    sagas.add(saga);
-                }
+        Collection<? extends SagaState> sagaStates = stateStorage.load(sagaType.getSagaClass().getName(), sagaType.getInstanceKey());
+        for (SagaState sagaState : sagaStates) {
+            Saga saga = continueSaga(sagaType.getSagaClass(), sagaState);
+            if (saga != null) {
+                sagas.add(saga);
             }
-        } else {
-            LOG.error("Can not determine saga instance key from message {}", message);
         }
 
         return sagas;
@@ -195,26 +182,6 @@ public class SagaFactory {
         }
 
         return createdSaga;
-    }
-
-    /**
-     * Populate internal map to translate between incoming message event type and saga type.
-     */
-    private void initializeMessageMappings(final Map<Class<? extends Saga>, SagaHandlersMap> handlersMap) {
-        for (Map.Entry<Class<? extends Saga>, SagaHandlersMap> entry : handlersMap.entrySet()) {
-            Class<? extends Saga> sagaClass = entry.getKey();
-
-            Collection<MessageHandler> sagaHandlers = entry.getValue().messageHandlers();
-            for (MessageHandler handler : sagaHandlers) {
-
-                // remember all message types where a completely new saga needs to be started.
-                if (handler.getStartsSaga()) {
-                    messagesStartingSagas.put(handler.getMessageType(), sagaClass);
-                } else {
-                    messagesToContinueSaga.put(handler.getMessageType(), sagaClass);
-                }
-            }
-        }
     }
 
     /**

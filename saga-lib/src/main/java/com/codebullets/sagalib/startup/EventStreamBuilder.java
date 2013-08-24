@@ -18,6 +18,7 @@ package com.codebullets.sagalib.startup;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
+import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
@@ -69,7 +70,9 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildInvoker();
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
-        SagaFactory sagaFactory = new SagaFactory(sagaAnalyzer, providerFactory, extractor, storage, timeoutManager);
+        Organizer organizer = new Organizer(sagaAnalyzer, extractor);
+
+        SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
 
         return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager);
     }

@@ -18,6 +18,7 @@ package com.codebullets.sagalib.guice;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
+import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
@@ -57,6 +58,7 @@ class SagaLibModule extends AbstractModule {
         bind(MessageStream.class).to(SagaMessageStream.class).in(Singleton.class);
         bind(SagaAnalyzer.class).to(AnnotationSagaAnalyzer.class).in(Singleton.class);
         bind(KeyExtractor.class).to(SagaKeyReaderExtractor.class).in(Singleton.class);
+        bind(Organizer.class).in(Singleton.class);
     }
 
     /**
