@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 /**
- * Holds the list of handles messages based on saga type.
+ * Holds the list of handler based on saga type.
  */
 public class SagaHandlersMap {
     private final Class<? extends Saga> sagaType;

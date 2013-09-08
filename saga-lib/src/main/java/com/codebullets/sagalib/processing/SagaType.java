@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
+import com.google.common.base.Objects;
 
 /**
  * Describes the saga and expected handling.
@@ -89,13 +90,32 @@ public final class SagaType {
     /**
      * Creates a type continuing a saga from a message based on a specific instance key.
      */
-    public static SagaType continueSaga(final Class<? extends Saga> sagaClass, final String instanceKey) {
+    public static SagaType continueSaga(final SagaType originalType, final String instanceKey) {
         SagaType sagaType = new SagaType();
         sagaType.startsNew = false;
-        sagaType.sagaClass = sagaClass;
+        sagaType.sagaClass = originalType.getSagaClass();
         sagaType.sagaId = null;
         sagaType.instanceKey = instanceKey;
 
         return sagaType;
+    }
+
+    /**
+     * Creates a type continuing a saga with an instance key that has yet to be defined.
+     */
+    public static SagaType continueSaga(final Class<? extends Saga> sagaClass) {
+        SagaType sagaType = new SagaType();
+        sagaType.startsNew = false;
+        sagaType.sagaClass = sagaClass;
+        sagaType.sagaId = null;
+
+        return sagaType;
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("sagaClass", sagaClass)
+                .toString();
     }
 }

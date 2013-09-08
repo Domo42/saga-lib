@@ -218,7 +218,8 @@ public class SagaFactoryTest {
     @SuppressWarnings("unchecked")
     private void mockMessageToContinueSaga(final Object message, final String instanceKey, final TestSagaState existingState) {
         Collection<SagaType> sagaTypes = new ArrayList<>();
-        sagaTypes.add(SagaType.continueSaga(TestSaga.class, instanceKey));
+        SagaType originalType = SagaType.continueSaga(TestSaga.class);
+        sagaTypes.add(SagaType.continueSaga(originalType, instanceKey));
 
         when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
         when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection) Lists.newArrayList(existingState));

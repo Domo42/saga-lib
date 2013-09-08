@@ -20,7 +20,8 @@ import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.codebullets.sagalib.timeout.Timeout;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,8 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Matches incoming messages returning the expected saga types in the
@@ -40,8 +43,7 @@ public class Organizer {
     private final KeyExtractor keyExtractor;
 
     // the multi maps are read only once initialized in the ctor and therefore do not need thread synchronisation.
-    private final Multimap<Class, Class<? extends Saga>> messagesToContinueSaga = HashMultimap.create();
-    private final Multimap<Class, Class<? extends Saga>> messagesStartingSagas = HashMultimap.create();
+    private final Multimap<Class, SagaType> sagasForMessageType = LinkedListMultimap.create();
 
     /**
      * Generates a new instance of Organizer.
@@ -59,59 +61,78 @@ public class Organizer {
      * Sets the handlers that should be executed first.
      */
     public void setPreferredOrder(final Collection<Class<? extends Saga>> preferredOrder) {
+        checkNotNull(preferredOrder, "Preferred order list may not be null. Empty is allowed.");
+
+        for (Class messageType : sagasForMessageType.keySet()) {
+            sortSagaTypesToPreferredOrder(messageType, preferredOrder);
+        }
+    }
+
+    private void sortSagaTypesToPreferredOrder(final Class messageType, final Collection<Class<? extends Saga>> preferredOrder) {
+        Collection<SagaType> allKnownTypes = sagasForMessageType.get(messageType);
+        Collection<SagaType> orderedTypes = new ArrayList<>(allKnownTypes.size());
+
+        // place preferred items first
+        for (Class preferredClass : preferredOrder) {
+            SagaType containedItem = containsItem(allKnownTypes, preferredClass);
+            if (containedItem != null) {
+                orderedTypes.add(containedItem);
+            }
+        }
+
+        // add missing all known types after preferred ones
+        for (SagaType sagaType : allKnownTypes) {
+            if (!Iterables.contains(orderedTypes, sagaType)) {
+                orderedTypes.add(sagaType);
+            }
+        }
+
+        sagasForMessageType.replaceValues(messageType, orderedTypes);
     }
 
     /**
      * Returns the saga types to create in the excepted order to be executed.
      */
     public Iterable<SagaType> sagaTypesForMessage(final Object message) {
-        Collection<SagaType> sagaTypes = new ArrayList<>();
+        Collection<SagaType> sagaTypes;
 
         if (message instanceof Timeout) {
             // timeout is special. Has only one specific saga state and
             // saga id is already known
             Timeout timeout = (Timeout) message;
             SagaType sagaType = SagaType.sagaFromTimeout(timeout.getSagaId());
+            sagaTypes = new ArrayList<>(1);
             sagaTypes.add(sagaType);
         } else {
-            sagaTypes.addAll(getSagasBeingStarted(message));
-            sagaTypes.addAll(getSagasBeingContinued(message));
+            sagaTypes = prepareSagaTypeList(message);
         }
 
         return sagaTypes;
     }
 
-    /**
-     * Creates a list of saga types continuing an existing saga.
-     */
-    private Collection<SagaType> getSagasBeingContinued(final Object message) {
-        Collection<SagaType> sagaTypes = new ArrayList<>();
+    private Collection<SagaType> prepareSagaTypeList(final Object message) {
+        Collection<SagaType> sagasToExecute = sagasForMessageType.get(message.getClass());
+        Collection<SagaType> sagaTypes = new ArrayList<>(sagasToExecute.size());
 
-        Collection<Class<? extends Saga>> existingSagaTypes = messagesToContinueSaga.get(message.getClass());
-        for (Class<? extends Saga> sagaType : existingSagaTypes) {
-
-            String key = keyExtractor.findSagaInstanceKey(sagaType, message);
-            if (key != null) {
-                sagaTypes.add(SagaType.continueSaga(sagaType, key));
+        for (SagaType type : sagasToExecute) {
+            if (type.isStartingNewSaga()) {
+                sagaTypes.add(type);
             } else {
-                LOG.error("Can not determine saga instance key from message {}", message);
+                // for continuation the instance key needs to be set.
+                String key = readInstanceKey(type, message);
+                if (key != null) {
+                    sagaTypes.add(SagaType.continueSaga(type, key));
+                } else {
+                    LOG.error("Can not determine saga instance key from message {}", message);
+                }
             }
         }
 
         return sagaTypes;
     }
 
-    /**
-     * Creates the list of saga types being started by the message.
-     */
-    private Collection<SagaType> getSagasBeingStarted(final Object message) {
-        Collection<SagaType> sagaTypes = new ArrayList<>();
-        Collection<Class<? extends Saga>> startingSagaTypes = messagesStartingSagas.get(message.getClass());
-        for (Class<? extends Saga> sagaType : startingSagaTypes) {
-            sagaTypes.add(SagaType.startsNewSaga(sagaType));
-        }
-
-        return sagaTypes;
+    private String readInstanceKey(final SagaType sagaType, final Object message) {
+        return keyExtractor.findSagaInstanceKey(sagaType.getSagaClass(), message);
     }
 
     /**
@@ -126,11 +147,52 @@ public class Organizer {
 
                 // remember all message types where a completely new saga needs to be started.
                 if (handler.getStartsSaga()) {
-                    messagesStartingSagas.put(handler.getMessageType(), sagaClass);
+                    sagasForMessageType.put(handler.getMessageType(), SagaType.startsNewSaga(sagaClass));
                 } else {
-                    messagesToContinueSaga.put(handler.getMessageType(), sagaClass);
+                    sagasForMessageType.put(handler.getMessageType(), SagaType.continueSaga(sagaClass));
                 }
             }
         }
+
+        sortStartingSagasFirst();
+    }
+
+    private void sortStartingSagasFirst() {
+        for (Class msgType : sagasForMessageType.keySet()) {
+            Collection<SagaType> allKnownTypes = sagasForMessageType.get(msgType);
+            Collection<SagaType> orderedTypes = new ArrayList<>(allKnownTypes.size());
+
+            // place items first having the starting flag
+            for (SagaType sagaType : allKnownTypes) {
+                if (sagaType.isStartingNewSaga()) {
+                    orderedTypes.add(sagaType);
+                }
+            }
+
+            // add missing all known types after preferred ones
+            for (SagaType sagaType : allKnownTypes) {
+                if (!Iterables.contains(orderedTypes, sagaType)) {
+                    orderedTypes.add(sagaType);
+                }
+            }
+
+            sagasForMessageType.replaceValues(msgType, orderedTypes);
+        }
+    }
+
+    /**
+     * Checks whether the source list contains a saga type matching the input class.
+     */
+    private SagaType containsItem(final Iterable<SagaType> source, final Class itemToSearch) {
+        SagaType containedItem = null;
+
+        for (SagaType sagaType : source) {
+            if (sagaType.getSagaClass().equals(itemToSearch)) {
+                containedItem = sagaType;
+                break;
+            }
+        }
+
+        return containedItem;
     }
 }
