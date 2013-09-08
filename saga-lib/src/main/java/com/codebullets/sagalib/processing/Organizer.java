@@ -56,6 +56,12 @@ public class Organizer {
     }
 
     /**
+     * Sets the handlers that should be executed first.
+     */
+    public void setPreferredOrder(final Collection<Class<? extends Saga>> preferredOrder) {
+    }
+
+    /**
      * Returns the saga types to create in the excepted order to be executed.
      */
     public Iterable<SagaType> sagaTypesForMessage(final Object message) {

@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
@@ -30,6 +31,9 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -38,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class EventStreamBuilder implements StreamBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(EventStreamBuilder.class);
 
+    private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private HandlerInvoker invoker;
     private SagaAnalyzer sagaAnalyzer;
     private TypeScanner scanner;
@@ -71,6 +76,7 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
         Organizer organizer = new Organizer(sagaAnalyzer, extractor);
+        organizer.setPreferredOrder(preferredOrder);
 
         SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
 
@@ -119,6 +125,11 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         this.providerFactory = sagaProviderFactory;
         return this;
+    }
+
+    @Override
+    public FirstSagaToHandle defineHandlerExecutionOrder() {
+        return new FirstSagaToHandle(preferredOrder, this);
     }
 
     private void buildTypeScanner() {

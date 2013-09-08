@@ -57,4 +57,16 @@ public interface StreamBuilder extends AutoCloseable {
      * the sagas are always handled from the same thread.
      */
     StreamBuilder usingSagaProviderFactory(SagaProviderFactory providerFactory);
+
+    /**
+     * Defines the order of saga message handlers in case a message is associated with multiple
+     * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
+     * <strong>Example:</strong><br/>
+     * <pre>builder.defineHandlerExecutionOrder()
+     *          .firstExecute(FirstSagaToExectue.class)
+     *          .then(SecondToExecute.class)
+     *          .then(OtherSaga.class)
+     * </pre>
+     */
+    FirstSagaToHandle defineHandlerExecutionOrder();
 }
