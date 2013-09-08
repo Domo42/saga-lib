@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
@@ -30,9 +31,12 @@ import com.codebullets.sagalib.startup.TypeScanner;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 
 import javax.annotation.Nullable;
 import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Guice bindings for saga lib.
@@ -42,6 +46,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends TimeoutManager> timeoutManager;
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
+    private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
 
     /**
      * {@inheritDoc}
@@ -58,7 +63,15 @@ class SagaLibModule extends AbstractModule {
         bind(MessageStream.class).to(SagaMessageStream.class).in(Singleton.class);
         bind(SagaAnalyzer.class).to(AnnotationSagaAnalyzer.class).in(Singleton.class);
         bind(KeyExtractor.class).to(SagaKeyReaderExtractor.class).in(Singleton.class);
-        bind(Organizer.class).in(Singleton.class);
+    }
+
+    @Singleton
+    @Provides
+    private Organizer provideOrganizer(final SagaAnalyzer analyzer, final KeyExtractor extractor) {
+        Organizer organizer = new Organizer(analyzer, extractor);
+        organizer.setPreferredOrder(preferredOrder);
+
+        return organizer;
     }
 
     /**
@@ -96,5 +109,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setProviderFactory(@Nullable final Class<? extends SagaProviderFactory> providerFactory) {
         this.providerFactory = providerFactory;
+    }
+
+    /**
+     * Sets the preferred execution order.
+     */
+    public void setExecutionOrder(final List<Class<? extends Saga>> executionOrder) {
+        this.preferredOrder = executionOrder;
     }
 }

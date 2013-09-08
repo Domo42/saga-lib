@@ -63,7 +63,7 @@ public interface StreamBuilder extends AutoCloseable {
      * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
      * <strong>Example:</strong><br/>
      * <pre>builder.defineHandlerExecutionOrder()
-     *          .firstExecute(FirstSagaToExectue.class)
+     *          .firstExecute(FirstSagaToExecute.class)
      *          .then(SecondToExecute.class)
      *          .then(OtherSaga.class)
      * </pre>

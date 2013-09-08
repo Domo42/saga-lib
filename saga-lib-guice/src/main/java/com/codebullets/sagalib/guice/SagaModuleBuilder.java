@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.ReflectionsTypeScanner;
 import com.codebullets.sagalib.startup.TypeScanner;
@@ -25,6 +26,8 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.Module;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Creates a Guice module to bind all saga lib dependencies.
@@ -50,6 +53,7 @@ public final class SagaModuleBuilder {
     private Class<? extends TimeoutManager> timeoutMgr;
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
+    private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
 
     /**
      * Prevent direct instance creation of class.
@@ -138,6 +142,20 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Defines the order of saga message handlers in case a message is associated with multiple
+     * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
+     * <strong>Example:</strong><br/>
+     * <pre>builder.defineHandlerExecutionOrder()
+     *          .firstExecute(FirstSagaToExecute.class)
+     *          .then(SecondToExecute.class)
+     *          .then(OtherSaga.class)
+     * </pre>
+     */
+    public FirstSagaToHandle defineHandlerExecutionOrder() {
+        return new FirstSagaToHandle(preferredOrder, this);
+    }
+
+    /**
      * Creates the module containing all saga lib bindings.
      */
     public Module build() {
@@ -146,6 +164,7 @@ public final class SagaModuleBuilder {
         module.setTimeoutManager(timeoutMgr);
         module.setScanner(scanner);
         module.setProviderFactory(providerFactory);
+        module.setExecutionOrder(preferredOrder);
 
         return module;
     }
