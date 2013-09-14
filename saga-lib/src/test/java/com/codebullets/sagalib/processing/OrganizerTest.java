@@ -21,16 +21,21 @@ import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
 import com.google.common.collect.Iterables;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -88,12 +93,77 @@ public class OrganizerTest {
 
         // then
         SagaType first = Iterables.getFirst(sagaTypes, null);
-        assertThat("First entry needs to be of type SagaC", (Class) first.getSagaClass(), equalTo((Class) SagaC.class));
+        assertThat("First entry needs to be of type SagaC", first, matchesSagaClass(SagaC.class));
         assertThat("Second entry needs to be of type SagaB", (Class) Iterables.get(sagaTypes, 1).getSagaClass(), equalTo((Class) SagaB.class));
         assertThat("Returned list must contain all 3 saga types", Iterables.size(sagaTypes), equalTo(3));
     }
 
-    private Collection<Class<? extends Saga>> createOrder(Class<? extends Saga> first) {
+    /**
+     * <pre>
+     * Given => Integer as saga message.
+     * When  => sagaTypeForMessage called.
+     * Then  => Returns saga for concrete message and base class.
+     * </pre>
+     */
+    @Test
+    public void sagaTypesForMessage_integerMessage_returnsSagasForIntegerAndNumber() {
+        // given
+        Integer message = 42;
+
+        // when
+        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(message);
+
+        assertThat("Expect list of 2 sagas", Iterables.size(sagaTypes), equalTo(2));
+        assertThat("Contains integer saga.", sagaTypes, hasItem(matchesSagaClass(IntegerSaga.class)));
+        assertThat("Contains number saga.", sagaTypes, hasItem(matchesSagaClass(NumberSaga.class)));
+    }
+
+    /**
+     * <pre>
+     * Given => List message type.
+     * When  => sagaTypesForMessage called.
+     * Then  => Returns saga matching not the direct but the base interface.
+     * </pre>
+     */
+    @Test
+    public void sagaTypesForMessage_listMessage_returnsSagaMatchingBaseInterface() {
+        // given
+        List message = new ArrayList();
+
+        // when
+        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(message);
+
+        // then
+        assertThat("Expected a single return value.", Iterables.size(sagaTypes), equalTo(1));
+        assertThat("Expected saga matching base interface handler.", sagaTypes, hasItem(matchesSagaClass(IterablesSaga.class)));
+    }
+
+    private Matcher<SagaType> matchesSagaClass(final Class<?> sagaClass) {
+        return new BaseMatcher<SagaType>() {
+                @Override
+                public boolean matches(final Object o) {
+                    SagaType sagaType = (SagaType) o;
+                    return sagaType.getSagaClass().equals(sagaClass);
+                }
+
+                @Override
+                public void describeTo(final Description description) {
+                    description.appendText("SagaType matching saga class " + sagaClass.getSimpleName());
+                }
+
+            @Override
+            public void describeMismatch(final Object item, final Description description) {
+                String itemType = "<null>";
+                if (item != null) {
+                    itemType = (item instanceof SagaType) ? ((SagaType) item).getSagaClass().getSimpleName() : item.getClass().getSimpleName();
+                }
+
+                description.appendText("Expected SagaType with saga class " + sagaClass.getSimpleName() + " but was " + itemType);
+            }
+        };
+    }
+
+    private Collection<Class<? extends Saga>> createOrder(Class <? extends Saga> first) {
         Collection<Class<? extends Saga>> collection = new ArrayList<>(1);
         collection.add(first);
 
@@ -114,23 +184,33 @@ public class OrganizerTest {
         sagaTypes.put(SagaA.class, createMap(SagaA.class));
         sagaTypes.put(SagaB.class, createMap(SagaB.class));
         sagaTypes.put(SagaC.class, createMap(SagaC.class));
+        sagaTypes.put(IntegerSaga.class, createMap(IntegerSaga.class, Integer.class));
+        sagaTypes.put(NumberSaga.class, createMap(NumberSaga.class, Number.class));
+        sagaTypes.put(IterablesSaga.class, createMap(IterablesSaga.class, Iterable.class));
 
         return sagaTypes;
     }
 
-    private SagaHandlersMap createMap(Class<? extends Saga> clazz) {
-        SagaHandlersMap map  = new SagaHandlersMap(clazz);
-        map.add(new MessageHandler(String.class, null, true));
+    private SagaHandlersMap createMap(Class<? extends Saga> clazz, Class<?> handlerType) {
+        SagaHandlersMap map = new SagaHandlersMap(clazz);
+        map.add(new MessageHandler(handlerType, null, true));
 
         return map;
     }
 
-    public class SagaA extends AbstractSingleEventSaga {
+    private SagaHandlersMap createMap(Class<? extends Saga> clazz) {
+        return createMap(clazz, String.class);
     }
 
-    public class SagaB extends AbstractSingleEventSaga {
-    }
+    public class SagaA extends AbstractSingleEventSaga { }
 
-    public class SagaC extends AbstractSingleEventSaga {
-    }
+    public class SagaB extends AbstractSingleEventSaga { }
+
+    public class SagaC extends AbstractSingleEventSaga { }
+
+    public class NumberSaga extends AbstractSingleEventSaga { }
+
+    public class IntegerSaga extends AbstractSingleEventSaga { }
+
+    public class IterablesSaga extends AbstractSingleEventSaga { }
 }

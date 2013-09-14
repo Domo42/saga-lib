@@ -33,12 +33,16 @@ import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -55,6 +59,7 @@ import static org.mockito.Mockito.when;
 public class MessageStreamTest {
     private MessageStream sut;
     private StateStorage storage;
+    private Set<Number> numbers;
     ScheduledExecutorService scheduler;
     ScheduledFuture timeout;
 
@@ -64,6 +69,7 @@ public class MessageStreamTest {
         storage = new MemoryStorage();
         scheduler = mock(ScheduledExecutorService.class);
         timeout = mock(ScheduledFuture.class);
+        numbers = new TreeSet<>();
         TimeoutManager timeoutManager = new InMemoryTimeoutManager(scheduler, new SystemClock());
 
         when(scheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(timeout);
@@ -71,7 +77,7 @@ public class MessageStreamTest {
         sut = EventStreamBuilder.configure()
                 .usingStorage(storage)
                 .usingScanner(new LocalScanner())
-                .usingSagaProviderFactory(new TestSagaProviderFactory(timeoutManager))
+                .usingSagaProviderFactory(new TestSagaProviderFactory(timeoutManager, numbers))
                 .usingTimeoutManager(timeoutManager)
                 .build();
     }
@@ -171,6 +177,25 @@ public class MessageStreamTest {
         verify(timeout, never()).cancel(anyBoolean());
     }
 
+    /**
+     * <pre>
+     * Given => Message of type integer.
+     * When  => Message is handled.
+     * Then  => Base class handler has been called.
+     * </pre>
+     */
+    @Test
+    public void handle_integerMessage_callHandlerOfBaseClass() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Integer message = new Random().nextInt();
+
+        // when
+        sut.handle(message);
+
+        // then
+        assertThat("Expected number from message to be stored (proof handler has been called.)", numbers, hasItem(message));
+    }
+
     private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
         Collection<T> newCollection = new ArrayList<>(source.size());
         for (T entry : source) {
@@ -195,6 +220,7 @@ public class MessageStreamTest {
         public Collection<Class<? extends Saga>> scanForSagas() {
             Collection<Class<? extends Saga>> sagas = new ArrayList<>();
             sagas.add(TestSaga.class);
+            sagas.add(NumberSaga.class);
 
             return sagas;
         }
@@ -202,22 +228,36 @@ public class MessageStreamTest {
 
     private static class TestSagaProviderFactory implements SagaProviderFactory {
         private final TimeoutManager timeoutManager;
+        private final Set<Number> numbers;
 
         /**
          * Generates a new instance of MessageStreamTest$TestSagaProviderFactory.
          */
-        public TestSagaProviderFactory(TimeoutManager timeoutManager) {
+        public TestSagaProviderFactory(TimeoutManager timeoutManager, Set<Number> numbers) {
             this.timeoutManager = timeoutManager;
+            this.numbers = numbers;
         }
 
         @Override
         public Provider<? extends Saga> createProvider(final Class sagaClass) {
-            return new Provider<TestSaga>() {
-                @Override
-                public TestSaga get() {
-                    return new TestSaga(timeoutManager);
-                }
-            };
+            Provider<? extends Saga> provider = null;
+
+            if (sagaClass.equals(TestSaga.class)) {
+                provider = new Provider<TestSaga>() {
+                    @Override
+                    public TestSaga get() {
+                        return new TestSaga(timeoutManager);
+                    }
+                };
+            } else if (sagaClass.equals(NumberSaga.class)) {
+                provider = new Provider<NumberSaga>() {
+                    public NumberSaga get() {
+                        return new NumberSaga(numbers);
+                    }
+                };
+            }
+
+            return provider;
         }
     }
 }

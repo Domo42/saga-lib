@@ -92,7 +92,7 @@ public class ReflectionInvoker implements HandlerInvoker {
             SagaHandlersMap handlers = handlersMapMap.get(key.getSagaClass());
             if (handlers != null) {
                 for (MessageHandler handler : handlers.messageHandlers()) {
-                    if (handler.getMessageType().equals(key.getMsgClass())) {
+                    if (handler.getMessageType().isAssignableFrom(key.getMsgClass())) {
                         methodToInvoke = handler.getMethodToInvoke();
                         break;
                     }
