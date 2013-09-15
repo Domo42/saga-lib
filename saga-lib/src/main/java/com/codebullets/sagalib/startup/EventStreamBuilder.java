@@ -15,12 +15,14 @@
  */
 package com.codebullets.sagalib.startup;
 
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.SagaFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
@@ -31,6 +33,7 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +52,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     private StateStorage storage;
     private SagaProviderFactory providerFactory;
     private TimeoutManager timeoutManager;
+    private Provider<ExecutionContext> contextProvider;
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -73,6 +77,7 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildTimeoutManager();
         buildSagaAnalyzer();
         buildInvoker();
+        buildContextProvider();
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
         Organizer organizer = new Organizer(sagaAnalyzer, extractor);
@@ -80,7 +85,7 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
 
-        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager);
+        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager, contextProvider);
     }
 
     /**
@@ -123,10 +128,24 @@ public final class EventStreamBuilder implements StreamBuilder {
     public StreamBuilder usingSagaProviderFactory(final SagaProviderFactory sagaProviderFactory) {
         checkNotNull(sagaProviderFactory, "Provider factory must be set.");
 
-        this.providerFactory = sagaProviderFactory;
+        providerFactory = sagaProviderFactory;
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StreamBuilder usingContextProvider(final Provider<ExecutionContext> provider) {
+        checkNotNull(contextProvider, "Context provider must be set.");
+
+        contextProvider = provider;
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public FirstSagaToHandle defineHandlerExecutionOrder() {
         return new FirstSagaToHandle(preferredOrder, this);
@@ -153,6 +172,17 @@ public final class EventStreamBuilder implements StreamBuilder {
     private void buildTimeoutManager() {
         if (timeoutManager == null) {
             timeoutManager = new InMemoryTimeoutManager();
+        }
+    }
+
+    private void buildContextProvider() {
+        if (contextProvider == null) {
+            contextProvider = new Provider<ExecutionContext>() {
+                    @Override
+                    public ExecutionContext get() {
+                        return new SagaExecutionContext();
+                    }
+                };
         }
     }
 

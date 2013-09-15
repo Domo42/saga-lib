@@ -42,11 +42,4 @@ public class FirstSagaToHandle {
         orderedTypes.add(0, first);
         return new NextSagaToHandle(orderedTypes, builder);
     }
-
-    /**
-     * Returns the originating builder.
-     */
-    public StreamBuilder builder() {
-        return builder;
-    }
 }

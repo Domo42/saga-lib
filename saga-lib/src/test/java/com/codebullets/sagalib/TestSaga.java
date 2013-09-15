@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * Tests class containing expected annotations.
  */
 public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSagaState> {
-    public static final int INSTANCE_KEY = 42;
+    public static final String INSTANCE_KEY = "42";
     private final TimeoutManager timeoutManager;
     private boolean startupCalled;
     private boolean handlerCalled;
@@ -44,8 +44,8 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     }
 
     @StartsSaga
-    public void sagaStartup(String startedByString) {
-        state().setInstanceKey(String.valueOf(INSTANCE_KEY));
+    public void sagaStartup(final String startedByString) {
+        state().setInstanceKey(INSTANCE_KEY);
         startupCalled = true;
 
         if (timeoutManager != null) {
@@ -54,7 +54,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     }
 
     @EventHandler
-    public void handlesIntegerType(Integer intValue) {
+    public void handlesFinishedType(final FinishMessage intValue) {
         handlerCalled = true;
         setFinished();
     }
@@ -80,12 +80,12 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     @Override
     public Collection<KeyReader> keyReaders() {
         KeyReader reader = FunctionKeyReader.create(
-                Integer.class,
-                new KeyReadFunction<Integer>() {
+                FinishMessage.class,
+                new KeyReadFunction<FinishMessage>() {
 
                     @Override
-                    public String key(final Integer integer) {
-                        return integer.toString();
+                    public String key(final FinishMessage message) {
+                        return message.getInstanceKey();
                     }
                 }
         );
@@ -98,6 +98,6 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     }
 
     public static Method handlerMethod() throws NoSuchMethodException {
-        return TestSaga.class.getMethod("handlesIntegerType", Integer.class);
+        return TestSaga.class.getMethod("handlesFinishedType", FinishMessage.class);
     }
 }

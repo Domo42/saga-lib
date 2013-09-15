@@ -15,14 +15,18 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.inject.Provider;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -41,6 +45,7 @@ public class SagaExecutionTaskTest {
     private Saga saga;
     private SagaInstanceDescription sagaInstanceDescription;
     private SagaState state;
+    private ExecutionContext context;
 
     @Before
     public void init() {
@@ -58,7 +63,11 @@ public class SagaExecutionTaskTest {
         when(sagaInstanceDescription.getSaga()).thenReturn(saga);
         when(sagaFactory.create(theMessage)).thenReturn(Lists.newArrayList(sagaInstanceDescription));
 
-        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage);
+        context = new SagaExecutionContext();
+        Provider<ExecutionContext> contextProvider = mock(Provider.class);
+        when(contextProvider.get()).thenReturn(context);
+
+        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, contextProvider);
     }
 
     /**

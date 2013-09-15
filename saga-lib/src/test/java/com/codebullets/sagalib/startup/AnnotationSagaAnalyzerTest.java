@@ -1,5 +1,6 @@
 package com.codebullets.sagalib.startup;
 
+import com.codebullets.sagalib.FinishMessage;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.TestSaga;
 import org.junit.Before;
@@ -102,7 +103,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Returns a normal handler with handling type Integer.
      */
     @Test
-    public void scanHandledMessageTypes_testSagaFound_returnsNormalHandlerOfTypeInteger() throws NoSuchMethodException {
+    public void scanHandledMessageTypes_testSagaFound_returnsNormalHandlerOfTypeFinishedMessage() throws NoSuchMethodException {
         // given
         sagaTypes.add(TestSaga.class);
 
@@ -114,6 +115,6 @@ public class AnnotationSagaAnalyzerTest {
         assertThat(
                 "Handler has entry with start saga flag set.",
                 handlers.messageHandlers(),
-                hasItem(samePropertyValuesAs(new MessageHandler(Integer.class, TestSaga.handlerMethod(), false))));
+                hasItem(samePropertyValuesAs(new MessageHandler(FinishMessage.class, TestSaga.handlerMethod(), false))));
     }
 }

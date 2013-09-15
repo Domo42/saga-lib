@@ -42,7 +42,7 @@ public class SagaMessageStreamTest {
         factory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
 
-        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager);
+        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager, null);
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.HandlerInvoker;
@@ -47,6 +48,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
+    private Class<? extends ExecutionContext> executionContext;
 
     /**
      * {@inheritDoc}
@@ -57,6 +59,7 @@ class SagaLibModule extends AbstractModule {
         bindIfNotNull(TimeoutManager.class, timeoutManager);
         bindIfNotNull(TypeScanner.class, scanner);
         bindIfNotNull(SagaProviderFactory.class, providerFactory);
+        bindIfNotNull(ExecutionContext.class, executionContext);
 
         bind(SagaFactory.class).in(Singleton.class);
         bind(HandlerInvoker.class).to(ReflectionInvoker.class);
@@ -116,5 +119,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setExecutionOrder(final List<Class<? extends Saga>> executionOrder) {
         this.preferredOrder = executionOrder;
+    }
+
+    /**
+     * Sets the execution context implementation.
+     */
+    public void setExecutionContext(final Class<? extends ExecutionContext> executionContext) {
+        this.executionContext = executionContext;
     }
 }

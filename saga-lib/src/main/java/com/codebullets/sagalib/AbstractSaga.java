@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.timeout.NeedTimeouts;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
@@ -26,16 +28,24 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <SAGA_STATE> Type of the state object attached to this saga.
  */
-public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga<SAGA_STATE>, NeedTimeouts {
+public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga<SAGA_STATE>, NeedTimeouts, NeedContext {
     private SAGA_STATE state;
     private boolean completed;
     private TimeoutManager timeoutManager;
+    private ExecutionContext context;
 
     /**
      * Generates a new instance of AbstractSaga.
      */
     protected AbstractSaga() {
         completed = false;
+    }
+
+    /**
+     * Returns the current message execution context.
+     */
+    protected ExecutionContext context() {
+        return context;
     }
 
     /**
@@ -106,5 +116,13 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
     @Override
     public void setTimeoutManager(final TimeoutManager timeoutManager) {
         this.timeoutManager = timeoutManager;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutionContext(final ExecutionContext executionContext) {
+        this.context = executionContext;
     }
 }

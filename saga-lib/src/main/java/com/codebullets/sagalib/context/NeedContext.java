@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib;
-
-import java.util.Set;
+package com.codebullets.sagalib.context;
 
 /**
- * Saga listening for messages of type number.
+ * When implemented by a saga the saga will the setter of the execution
+ * context will be called before any of the saga handlers is executed.<p/>
+ * The {@link com.codebullets.sagalib.AbstractSaga} as well as {@link com.codebullets.sagalib.AbstractSingleEventSaga}
+ * class already implement this interface.
  */
-public class NumberSaga extends AbstractSingleEventSaga {
-    private final Set<Number> numbers;
-
+public interface NeedContext {
     /**
-     * Generates a new instance of NumberSaga.
+     * Sets the current message execution context.
      */
-    public NumberSaga(Set<Number> numbers) {
-        this.numbers = numbers;
-    }
-
-    @StartsSaga
-    public void numberMessage(Number number) {
-        numbers.add(number);
-
-        context().stopDispatchingCurrentMessageToHandlers();
-    }
+    void setExecutionContext(ExecutionContext context);
 }

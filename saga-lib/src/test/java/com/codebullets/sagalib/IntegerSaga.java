@@ -18,22 +18,20 @@ package com.codebullets.sagalib;
 import java.util.Set;
 
 /**
- * Saga listening for messages of type number.
+ * Expected never to be called.
  */
-public class NumberSaga extends AbstractSingleEventSaga {
-    private final Set<Number> numbers;
+public class IntegerSaga extends AbstractSingleEventSaga {
+    private final Set<String> calledSagas;
 
     /**
-     * Generates a new instance of NumberSaga.
+     * Generates a new instance of IntegerSaga.
      */
-    public NumberSaga(Set<Number> numbers) {
-        this.numbers = numbers;
+    public IntegerSaga(final Set<String> calledSagas) {
+        this.calledSagas = calledSagas;
     }
 
     @StartsSaga
-    public void numberMessage(Number number) {
-        numbers.add(number);
-
-        context().stopDispatchingCurrentMessageToHandlers();
+    public void handleInteger(Integer integer) {
+        calledSagas.add(getClass().getName());
     }
 }

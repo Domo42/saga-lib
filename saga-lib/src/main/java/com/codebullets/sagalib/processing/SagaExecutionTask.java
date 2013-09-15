@@ -15,12 +15,15 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 
@@ -38,17 +41,19 @@ public class SagaExecutionTask implements Runnable {
     private final StateStorage storage;
     private final TimeoutManager timeoutManager;
     private final Object message;
+    private final Provider<ExecutionContext> contextProvider;
 
     /**
      * Generates a new instance of SagaExecutionTask.
      */
     public SagaExecutionTask(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-                             final Object message) {
+                             final Object message, final Provider<ExecutionContext> contextProvider) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
         this.timeoutManager = timeoutManager;
         this.message = message;
+        this.contextProvider = contextProvider;
     }
 
     /**
@@ -70,10 +75,26 @@ public class SagaExecutionTask implements Runnable {
         if (sagaDescriptions.isEmpty()) {
             LOG.warn("No saga found to handle message. {}", invokeParam);
         } else {
+            ExecutionContext context = contextProvider.get();
+
             for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
-                invoker.invoke(sagaDescription.getSaga(), invokeParam);
+                Saga saga = sagaDescription.getSaga();
+                setSagaExecutionContext(saga, context);
+
+                invoker.invoke(saga, invokeParam);
                 updateStateStorage(sagaDescription);
+
+                if (context.dispatchingStopped()) {
+                    LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
+                    break;
+                }
             }
+        }
+    }
+
+    private void setSagaExecutionContext(final Saga saga, final ExecutionContext context) {
+        if (saga instanceof NeedContext) {
+            ((NeedContext) saga).setExecutionContext(context);
         }
     }
 

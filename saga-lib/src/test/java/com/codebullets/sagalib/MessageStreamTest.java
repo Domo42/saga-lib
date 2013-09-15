@@ -44,6 +44,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyLong;
@@ -60,6 +61,7 @@ public class MessageStreamTest {
     private MessageStream sut;
     private StateStorage storage;
     private Set<Number> numbers;
+    private Set<String> calledSagas;
     ScheduledExecutorService scheduler;
     ScheduledFuture timeout;
 
@@ -70,6 +72,7 @@ public class MessageStreamTest {
         scheduler = mock(ScheduledExecutorService.class);
         timeout = mock(ScheduledFuture.class);
         numbers = new TreeSet<>();
+        calledSagas = new TreeSet<>();
         TimeoutManager timeoutManager = new InMemoryTimeoutManager(scheduler, new SystemClock());
 
         when(scheduler.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(timeout);
@@ -77,8 +80,10 @@ public class MessageStreamTest {
         sut = EventStreamBuilder.configure()
                 .usingStorage(storage)
                 .usingScanner(new LocalScanner())
-                .usingSagaProviderFactory(new TestSagaProviderFactory(timeoutManager, numbers))
+                .usingSagaProviderFactory(new TestSagaProviderFactory(timeoutManager, numbers, calledSagas))
                 .usingTimeoutManager(timeoutManager)
+                .defineHandlerExecutionOrder()
+                    .firstExecute(NumberSaga.class).builder()
                 .build();
     }
 
@@ -96,7 +101,7 @@ public class MessageStreamTest {
         sut.handle(message);
 
         // then
-        Collection<SagaState> sagaState = convertToCollection(storage.load(TestSaga.class.getName(), String.valueOf(TestSaga.INSTANCE_KEY)));
+        Collection<SagaState> sagaState = convertToCollection(storage.load(TestSaga.class.getName(), TestSaga.INSTANCE_KEY));
         assertThat("Expected entry presenting the started saga state.", sagaState, hasSize(1));
     }
 
@@ -109,14 +114,14 @@ public class MessageStreamTest {
     public void handle_stringAndIntegerMessage_sagaFinishedAndNoLongerInStateStorage() throws InvocationTargetException, IllegalAccessException {
         // given
         String msg1 = "myTestMessage_" + RandomStringUtils.randomAlphanumeric(10);
-        Integer msg2 = TestSaga.INSTANCE_KEY;
+        FinishMessage msg2 = new FinishMessage(TestSaga.INSTANCE_KEY);
 
         // when
         sut.handle(msg1);
         sut.handle(msg2);
 
         // then
-        Collection<SagaState> sagaState = convertToCollection(storage.load(TestSaga.class.getName(), String.valueOf(TestSaga.INSTANCE_KEY)));
+        Collection<SagaState> sagaState = convertToCollection(storage.load(TestSaga.class.getName(), TestSaga.INSTANCE_KEY));
         assertThat("Expected no longer an entry for the saga state.", sagaState, hasSize(0));
     }
 
@@ -135,7 +140,7 @@ public class MessageStreamTest {
         triggerTimeout();
 
         // then
-        Collection<SagaState> sagaStates = convertToCollection(storage.load(TestSaga.class.getName(), String.valueOf(TestSaga.INSTANCE_KEY)));
+        Collection<SagaState> sagaStates = convertToCollection(storage.load(TestSaga.class.getName(), TestSaga.INSTANCE_KEY));
         TestSagaState knownState = (TestSagaState) sagaStates.iterator().next();
 
         assertThat("Expected timeout to be called.", knownState.isTimeoutHandled(), equalTo(true));
@@ -150,7 +155,7 @@ public class MessageStreamTest {
     public void handle_sagaIsCompleted_runningTimeoutIsCanceled() throws InvocationTargetException, IllegalAccessException {
         // given
         String startMsg = "startMsg_" + RandomStringUtils.randomAlphanumeric(10);
-        Integer msg2 = TestSaga.INSTANCE_KEY;
+        FinishMessage msg2 = new FinishMessage(TestSaga.INSTANCE_KEY);
         sut.handle(startMsg);
 
         // when
@@ -196,6 +201,25 @@ public class MessageStreamTest {
         assertThat("Expected number from message to be stored (proof handler has been called.)", numbers, hasItem(message));
     }
 
+    /**
+     * <pre>
+     * Given => Message of type integer. Base class handler (Number) stops message dispatching.
+     * When  => Message is handled.
+     * Then  => Concrete handler saga for integer is never called.
+     * </pre>
+     */
+    @Test
+    public void handle_integerMessage_integerSagaNeverInvoked() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Integer message = new Random().nextInt();
+
+        // when
+        sut.handle(message);
+
+        // then
+        assertThat("Number saga is never called.", calledSagas, not(hasItem(IntegerSaga.class.getName())));
+    }
+
     private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
         Collection<T> newCollection = new ArrayList<>(source.size());
         for (T entry : source) {
@@ -220,6 +244,7 @@ public class MessageStreamTest {
         public Collection<Class<? extends Saga>> scanForSagas() {
             Collection<Class<? extends Saga>> sagas = new ArrayList<>();
             sagas.add(TestSaga.class);
+            sagas.add(IntegerSaga.class);
             sagas.add(NumberSaga.class);
 
             return sagas;
@@ -229,13 +254,15 @@ public class MessageStreamTest {
     private static class TestSagaProviderFactory implements SagaProviderFactory {
         private final TimeoutManager timeoutManager;
         private final Set<Number> numbers;
+        private final Set<String> calledSagas;
 
         /**
          * Generates a new instance of MessageStreamTest$TestSagaProviderFactory.
          */
-        public TestSagaProviderFactory(TimeoutManager timeoutManager, Set<Number> numbers) {
+        public TestSagaProviderFactory(TimeoutManager timeoutManager, Set<Number> numbers, final Set<String> calledSagas) {
             this.timeoutManager = timeoutManager;
             this.numbers = numbers;
+            this.calledSagas = calledSagas;
         }
 
         @Override
@@ -255,6 +282,13 @@ public class MessageStreamTest {
                         return new NumberSaga(numbers);
                     }
                 };
+            } else if (sagaClass.equals(IntegerSaga.class)) {
+                provider = new Provider<Saga>() {
+                        @Override
+                        public Saga get() {
+                            return new IntegerSaga(calledSagas);
+                        }
+                    };
             }
 
             return provider;

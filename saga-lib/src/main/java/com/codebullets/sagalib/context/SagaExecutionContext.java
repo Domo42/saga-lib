@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib;
-
-import java.util.Set;
+package com.codebullets.sagalib.context;
 
 /**
- * Saga listening for messages of type number.
+ * Execution context used in the saga lib.
  */
-public class NumberSaga extends AbstractSingleEventSaga {
-    private final Set<Number> numbers;
+public class SagaExecutionContext implements ExecutionContext {
+    private boolean dispatchingStopped;
 
     /**
-     * Generates a new instance of NumberSaga.
+     * {@inheritDoc}
      */
-    public NumberSaga(Set<Number> numbers) {
-        this.numbers = numbers;
+    @Override
+    public void stopDispatchingCurrentMessageToHandlers() {
+        dispatchingStopped = true;
     }
 
-    @StartsSaga
-    public void numberMessage(Number number) {
-        numbers.add(number);
-
-        context().stopDispatchingCurrentMessageToHandlers();
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean dispatchingStopped() {
+        return dispatchingStopped;
     }
 }

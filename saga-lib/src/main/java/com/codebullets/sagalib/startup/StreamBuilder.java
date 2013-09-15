@@ -16,9 +16,12 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+
+import javax.inject.Provider;
 
 /**
  * Configures and builds a new saga event stream.
@@ -57,6 +60,14 @@ public interface StreamBuilder extends AutoCloseable {
      * the sagas are always handled from the same thread.
      */
     StreamBuilder usingSagaProviderFactory(SagaProviderFactory providerFactory);
+
+    /**
+     * Optional: Sets a provider able to create a new execution context. A single execution
+     * context is shared across all handles and saga of a single message. If no custom
+     * provider is set the saga-lib will create a new execution context for every message to
+     * separate the instance when messages are handled from different threads.
+     */
+    StreamBuilder usingContextProvider(Provider<ExecutionContext> contextProvider);
 
     /**
      * Defines the order of saga message handlers in case a message is associated with multiple

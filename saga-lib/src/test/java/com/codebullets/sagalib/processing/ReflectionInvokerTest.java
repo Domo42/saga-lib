@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.FinishMessage;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.startup.AnnotationSagaAnalyzer;
@@ -78,7 +79,7 @@ public class ReflectionInvokerTest {
     @Test
     public void invoke_handlerMessage_invokesHandlerMessage() throws InvocationTargetException, IllegalAccessException {
         // given
-        Integer handlerMessage = 5;
+        FinishMessage handlerMessage = new FinishMessage();
         TestSaga saga = new TestSaga();
         saga.createNewState();
 

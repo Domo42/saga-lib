@@ -15,9 +15,10 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
-import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.storage.StateStorage;
+import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -39,16 +41,20 @@ public class SagaMessageStream implements MessageStream {
     private final HandlerInvoker invoker;
     private final StateStorage storage;
     private final TimeoutManager timeoutManager;
+    private final Provider<ExecutionContext> contextProvider;
 
     /**
      * Creates a new SagaMessageStream instance.
      */
     @Inject
-    public SagaMessageStream(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager) {
+    public SagaMessageStream(
+            final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
+            final Provider<ExecutionContext> contextProvider) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
         this.timeoutManager = timeoutManager;
+        this.contextProvider = contextProvider;
 
         timeoutManager.addExpiredCallback(new TimeoutExpired() {
             @Override
@@ -91,6 +97,6 @@ public class SagaMessageStream implements MessageStream {
     }
 
     private SagaExecutionTask createExecutor(final Object message) {
-        return new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, message);
+        return new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, message, contextProvider);
     }
 }

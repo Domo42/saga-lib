@@ -15,7 +15,9 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.ReflectionsTypeScanner;
 import com.codebullets.sagalib.startup.TypeScanner;
@@ -53,6 +55,7 @@ public final class SagaModuleBuilder {
     private Class<? extends TimeoutManager> timeoutMgr;
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
+    private Class<? extends ExecutionContext> executionContext;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
 
     /**
@@ -64,6 +67,7 @@ public final class SagaModuleBuilder {
         timeoutMgr = InMemoryTimeoutManager.class;
         scanner = ReflectionsTypeScanner.class;
         providerFactory = GuiceSagaProviderFactory.class;
+        executionContext = SagaExecutionContext.class;
     }
 
     /**
@@ -142,6 +146,22 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Use custom implementation for {@link ExecutionContext} interface.
+     */
+    public SagaModuleBuilder useExecutionContext(@Nullable final Class<? extends ExecutionContext> contextClass) {
+        executionContext = contextClass;
+        return this;
+    }
+
+    /**
+     * Clears the default implementation of {@link ExecutionContext} used.
+     */
+    public SagaModuleBuilder clearExecutionContext() {
+        executionContext = null;
+        return this;
+    }
+
+    /**
      * Defines the order of saga message handlers in case a message is associated with multiple
      * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
      * <strong>Example:</strong><br/>
@@ -165,6 +185,7 @@ public final class SagaModuleBuilder {
         module.setScanner(scanner);
         module.setProviderFactory(providerFactory);
         module.setExecutionOrder(preferredOrder);
+        module.setExecutionContext(executionContext);
 
         return module;
     }

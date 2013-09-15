@@ -15,25 +15,30 @@
  */
 package com.codebullets.sagalib;
 
-import java.util.Set;
-
 /**
- * Saga listening for messages of type number.
+ * Custom message to finish test saga.
  */
-public class NumberSaga extends AbstractSingleEventSaga {
-    private final Set<Number> numbers;
+public class FinishMessage {
+    private String instanceKey;
 
     /**
-     * Generates a new instance of NumberSaga.
+     * Generates a new instance of FinishMessage.
      */
-    public NumberSaga(Set<Number> numbers) {
-        this.numbers = numbers;
+    public FinishMessage() {
     }
 
-    @StartsSaga
-    public void numberMessage(Number number) {
-        numbers.add(number);
+    /**
+     * Generates a new instance of FinishMessage.
+     */
+    public FinishMessage(final String instanceKey) {
+        this.instanceKey = instanceKey;
+    }
 
-        context().stopDispatchingCurrentMessageToHandlers();
+    public String getInstanceKey() {
+        return instanceKey;
+    }
+
+    public void setInstanceKey(final String instanceKey) {
+        this.instanceKey = instanceKey;
     }
 }

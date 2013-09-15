@@ -15,6 +15,9 @@
  */
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.context.NeedContext;
+
 import java.util.Collection;
 import java.util.Collections;
 
@@ -26,8 +29,9 @@ import java.util.Collections;
  * for further events but can finish synchronously. As such no timeout
  * or further event handling is necessary.
  */
-public abstract class AbstractSingleEventSaga implements Saga {
+public abstract class AbstractSingleEventSaga implements Saga, NeedContext {
     private static final InvalidState INVALID_STATE = new InvalidState();
+    private ExecutionContext context;
 
     /**
      * Always returns null. This saga only handles a single
@@ -35,6 +39,13 @@ public abstract class AbstractSingleEventSaga implements Saga {
     @Override
     public SagaState state() {
         return INVALID_STATE;
+    }
+
+    /**
+     * Returns the current message execution context.
+     */
+    protected ExecutionContext context() {
+        return context;
     }
 
     /**
@@ -65,6 +76,14 @@ public abstract class AbstractSingleEventSaga implements Saga {
     @Override
     public Collection<KeyReader> keyReaders() {
         return Collections.emptyList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutionContext(final ExecutionContext executionContext) {
+        this.context = executionContext;
     }
 
     /**
