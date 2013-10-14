@@ -30,5 +30,6 @@ public class CustomModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(SagaMonitor.class).in(Singleton.class);
+        bind(ExecutionContextConsumer.class).in(Singleton.class);
     }
 }

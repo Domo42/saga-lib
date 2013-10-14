@@ -15,9 +15,9 @@
  */
 package com.codebullets.sagalib.guice;
 
-import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
@@ -33,11 +33,12 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-
-import javax.annotation.Nullable;
-import javax.inject.Singleton;
+import com.google.inject.Scope;
+import com.google.inject.Scopes;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
+import javax.inject.Singleton;
 
 /**
  * Guice bindings for saga lib.
@@ -55,10 +56,10 @@ class SagaLibModule extends AbstractModule {
      */
     @Override
     protected void configure() {
-        bindIfNotNull(StateStorage.class, stateStorage);
-        bindIfNotNull(TimeoutManager.class, timeoutManager);
-        bindIfNotNull(TypeScanner.class, scanner);
-        bindIfNotNull(SagaProviderFactory.class, providerFactory);
+        bindIfNotNull(StateStorage.class, stateStorage, Scopes.SINGLETON);
+        bindIfNotNull(TimeoutManager.class, timeoutManager, Scopes.SINGLETON);
+        bindIfNotNull(TypeScanner.class, scanner, Scopes.SINGLETON);
+        bindIfNotNull(SagaProviderFactory.class, providerFactory, Scopes.SINGLETON);
         bindIfNotNull(ExecutionContext.class, executionContext);
 
         bind(SagaFactory.class).in(Singleton.class);
@@ -82,7 +83,16 @@ class SagaLibModule extends AbstractModule {
      */
     private <T> void bindIfNotNull(final Class<T> interfaceType, @Nullable final Class<? extends T> implementationType) {
         if (implementationType != null) {
-            bind(interfaceType).to(implementationType).in(Singleton.class);
+            bind(interfaceType).to(implementationType);
+        }
+    }
+
+    /**
+     * Perform binding to interface only if implementation type is not null.
+     */
+    private <T> void bindIfNotNull(final Class<T> interfaceType, @Nullable final Class<? extends T> implementationType, final Scope scope) {
+        if (implementationType != null) {
+            bind(interfaceType).to(implementationType).in(scope);
         }
     }
 

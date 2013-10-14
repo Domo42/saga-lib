@@ -16,17 +16,18 @@
 package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.context.ExecutionContext;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import org.junit.Test;
-
 import java.lang.reflect.InvocationTargetException;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 /**
  * Tests for {@link SagaModuleBuilder} class.
@@ -68,5 +69,27 @@ public class SagaModuleBuilderTest {
         // then
         SagaMonitor monitor = injector.getInstance(SagaMonitor.class);
         assertThat("Expected saga to be started.", monitor.getSagaHasStarted(), equalTo(true));
+    }
+
+    /**
+     * <pre>
+     * Given => Execution context configuration.
+     * When  => Execution context is requested twice.
+     * Then  => Returns different instances.
+     * </pre>
+     */
+    @Test
+    public void getInstance_executionContext_alwaysReturnNewContext() {
+        // given
+        Module sagaModule = SagaModuleBuilder.configure().build();
+        Injector injector = Guice.createInjector(sagaModule, new CustomModule());
+        ExecutionContextConsumer contextConsumer = injector.getInstance(ExecutionContextConsumer.class);
+        ExecutionContext context1 = contextConsumer.newContext();
+
+        // when
+        ExecutionContext context2 = injector.getInstance(ExecutionContext.class);
+
+        // then
+        assertThat("Expected two different instances.", context2, not(sameInstance(context1)));
     }
 }
