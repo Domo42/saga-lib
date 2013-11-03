@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.codebullets.saga-lib</groupId>
         <artifactId>saga-lib-root</artifactId>
-        <version>0.6-SNAPSHOT</version>
+        <version>0.6</version>
     </parent>
 
     <artifactId>saga-lib-perftest</artifactId>
