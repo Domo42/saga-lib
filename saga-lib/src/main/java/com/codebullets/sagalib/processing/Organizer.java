@@ -43,7 +43,6 @@ public class Organizer {
 
     private final KeyExtractor keyExtractor;
 
-    // the multi maps are read only once initialized in the ctor and therefore do not need thread synchronisation.
     private final SagaTypeCacheLoader cacheLoader;
     private final LoadingCache<Class, Collection<SagaType>> sagasForMessageType;
 
