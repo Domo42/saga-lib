@@ -92,6 +92,7 @@ public class Organizer {
     private Collection<SagaType> prepareSagaTypeList(final Object message) {
         Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(message.getClass());
         Collection<SagaType> sagaTypes = new ArrayList<>(sagasToExecute.size());
+        Collection<SagaType> sagasWithNoInstanceKey = new ArrayList<>();
 
         for (SagaType type : sagasToExecute) {
             if (type.isStartingNewSaga()) {
@@ -102,9 +103,14 @@ public class Organizer {
                 if (key != null) {
                     sagaTypes.add(SagaType.continueSaga(type, key));
                 } else {
-                    LOG.error("Can not determine saga instance key from message {}", message);
+                    LOG.debug("Can not determine saga instance key from message {}", message);
+                    sagasWithNoInstanceKey.add(type);
                 }
             }
+        }
+
+        if (sagaTypes.isEmpty()) {
+            LOG.warn("Can not determinate saga instance for message {}. Failed to read instance key for saga {}", message, sagasWithNoInstanceKey);
         }
 
         return sagaTypes;

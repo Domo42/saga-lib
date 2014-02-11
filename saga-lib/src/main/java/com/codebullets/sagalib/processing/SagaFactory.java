@@ -74,7 +74,7 @@ public class SagaFactory {
 
         String sagaId = sagaType.getSagaId();
         if (sagaId != null) {
-            // saga id is know -> we can create saga directly from know state.
+            // saga id is known -> we can create saga directly from know state.
             Saga saga = createSagaBasedOnId(sagaId);
             sagas.add(saga);
         } else {

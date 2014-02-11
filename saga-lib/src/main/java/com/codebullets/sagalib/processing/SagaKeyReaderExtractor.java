@@ -57,8 +57,6 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
         KeyReader reader = findReader(sagaReaders, message);
         if (reader != null) {
             keyValue = reader.readKey(message);
-        } else {
-            LOG.warn("No reader available to extract saga key from {} for saga {}", message, sagaClazz);
         }
 
         return keyValue;
