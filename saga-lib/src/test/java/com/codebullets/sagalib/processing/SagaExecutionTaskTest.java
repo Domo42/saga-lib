@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link SagaExecutionTask} class. Note that most of the
  * tests involving this class are not here but are integration tests.
  */
+@SuppressWarnings("unchecked")
 public class SagaExecutionTaskTest {
     private SagaExecutionTask sut;
     private TimeoutManager timeoutManager;

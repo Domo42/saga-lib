@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -133,12 +134,24 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
     private Set<Class<?>> getInterfaces(final Class<?> sourceType) {
         Set<Class<?>> interfaces = new HashSet<>();
 
-        Class<?>[] typeInterfaces = sourceType.getInterfaces();
+        Set<Class<?>> typeInterfaces = getAllImplementedInterfaces(sourceType);
         for (Class<?> interfaceType : typeInterfaces) {
             interfaces.add(interfaceType);
 
             Collection<Class<?>> baseInterfaces = getInterfaces(interfaceType);
             interfaces.addAll(baseInterfaces);
+        }
+
+        return interfaces;
+    }
+
+    private Set<Class<?>> getAllImplementedInterfaces(final Class<?> clazz) {
+        Set<Class<?>> interfaces = new HashSet<>();
+
+        interfaces.addAll(Arrays.asList(clazz.getInterfaces()));
+        Class<?> superclass = clazz.getSuperclass();
+        if (superclass != null) {
+            interfaces.addAll(getAllImplementedInterfaces(superclass));
         }
 
         return interfaces;
