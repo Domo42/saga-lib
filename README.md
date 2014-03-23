@@ -15,7 +15,7 @@ It is recommended to use Maven to reference the saga-lib binaries.
 <dependency>
    <groupId>com.codebullets.saga-lib</groupId>
    <artifactId>saga-lib</artifactId>
-   <version>0.6.1</version>
+   <version>0.6.2</version>
 </dependency>
 ```
 
