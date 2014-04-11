@@ -40,11 +40,11 @@ object *sagaProvider* from the example above is responsible to return individual
 so it is quite easy to create a custom provider.
 
 The above example will persist the state of the saga in memory, timeouts will be triggered based on Java timers and available Sagas will be automatically
-determined by scanning the current classpath. All of this behaviour can be customized by providing own implementions and calling one of the *using* methods.
+determined by scanning the current classpath. All of this behaviour can be customized by providing own implementations and calling one of the *using* methods.
 
 A saga may look like the example below. The messages handled are POJOs holding only the event data. They can be of any object type. The *MySagaState* type
-is a expected to be a POJO as well implementing the *SagaState* interface. The method starting the sage is indicated by the *@StartsSaga* annotation while
-all further handlers need to be annotated with *@EventHandler*. There can only one message starting a saga. There is no limit to the number of further
+is expected to be a POJO as well implementing the *SagaState* interface. The method starting the saga is indicated by the *@StartsSaga* annotation while
+all further handlers need to be annotated with *@EventHandler*. There can only be one message starting a saga. There is no limit to the number of further
 event handlers.
 
 ```java
@@ -67,7 +67,7 @@ public class MySaga extends AbstractSaga<MySagaState> {
     @EventHandler
     public void handleTimeout(Timeout timeout) {
         // perform timeout logic
-        // timeout finishes saga therfore call setFinished()
+        // timeout finishes saga therefore call setFinished()
         setFinished();
     }
 
