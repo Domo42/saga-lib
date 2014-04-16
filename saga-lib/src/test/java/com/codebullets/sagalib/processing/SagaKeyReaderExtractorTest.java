@@ -131,5 +131,147 @@ public class SagaKeyReaderExtractorTest {
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
     }
 
+    /**
+     * Given => saga has reader returning key that is superclass of the message.
+     * When  => findSagaInstanceKey is executed.
+     * Then  => Returns key from reader.
+     */
+    @Test
+    public void findSagaInstanceKey_sagaHasReaderWithSuperclassOfMessage_returnsDefinedKey() {
+        // given
+        final String keyValue = "theKeyValue";
+        KeyReader reader = FunctionKeyReader.create(Number.class, new KeyReadFunction<Number>() {
+            @Override
+            public String key(final Number number) {
+                return keyValue;
+            }
+        });
+        when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
+        // when
+        String foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+
+        // then
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+    }
+
+    /**
+     * Given => saga has both readers returning key that is superclass of the message and the message class.
+     * When  => findSagaInstanceKey is executed.
+     * Then  => Returns key from reader, preferring message class.
+     */
+    @Test
+    public void findSagaInstanceKey_sagaHasBothReadesrWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
+        // given
+        final String keyValue = "theKeyValue";
+        KeyReader numberReader = FunctionKeyReader.create(Number.class, new KeyReadFunction<Number>() {
+            @Override
+            public String key(final Number number) {
+                return "some key";
+            }
+        });
+        KeyReader integerReader = FunctionKeyReader.create(Integer.class, new KeyReadFunction<Integer>() {
+            @Override
+            public String key(final Integer integer) {
+                return keyValue;
+            }
+        });
+        when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(numberReader, integerReader));
+
+        // when
+        String foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+
+        // then
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+    }
+
+    /**
+     * Given => saga has reader returning key that is interface implemented by the message.
+     * When  => findSagaInstanceKey is executed.
+     * Then  => Returns key from reader.
+     */
+    @Test
+    public void findSagaInstanceKey_sagaHasReaderWithInterfaceImplementedByMessage_returnsDefinedKey() {
+        // given
+        final String keyValue = "theKeyValue";
+        KeyReader reader = FunctionKeyReader.create(CharSequence.class, new KeyReadFunction<CharSequence>() {
+            @Override
+            public String key(final CharSequence charSequence) {
+                return keyValue;
+            }
+        });
+        when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
+
+        // when
+        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+
+        // then
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+    }
+
+    /**
+     * Given => saga has both readers returning key that is interface implemented by the message and the message class.
+     * When  => findSagaInstanceKey is executed.
+     * Then  => Returns key from reader, preferring message class.
+     */
+    @Test
+    public void findSagaInstanceKey_sagaHasBothReadesrWithInterfaceImplementedByMessageAndMessageClass_returnsDefinedKey() {
+        // given
+        final String keyValue = "theKeyValue";
+        KeyReader reader = FunctionKeyReader.create(CharSequence.class, new KeyReadFunction<CharSequence>() {
+            @Override
+            public String key(final CharSequence charSequence) {
+                return "some key";
+            }
+        });
+        KeyReader stringReader = FunctionKeyReader.create(String.class, new KeyReadFunction<String>() {
+            @Override
+            public String key(final String string) {
+                return keyValue;
+            }
+        });
+        when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader, stringReader));
+
+        // when
+        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+
+        // then
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+    }
+
+    /**
+     * Given => saga has all readers returning key that is interface implemented by message class, key that is superclass of the message and the message class.
+     * When  => findSagaInstanceKey is executed.
+     * Then  => Returns key from reader, preferring message class.
+     */
+    @Test
+    public void __findSagaInstanceKey_sagaHasBothReadesrWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
+        // given
+        final String keyValue = "theKeyValue";
+        KeyReader comparableReader = FunctionKeyReader.create(Comparable.class, new KeyReadFunction<Comparable>() {
+            @Override
+            public String key(final Comparable number) {
+                return "some key";
+            }
+        });
+        KeyReader numberReader = FunctionKeyReader.create(Number.class, new KeyReadFunction<Number>() {
+            @Override
+            public String key(final Number number) {
+                return "another key";
+            }
+        });
+        KeyReader integerReader = FunctionKeyReader.create(Integer.class, new KeyReadFunction<Integer>() {
+            @Override
+            public String key(final Integer integer) {
+                return keyValue;
+            }
+        });
+        when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(comparableReader, numberReader, integerReader));
+
+        // when
+        String foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+
+        // then
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+    }
 }
