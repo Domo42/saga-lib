@@ -15,19 +15,18 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.lang.reflect.InvocationTargetException;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.lang.reflect.InvocationTargetException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,7 +40,7 @@ public class SagaMessageStream implements MessageStream {
     private final HandlerInvoker invoker;
     private final StateStorage storage;
     private final TimeoutManager timeoutManager;
-    private final Provider<ExecutionContext> contextProvider;
+    private final Provider<CurrentExecutionContext> contextProvider;
 
     /**
      * Creates a new SagaMessageStream instance.
@@ -49,7 +48,7 @@ public class SagaMessageStream implements MessageStream {
     @Inject
     public SagaMessageStream(
             final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-            final Provider<ExecutionContext> contextProvider) {
+            final Provider<CurrentExecutionContext> contextProvider) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;

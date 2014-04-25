@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib.context;
 
+import com.codebullets.sagalib.Saga;
+
 /**
  * Holds and controls the the state when executing one ore more
  * sagas based for a single message.
@@ -29,4 +31,14 @@ public interface ExecutionContext {
      * Gets a value indicating whether message dispatching is to be stopped.
      */
     boolean dispatchingStopped();
+
+    /**
+     * Gets the current message handled as part of the current handler chain.
+     */
+    Object message();
+
+    /**
+     * Gets the current saga handler instance executed at this moment.
+     */
+    Saga saga();
 }

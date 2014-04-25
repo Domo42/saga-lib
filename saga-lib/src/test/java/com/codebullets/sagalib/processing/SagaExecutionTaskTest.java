@@ -15,24 +15,27 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
-import com.codebullets.sagalib.context.SagaExecutionContext;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
+import java.lang.reflect.InvocationTargetException;
+import javax.inject.Provider;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.inject.Provider;
+import org.mockito.InOrder;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 /**
  * Tests for {@link SagaExecutionTask} class. Note that most of the
@@ -46,26 +49,28 @@ public class SagaExecutionTaskTest {
     private Saga saga;
     private SagaInstanceDescription sagaInstanceDescription;
     private SagaState state;
-    private ExecutionContext context;
+    private CurrentExecutionContext context;
+    private Object theMessage;
+    private HandlerInvoker invoker;
 
     @Before
     public void init() {
-        saga = mock(Saga.class);
+        saga = mock(Saga.class, withSettings().extraInterfaces(NeedContext.class));
         state = mock(SagaState.class);
         timeoutManager = mock(TimeoutManager.class);
         storage = mock(StateStorage.class);
         SagaFactory sagaFactory = mock(SagaFactory.class);
-        HandlerInvoker invoker = mock(HandlerInvoker.class);
+        invoker = mock(HandlerInvoker.class);
         sagaInstanceDescription = mock(SagaInstanceDescription.class);
 
-        Object theMessage = new Object();
+        theMessage = new Object();
 
         when(saga.state()).thenReturn(state);
         when(sagaInstanceDescription.getSaga()).thenReturn(saga);
         when(sagaFactory.create(theMessage)).thenReturn(Lists.newArrayList(sagaInstanceDescription));
 
-        context = new SagaExecutionContext();
-        Provider<ExecutionContext> contextProvider = mock(Provider.class);
+        context = mock(CurrentExecutionContext.class);
+        Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
         sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, contextProvider);
@@ -189,5 +194,43 @@ public class SagaExecutionTaskTest {
 
         // then
         verify(timeoutManager, never()).cancelTimeouts(any(String.class));
+    }
+
+    /**
+     * <pre>
+     * Given => Specific message for saga handling.
+     * When  => Task is executed.
+     * Then  => Expected message to be set on saga context. Do this before saga is invoked
+     * </pre>
+     */
+    @Test
+    public void run_messageParam_messageIsSetOnContext() throws InvocationTargetException, IllegalAccessException {
+        // given, when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(context, invoker);
+
+        inOrder.verify(context).setMessage(theMessage);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+    }
+
+    /**
+     * <pre>
+     * Given => specific saga being invoked
+     * When  => task is executed
+     * Then  => saga is set on context. has to be done before invoke
+     * </pre>
+     */
+    @Test
+    public void run_sagaToInvoke_sagaIsSetOnContext() throws InvocationTargetException, IllegalAccessException {
+        // given, when
+        sut.run();
+
+        // when
+        InOrder inOrder = inOrder(context, invoker);
+
+        inOrder.verify(context).setSaga(saga);
+        inOrder.verify(invoker).invoke(saga, theMessage);
     }
 }

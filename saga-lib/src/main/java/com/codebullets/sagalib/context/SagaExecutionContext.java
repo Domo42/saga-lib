@@ -15,11 +15,15 @@
  */
 package com.codebullets.sagalib.context;
 
+import com.codebullets.sagalib.Saga;
+
 /**
  * Execution context used in the saga lib.
  */
-public class SagaExecutionContext implements ExecutionContext {
+public class SagaExecutionContext implements CurrentExecutionContext {
     private boolean dispatchingStopped;
+    private Object message;
+    private Saga saga;
 
     /**
      * {@inheritDoc}
@@ -35,5 +39,25 @@ public class SagaExecutionContext implements ExecutionContext {
     @Override
     public boolean dispatchingStopped() {
         return dispatchingStopped;
+    }
+
+    @Override
+    public Object message() {
+        return message;
+    }
+
+    @Override
+    public Saga saga() {
+        return saga;
+    }
+
+    @Override
+    public void setMessage(final Object message) {
+        this.message = message;
+    }
+
+    @Override
+    public void setSaga(final Saga saga) {
+        this.saga = saga;
     }
 }

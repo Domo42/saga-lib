@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.NeedContext;
@@ -41,13 +42,13 @@ public class SagaExecutionTask implements Runnable {
     private final StateStorage storage;
     private final TimeoutManager timeoutManager;
     private final Object message;
-    private final Provider<ExecutionContext> contextProvider;
+    private final Provider<CurrentExecutionContext> contextProvider;
 
     /**
      * Generates a new instance of SagaExecutionTask.
      */
     public SagaExecutionTask(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-                             final Object message, final Provider<ExecutionContext> contextProvider) {
+                             final Object message, final Provider<CurrentExecutionContext> contextProvider) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
@@ -75,10 +76,12 @@ public class SagaExecutionTask implements Runnable {
         if (sagaDescriptions.isEmpty()) {
             LOG.warn("No saga found to handle message. {}", invokeParam);
         } else {
-            ExecutionContext context = contextProvider.get();
+            CurrentExecutionContext context = contextProvider.get();
+            context.setMessage(invokeParam);
 
             for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
                 Saga saga = sagaDescription.getSaga();
+                context.setSaga(saga);
                 setSagaExecutionContext(saga, context);
 
                 invoker.invoke(saga, invokeParam);

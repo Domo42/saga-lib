@@ -15,14 +15,14 @@
  */
 package com.codebullets.sagalib.startup;
 
-import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
-import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.SagaFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
@@ -30,12 +30,11 @@ import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Provider;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -52,7 +51,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     private StateStorage storage;
     private SagaProviderFactory providerFactory;
     private TimeoutManager timeoutManager;
-    private Provider<ExecutionContext> contextProvider;
+    private Provider<CurrentExecutionContext> contextProvider;
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -136,7 +135,7 @@ public final class EventStreamBuilder implements StreamBuilder {
      * {@inheritDoc}
      */
     @Override
-    public StreamBuilder usingContextProvider(final Provider<ExecutionContext> provider) {
+    public StreamBuilder usingContextProvider(final Provider<CurrentExecutionContext> provider) {
         checkNotNull(contextProvider, "Context provider must be set.");
 
         contextProvider = provider;
@@ -177,9 +176,9 @@ public final class EventStreamBuilder implements StreamBuilder {
 
     private void buildContextProvider() {
         if (contextProvider == null) {
-            contextProvider = new Provider<ExecutionContext>() {
+            contextProvider = new Provider<CurrentExecutionContext>() {
                     @Override
-                    public ExecutionContext get() {
+                    public CurrentExecutionContext get() {
                         return new SagaExecutionContext();
                     }
                 };

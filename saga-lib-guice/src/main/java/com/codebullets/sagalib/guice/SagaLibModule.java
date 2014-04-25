@@ -17,6 +17,7 @@ package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
@@ -49,7 +50,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
-    private Class<? extends ExecutionContext> executionContext;
+    private Class<? extends CurrentExecutionContext> executionContext;
 
     /**
      * {@inheritDoc}
@@ -60,7 +61,9 @@ class SagaLibModule extends AbstractModule {
         bindIfNotNull(TimeoutManager.class, timeoutManager, Scopes.SINGLETON);
         bindIfNotNull(TypeScanner.class, scanner, Scopes.SINGLETON);
         bindIfNotNull(SagaProviderFactory.class, providerFactory, Scopes.SINGLETON);
-        bindIfNotNull(ExecutionContext.class, executionContext);
+
+        bindIfNotNull(CurrentExecutionContext.class, executionContext);
+        bind(ExecutionContext.class).toProvider(binder().getProvider(CurrentExecutionContext.class));
 
         bind(SagaFactory.class).in(Singleton.class);
         bind(HandlerInvoker.class).to(ReflectionInvoker.class);
@@ -134,7 +137,7 @@ class SagaLibModule extends AbstractModule {
     /**
      * Sets the execution context implementation.
      */
-    public void setExecutionContext(final Class<? extends ExecutionContext> executionContext) {
+    public void setExecutionContext(final Class<? extends CurrentExecutionContext> executionContext) {
         this.executionContext = executionContext;
     }
 }

@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib.guice;
 
-import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
@@ -55,7 +55,7 @@ public final class SagaModuleBuilder {
     private Class<? extends TimeoutManager> timeoutMgr;
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
-    private Class<? extends ExecutionContext> executionContext;
+    private Class<? extends CurrentExecutionContext> executionContext;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
 
     /**
@@ -146,15 +146,15 @@ public final class SagaModuleBuilder {
     }
 
     /**
-     * Use custom implementation for {@link ExecutionContext} interface.
+     * Use custom implementation for {@link CurrentExecutionContext} interface.
      */
-    public SagaModuleBuilder useExecutionContext(@Nullable final Class<? extends ExecutionContext> contextClass) {
+    public SagaModuleBuilder useExecutionContext(@Nullable final Class<? extends CurrentExecutionContext> contextClass) {
         executionContext = contextClass;
         return this;
     }
 
     /**
-     * Clears the default implementation of {@link ExecutionContext} used.
+     * Clears the default implementation of {@link CurrentExecutionContext} used.
      */
     public SagaModuleBuilder clearExecutionContext() {
         executionContext = null;
