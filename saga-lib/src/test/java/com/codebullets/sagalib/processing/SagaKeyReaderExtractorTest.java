@@ -245,7 +245,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader, preferring message class.
      */
     @Test
-    public void __findSagaInstanceKey_sagaHasBothReadesrWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
+    public void findSagaInstanceKey_sagaHasBothReadersWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader comparableReader = FunctionKeyReader.create(Comparable.class, new KeyReadFunction<Comparable>() {

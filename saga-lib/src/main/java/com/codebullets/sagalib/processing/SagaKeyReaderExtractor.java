@@ -25,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.Callable;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Uses the saga keyReaders() method to extract the saga
@@ -35,7 +38,7 @@ import java.util.concurrent.Callable;
 public class SagaKeyReaderExtractor implements KeyExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(SagaKeyReaderExtractor.class);
     private final SagaProviderFactory sagaProviderFactory;
-    private final Cache<Class, Collection<KeyReader>> knownReaders;
+    private final Cache<SagaMessageKey, KeyReader> knownReaders;
 
     /**
      * Generates a new instance of SagaKeyReaderExtractor.
@@ -53,8 +56,7 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
     public String findSagaInstanceKey(final Class<? extends Saga> sagaClazz, final Object message) {
         String keyValue = null;
 
-        Collection<KeyReader> sagaReaders = tryGetReaders(sagaClazz, message);
-        KeyReader reader = findReader(sagaReaders, message);
+        KeyReader reader = tryGetKeyReader(sagaClazz, message);
         if (reader != null) {
             keyValue = reader.readKey(message);
         }
@@ -65,90 +67,54 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
     /**
      * Does not throw an exception when accessing the loading cache for key readers.
      */
-    private Collection<KeyReader> tryGetReaders(final Class<? extends Saga> sagaClazz, final Object message) {
-        Collection<KeyReader> readers;
+    private KeyReader tryGetKeyReader(final Class<? extends Saga> sagaClazz, final Object message) {
+        KeyReader reader;
 
         try {
-            readers = knownReaders.get(sagaClazz, new Callable<Collection<KeyReader>>() {
-                    @Override
-                    public Collection<KeyReader> call() throws Exception {
-                        return findReader(sagaClazz, message.getClass());
-                    }
-                });
+            reader = knownReaders.get(
+                    SagaMessageKey.forMessage(sagaClazz, message),
+                    new Callable<KeyReader>() {
+                        @Override
+                        public KeyReader call() throws Exception {
+                            return findReader(sagaClazz, message);
+                        }
+                    });
         } catch (Exception ex) {
             LOG.error("Error searching for reader to extract saga key. sagatype = {}, message = {}", sagaClazz, message, ex);
-            readers = new ArrayList<>();
+            reader = null;
         }
 
-        return readers;
+        return reader;
     }
 
-    /**
-     * Search for reader based on various criteria.
-     */
-    private KeyReader findReader(final Collection<KeyReader> sagaKeyReaders, final Object message) {
-        KeyReader messageKeyReader;
-        Class messageClass = message.getClass();
+    private KeyReader findReader(final Class<? extends Saga> sagaClazz, final Object message) {
+        KeyReader reader = null;
 
-        messageKeyReader = findKeyReaderForMessageClass(sagaKeyReaders, messageClass);
+        Collection<KeyReader> readersOfSaga = findReader(sagaClazz, message.getClass());
 
-        if (messageKeyReader == null) {
-            messageKeyReader = findKeyReaderForMessageSuperclass(sagaKeyReaders, messageClass);
+        ClassTypeExtractor extractor = new ClassTypeExtractor(message.getClass());
+        Iterable<Class<?>> messageTypesToConsider = extractor.allClassesAndInterfaces();
+
+        for (Class<?> messageType : messageTypesToConsider) {
+            reader = findReaderMatchingExactType(readersOfSaga, messageType);
+            if (reader != null) {
+                break;
+            }
         }
 
-        if (messageKeyReader == null) {
-            messageKeyReader = findKeyReaderForMessageInterfaces(sagaKeyReaders, messageClass);
-        }
-
-        return messageKeyReader;
+        return reader;
     }
 
     /**
      * Search for reader based on message class.
      */
-    private KeyReader findKeyReaderForMessageClass(final Collection<KeyReader> sagaKeyReaders, final Class messageClass) {
+    private KeyReader findReaderMatchingExactType(final Iterable<KeyReader> readers, final Class<?> messageType) {
         KeyReader messageKeyReader = null;
 
-        for (KeyReader reader : sagaKeyReaders) {
-            if (reader.getMessageClass().equals(messageClass)) {
+        for (KeyReader reader : readers) {
+            if (reader.getMessageClass().equals(messageType)) {
                 messageKeyReader = reader;
                 break;
-            }
-        }
-
-        return messageKeyReader;
-    }
-
-    /**
-     * Search for reader based on message superclass.
-     */
-    private KeyReader findKeyReaderForMessageSuperclass(final Collection<KeyReader> sagaKeyReaders, final Class messageClass) {
-        KeyReader messageKeyReader = null;
-
-        Class superClass = messageClass.getSuperclass();
-        for (KeyReader reader : sagaKeyReaders) {
-            if (reader.getMessageClass().equals(superClass)) {
-                messageKeyReader = reader;
-                break;
-            }
-        }
-
-        return messageKeyReader;
-    }
-
-    /**
-     * Search for reader based on message implemented interfaces.
-     */
-    private KeyReader findKeyReaderForMessageInterfaces(final Collection<KeyReader> sagaKeyReaders, final Class messageClass) {
-        KeyReader messageKeyReader = null;
-
-        for (KeyReader reader : sagaKeyReaders) {
-            Class[] interfaces = messageClass.getInterfaces();
-            for (Class interfaze : interfaces) {
-                if (reader.getMessageClass().equals(interfaze)) {
-                    messageKeyReader = reader;
-                    break;
-                }
             }
         }
 
@@ -167,5 +133,42 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
         }
 
         return readers;
+    }
+
+    /**
+     * Key combined of saga and message type.
+     */
+    private static final class SagaMessageKey {
+        private final Class<?> saga;
+        private final Class<?> message;
+
+        private SagaMessageKey(final Class<?> saga, final Class<?> message) {
+            this.saga = saga;
+            this.message = message;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(saga, message);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            boolean equals = false;
+            if (this == obj) {
+                equals = true;
+            } else if (obj instanceof SagaMessageKey) {
+                SagaMessageKey other = (SagaMessageKey) obj;
+                equals = Objects.equals(other.saga, saga) && Objects.equals(other.message, message);
+            }
+
+            return equals;
+        }
+
+        public static SagaMessageKey forMessage(final Class<?> saga, final Object message) {
+            checkNotNull(saga, "saga type must not be null.");
+
+            return new SagaMessageKey(saga, message.getClass());
+        }
     }
 }
