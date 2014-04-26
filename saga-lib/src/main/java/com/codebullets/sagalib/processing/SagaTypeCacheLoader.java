@@ -21,12 +21,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Set;
 
 /**
  * Creates a list of saga handlers based on requested message type.
@@ -55,7 +53,7 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
     @Override
     @SuppressWarnings("unchecked")
     public Collection<SagaType> load(final Class messageClass) throws Exception {
-        Collection<Class<?>> matchingTypes = allMessageTypes(messageClass);
+        Iterable<Class<?>> matchingTypes = allMessageTypes(messageClass);
         Collection<SagaType> matchingSagas = findAllSagas(matchingTypes);
 
         Collection<SagaType> resultList;
@@ -68,7 +66,7 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
         return resultList;
     }
 
-    private Collection<SagaType> sortAccordingToPreference(final Collection<SagaType> unsorted) {
+    private Collection<SagaType> sortAccordingToPreference(final Iterable<SagaType> unsorted) {
         Collection<SagaType> sorted = new LinkedList<>();
 
         // place preferred items first
@@ -96,7 +94,7 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
         return sorted;
     }
 
-    private Collection<SagaType> findAllSagas(final Collection<Class<?>> messageTypes) {
+    private Collection<SagaType> findAllSagas(final Iterable<Class<?>> messageTypes) {
         Collection<SagaType> types = new HashSet<>();
 
         for (Class<?> msgType : messageTypes) {
@@ -111,50 +109,9 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
      * Creates a list of types the concrete class may have handler matches. Like the
      * implemented interfaces of base classes.
      */
-    private Collection<Class<?>> allMessageTypes(final Class<?> concreteMsgClass) {
-        Collection<Class<?>> allTypes = new ArrayList<>();
-
-        Collection<Class<?>> interfaces = getInterfaces(concreteMsgClass);
-        for (Class<?> msgInterface : interfaces) {
-            if (!allTypes.contains(msgInterface)) {
-                allTypes.add(msgInterface);
-            }
-        }
-
-        allTypes.add(concreteMsgClass);
-        Class<?> superClass = concreteMsgClass.getSuperclass();
-        while (superClass != null) {
-            allTypes.add(superClass);
-            superClass = superClass.getSuperclass();
-        }
-
-        return allTypes;
-    }
-
-    private Set<Class<?>> getInterfaces(final Class<?> sourceType) {
-        Set<Class<?>> interfaces = new HashSet<>();
-
-        Set<Class<?>> typeInterfaces = getAllImplementedInterfaces(sourceType);
-        for (Class<?> interfaceType : typeInterfaces) {
-            interfaces.add(interfaceType);
-
-            Collection<Class<?>> baseInterfaces = getInterfaces(interfaceType);
-            interfaces.addAll(baseInterfaces);
-        }
-
-        return interfaces;
-    }
-
-    private Set<Class<?>> getAllImplementedInterfaces(final Class<?> clazz) {
-        Set<Class<?>> interfaces = new HashSet<>();
-
-        interfaces.addAll(Arrays.asList(clazz.getInterfaces()));
-        Class<?> superclass = clazz.getSuperclass();
-        if (superclass != null) {
-            interfaces.addAll(getAllImplementedInterfaces(superclass));
-        }
-
-        return interfaces;
+    private Iterable<Class<?>> allMessageTypes(final Class<?> concreteMsgClass) {
+        ClassTypeExtractor extractor = new ClassTypeExtractor(concreteMsgClass);
+        return extractor.allClassesAndInterfaces();
     }
 
     /**
