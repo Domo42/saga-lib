@@ -84,16 +84,71 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
     }
 
     /**
-     * Search for reader based on message class.
+     * Search for reader based on various criteria.
      */
     private KeyReader findReader(final Collection<KeyReader> sagaKeyReaders, final Object message) {
-        KeyReader messageKeyReader = null;
+        KeyReader messageKeyReader;
         Class messageClass = message.getClass();
+
+        messageKeyReader = findKeyReaderForMessageClass(sagaKeyReaders, messageClass);
+
+        if (messageKeyReader == null) {
+            messageKeyReader = findKeyReaderForMessageSuperclass(sagaKeyReaders, messageClass);
+        }
+
+        if (messageKeyReader == null) {
+            messageKeyReader = findKeyReaderForMessageInterfaces(sagaKeyReaders, messageClass);
+        }
+
+        return messageKeyReader;
+    }
+
+    /**
+     * Search for reader based on message class.
+     */
+    private KeyReader findKeyReaderForMessageClass(final Collection<KeyReader> sagaKeyReaders, final Class messageClass) {
+        KeyReader messageKeyReader = null;
 
         for (KeyReader reader : sagaKeyReaders) {
             if (reader.getMessageClass().equals(messageClass)) {
                 messageKeyReader = reader;
                 break;
+            }
+        }
+
+        return messageKeyReader;
+    }
+
+    /**
+     * Search for reader based on message superclass.
+     */
+    private KeyReader findKeyReaderForMessageSuperclass(final Collection<KeyReader> sagaKeyReaders, final Class messageClass) {
+        KeyReader messageKeyReader = null;
+
+        Class superClass = messageClass.getSuperclass();
+        for (KeyReader reader : sagaKeyReaders) {
+            if (reader.getMessageClass().equals(superClass)) {
+                messageKeyReader = reader;
+                break;
+            }
+        }
+
+        return messageKeyReader;
+    }
+
+    /**
+     * Search for reader based on message implemented interfaces.
+     */
+    private KeyReader findKeyReaderForMessageInterfaces(final Collection<KeyReader> sagaKeyReaders, final Class messageClass) {
+        KeyReader messageKeyReader = null;
+
+        for (KeyReader reader : sagaKeyReaders) {
+            Class[] interfaces = messageClass.getInterfaces();
+            for (Class interfaze : interfaces) {
+                if (reader.getMessageClass().equals(interfaze)) {
+                    messageKeyReader = reader;
+                    break;
+                }
             }
         }
 
