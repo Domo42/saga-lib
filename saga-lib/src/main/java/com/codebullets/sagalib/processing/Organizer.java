@@ -24,13 +24,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -73,15 +72,10 @@ public class Organizer {
      * Returns the saga types to create in the excepted order to be executed.
      */
     public Iterable<SagaType> sagaTypesForMessage(final Object message) {
-        Collection<SagaType> sagaTypes;
+        Iterable<SagaType> sagaTypes;
 
         if (message instanceof Timeout) {
-            // timeout is special. Has only one specific saga state and
-            // saga id is already known
-            Timeout timeout = (Timeout) message;
-            SagaType sagaType = SagaType.sagaFromTimeout(timeout.getSagaId());
-            sagaTypes = new ArrayList<>(1);
-            sagaTypes.add(sagaType);
+            sagaTypes = prepareTimeoutList((Timeout) message);
         } else {
             sagaTypes = prepareSagaTypeList(message);
         }
@@ -89,7 +83,29 @@ public class Organizer {
         return sagaTypes;
     }
 
-    private Collection<SagaType> prepareSagaTypeList(final Object message) {
+    /**
+     * Timeouts are special. They do not need an instance key to be found. However
+     * there may be other starting sagas that want to handle timeouts of other saga instances.
+     */
+    private Iterable<SagaType> prepareTimeoutList(final Timeout timeout) {
+        Collection<SagaType> sagaTypes = new ArrayList<>();
+
+        // search for other sagas started by timeouts
+        Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(Timeout.class);
+        for (SagaType type : sagasToExecute) {
+            if (type.isStartingNewSaga()) {
+                sagaTypes.add(type);
+            }
+        }
+
+        // saga id is already known
+        SagaType sagaType = SagaType.sagaFromTimeout(timeout.getSagaId());
+        sagaTypes.add(sagaType);
+
+        return sagaTypes;
+    }
+
+    private Iterable<SagaType> prepareSagaTypeList(final Object message) {
         Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(message.getClass());
         Collection<SagaType> sagaTypes = new ArrayList<>(sagasToExecute.size());
         Collection<SagaType> sagasWithNoInstanceKey = new ArrayList<>();
