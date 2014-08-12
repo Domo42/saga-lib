@@ -60,6 +60,7 @@ public class SagaExecutionTaskTest {
     private Object theMessage;
     private HandlerInvoker invoker;
     private SagaFactory sagaFactory;
+    private SagaEnvironment env;
 
     @Before
     public void init() {
@@ -81,7 +82,8 @@ public class SagaExecutionTaskTest {
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
-        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, contextProvider, new HashMap<String, Object>());
+        env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
+        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>());
     }
 
     /**
@@ -256,7 +258,8 @@ public class SagaExecutionTaskTest {
         Object headerValue = "headerValue";
         Map<String, Object> headers = Maps.newHashMap();
         headers.put("headerKey", headerValue);
-        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, createContextProvider(context), headers);
+        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context));
+        sut = new SagaExecutionTask(env, invoker, theMessage, headers);
 
         // when
         sut.run();

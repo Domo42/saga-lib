@@ -40,11 +40,8 @@ public class SagaMessageStream implements MessageStream {
     private static final Logger LOG = LoggerFactory.getLogger(SagaFactory.class);
     private static final Map<String, Object> EMPTY_HEADERS = Collections.EMPTY_MAP;
 
-    private final SagaFactory sagaFactory;
+    private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
-    private final StateStorage storage;
-    private final TimeoutManager timeoutManager;
-    private final Provider<CurrentExecutionContext> contextProvider;
 
     /**
      * Creates a new SagaMessageStream instance.
@@ -53,11 +50,8 @@ public class SagaMessageStream implements MessageStream {
     public SagaMessageStream(
             final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
             final Provider<CurrentExecutionContext> contextProvider) {
-        this.sagaFactory = sagaFactory;
+        environment = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
         this.invoker = invoker;
-        this.storage = storage;
-        this.timeoutManager = timeoutManager;
-        this.contextProvider = contextProvider;
 
         timeoutManager.addExpiredCallback(new TimeoutExpired() {
             @Override
@@ -113,6 +107,6 @@ public class SagaMessageStream implements MessageStream {
     }
 
     private SagaExecutionTask createExecutor(final Object message, final Map<String, Object> headers) {
-        return new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, message, contextProvider, headers);
+        return new SagaExecutionTask(environment, invoker, message, headers);
     }
 }

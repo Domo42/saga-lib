@@ -19,12 +19,9 @@ import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.NeedContext;
-import com.codebullets.sagalib.storage.StateStorage;
-import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Map;
@@ -35,34 +32,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Perform execution of saga message handling. This class is the execution
  * root unit when handling messages as part of an execution strategy.
  */
-public class SagaExecutionTask implements Runnable {
+class SagaExecutionTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SagaExecutionTask.class);
 
-    private final SagaFactory sagaFactory;
     private final HandlerInvoker invoker;
-    private final StateStorage storage;
-    private final TimeoutManager timeoutManager;
     private final Object message;
-    private final Provider<CurrentExecutionContext> contextProvider;
     private final Map<String, Object> headers;
+    private final SagaEnvironment env;
 
     /**
      * Generates a new instance of SagaExecutionTask.
      */
     public SagaExecutionTask(
-            final SagaFactory sagaFactory,
+            final SagaEnvironment environment,
             final HandlerInvoker invoker,
-            final StateStorage storage,
-            final TimeoutManager timeoutManager,
             final Object message,
-            final Provider<CurrentExecutionContext> contextProvider,
             final Map<String, Object> headers) {
-        this.sagaFactory = sagaFactory;
+        this.env = environment;
         this.invoker = invoker;
-        this.storage = storage;
-        this.timeoutManager = timeoutManager;
         this.message = message;
-        this.contextProvider = contextProvider;
         this.headers = headers;
     }
 
@@ -81,11 +69,11 @@ public class SagaExecutionTask implements Runnable {
      * Perform handling of a single message.
      */
     private void handleSagaMessage(final Object invokeParam) throws InvocationTargetException, IllegalAccessException {
-        Collection<SagaInstanceDescription> sagaDescriptions = sagaFactory.create(invokeParam);
+        Collection<SagaInstanceDescription> sagaDescriptions = env.sagaFactory().create(invokeParam);
         if (sagaDescriptions.isEmpty()) {
             LOG.warn("No saga found to handle message. {}", invokeParam);
         } else {
-            CurrentExecutionContext context = contextProvider.get();
+            CurrentExecutionContext context = env.contextProvider().get();
             context.setMessage(invokeParam);
             setHeaders(context);
 
@@ -127,10 +115,10 @@ public class SagaExecutionTask implements Runnable {
         // if saga has just been created state has never been save and there
         // is no need to delete it.
         if (saga.isFinished() && !description.isStarting()) {
-            storage.delete(saga.state().getSagaId());
-            timeoutManager.cancelTimeouts(saga.state().getSagaId());
+            env.storage().delete(saga.state().getSagaId());
+            env.timeoutManager().cancelTimeouts(saga.state().getSagaId());
         } else if (!saga.isFinished()) {
-            storage.save(saga.state());
+            env.storage().save(saga.state());
         }
     }
 
