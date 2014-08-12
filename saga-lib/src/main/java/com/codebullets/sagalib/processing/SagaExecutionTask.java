@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -43,18 +44,26 @@ public class SagaExecutionTask implements Runnable {
     private final TimeoutManager timeoutManager;
     private final Object message;
     private final Provider<CurrentExecutionContext> contextProvider;
+    private final Map<String, Object> headers;
 
     /**
      * Generates a new instance of SagaExecutionTask.
      */
-    public SagaExecutionTask(final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-                             final Object message, final Provider<CurrentExecutionContext> contextProvider) {
+    public SagaExecutionTask(
+            final SagaFactory sagaFactory,
+            final HandlerInvoker invoker,
+            final StateStorage storage,
+            final TimeoutManager timeoutManager,
+            final Object message,
+            final Provider<CurrentExecutionContext> contextProvider,
+            final Map<String, Object> headers) {
         this.sagaFactory = sagaFactory;
         this.invoker = invoker;
         this.storage = storage;
         this.timeoutManager = timeoutManager;
         this.message = message;
         this.contextProvider = contextProvider;
+        this.headers = headers;
     }
 
     /**
@@ -78,6 +87,7 @@ public class SagaExecutionTask implements Runnable {
         } else {
             CurrentExecutionContext context = contextProvider.get();
             context.setMessage(invokeParam);
+            setHeaders(context);
 
             for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
                 Saga saga = sagaDescription.getSaga();
@@ -92,6 +102,12 @@ public class SagaExecutionTask implements Runnable {
                     break;
                 }
             }
+        }
+    }
+
+    private void setHeaders(final CurrentExecutionContext context) {
+        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+            context.setHeaderValue(entry.getKey(), entry.getValue());
         }
     }
 

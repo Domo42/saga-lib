@@ -19,16 +19,23 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.NeedContext;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
-import java.lang.reflect.InvocationTargetException;
-import javax.inject.Provider;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 
+import javax.inject.Provider;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -52,6 +59,7 @@ public class SagaExecutionTaskTest {
     private CurrentExecutionContext context;
     private Object theMessage;
     private HandlerInvoker invoker;
+    private SagaFactory sagaFactory;
 
     @Before
     public void init() {
@@ -59,7 +67,7 @@ public class SagaExecutionTaskTest {
         state = mock(SagaState.class);
         timeoutManager = mock(TimeoutManager.class);
         storage = mock(StateStorage.class);
-        SagaFactory sagaFactory = mock(SagaFactory.class);
+        sagaFactory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
         sagaInstanceDescription = mock(SagaInstanceDescription.class);
 
@@ -73,7 +81,7 @@ public class SagaExecutionTaskTest {
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
-        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, contextProvider);
+        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, contextProvider, new HashMap<String, Object>());
     }
 
     /**
@@ -232,5 +240,37 @@ public class SagaExecutionTaskTest {
 
         inOrder.verify(context).setSaga(saga);
         inOrder.verify(invoker).invoke(saga, theMessage);
+    }
+
+    /**
+     * <pre>
+     * Given => header values are provided.
+     * When  => saga task is executed
+     * Then  => saga context contains header value.
+     * </pre>
+     */
+    @Test
+    public void run_headerValuesProvided_contextContainsHeader() {
+        // given
+        CurrentExecutionContext context = new SagaExecutionContext();
+        Object headerValue = "headerValue";
+        Map<String, Object> headers = Maps.newHashMap();
+        headers.put("headerKey", headerValue);
+        sut = new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, theMessage, createContextProvider(context), headers);
+
+        // when
+        sut.run();
+
+        // then
+        assertThat("Expected header value to be part of context.", context.getHeaderValue("headerKey"), equalTo(headerValue));
+    }
+
+    private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {
+        return new Provider<CurrentExecutionContext>() {
+                @Override
+                public CurrentExecutionContext get() {
+                    return context;
+                }
+            };
     }
 }

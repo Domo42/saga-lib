@@ -41,4 +41,19 @@ public interface ExecutionContext {
      * Gets the current saga handler instance executed at this moment.
      */
     Saga saga();
+
+    /**
+     * Gets the list of available header values.
+     */
+    Iterable<String> getHeaders();
+
+    /**
+     * Gets the value of a specific header. If the header is not defined <em>null</em> is returned.
+     */
+    Object getHeaderValue(String header);
+
+    /**
+     * Sets a specific header value.
+     */
+    void setHeaderValue(String header, Object value);
 }

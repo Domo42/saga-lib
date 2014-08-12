@@ -17,6 +17,9 @@ package com.codebullets.sagalib.context;
 
 import com.codebullets.sagalib.Saga;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Execution context used in the saga lib.
  */
@@ -24,6 +27,7 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     private boolean dispatchingStopped;
     private Object message;
     private Saga saga;
+    private Map<String, Object> headers = new HashMap<>();
 
     /**
      * {@inheritDoc}
@@ -49,6 +53,21 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     @Override
     public Saga saga() {
         return saga;
+    }
+
+    @Override
+    public Iterable<String> getHeaders() {
+        return headers.keySet();
+    }
+
+    @Override
+    public Object getHeaderValue(final String header) {
+        return headers.get(header);
+    }
+
+    @Override
+    public void setHeaderValue(final String header, final Object value) {
+        headers.put(header, value);
     }
 
     @Override

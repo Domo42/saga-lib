@@ -21,12 +21,15 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import java.lang.reflect.InvocationTargetException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,6 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SagaMessageStream implements MessageStream {
     private static final Logger LOG = LoggerFactory.getLogger(SagaFactory.class);
+    private static final Map<String, Object> EMPTY_HEADERS = Collections.EMPTY_MAP;
 
     private final SagaFactory sagaFactory;
     private final HandlerInvoker invoker;
@@ -69,7 +73,12 @@ public class SagaMessageStream implements MessageStream {
     @Override
     public void add(@Nonnull final Object message) {
         checkNotNull(message, "Message to handle must not be null.");
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
+    @Override
+    public void add(@Nonnull final Object message, final Map<String, Object> headers) {
+        checkNotNull(message, "Message to handle must not be null.");
         throw new UnsupportedOperationException("Not implemented");
     }
 
@@ -80,7 +89,15 @@ public class SagaMessageStream implements MessageStream {
     public void handle(@Nonnull final Object message) throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");
 
-        SagaExecutionTask executor = createExecutor(message);
+        SagaExecutionTask executor = createExecutor(message, EMPTY_HEADERS);
+        executor.handle();
+    }
+
+    @Override
+    public void handle(@Nonnull final Object message, final Map<String, Object> headers) throws InvocationTargetException, IllegalAccessException {
+        checkNotNull(message, "Message to handle must not be null.");
+
+        SagaExecutionTask executor = createExecutor(message, headers != null ? headers : EMPTY_HEADERS);
         executor.handle();
     }
 
@@ -95,7 +112,7 @@ public class SagaMessageStream implements MessageStream {
         }
     }
 
-    private SagaExecutionTask createExecutor(final Object message) {
-        return new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, message, contextProvider);
+    private SagaExecutionTask createExecutor(final Object message, final Map<String, Object> headers) {
+        return new SagaExecutionTask(sagaFactory, invoker, storage, timeoutManager, message, contextProvider, headers);
     }
 }

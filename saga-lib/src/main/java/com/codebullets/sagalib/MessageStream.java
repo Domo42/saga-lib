@@ -17,6 +17,7 @@ package com.codebullets.sagalib;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 /**
  * Add messages and events to the steam so that they are processed and
@@ -27,13 +28,37 @@ public interface MessageStream {
      * Add a new message to be processed by the saga lib. The message can be of any type.
      * Message is handled in the background and not necessarily a synchronous operation
      * depending on the execution strategy.
+     * @param message The message to be handled.
      */
     void add(@Nonnull Object message);
 
     /**
+     * Add a new message to be processed by the saga lib. The message can be of any type.
+     * Message is handled in the background and not necessarily a synchronous operation
+     * depending on the execution strategy.
+     * @param message The message to be handled.
+     * @param headers A list of header values not part of the messages. These value
+     *                can be accessed within the sagas from the {@code ExecutionContext}.
+     */
+    void add(@Nonnull Object message, Map<String, Object> headers);
+
+    /**
      * Handles the given message on synchronously on the the calling thread.
+     * @param message The message to be handled.
+     *
      * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
      * @throws IllegalAccessException Thrown when access to the method to invoke is denied.
      */
     void handle(@Nonnull Object message) throws InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Handles the given message on synchronously on the the calling thread.
+     * @param message The message to be handled.
+     * @param headers A list of header values not part of the messages. These value
+     *                can be accessed within the sagas from the {@code ExecutionContext}.
+     *
+     * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
+     * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
+     */
+    void handle(@Nonnull Object message, Map<String, Object> headers) throws InvocationTargetException, IllegalAccessException;
 }
