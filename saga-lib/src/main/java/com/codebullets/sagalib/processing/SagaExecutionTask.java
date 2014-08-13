@@ -15,9 +15,10 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.ExecutionContext;
-import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.NeedContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ class SagaExecutionTask implements Runnable {
     private final HandlerInvoker invoker;
     private final Object message;
     private final Map<String, Object> headers;
+    private final Iterable<SagaModule> modules;
     private final SagaEnvironment env;
 
     /**
@@ -47,11 +49,13 @@ class SagaExecutionTask implements Runnable {
             final SagaEnvironment environment,
             final HandlerInvoker invoker,
             final Object message,
-            final Map<String, Object> headers) {
+            final Map<String, Object> headers,
+            final Iterable<SagaModule> modules) {
         this.env = environment;
         this.invoker = invoker;
         this.message = message;
         this.headers = headers;
+        this.modules = modules;
     }
 
     /**
@@ -77,19 +81,51 @@ class SagaExecutionTask implements Runnable {
             context.setMessage(invokeParam);
             setHeaders(context);
 
-            for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
-                Saga saga = sagaDescription.getSaga();
-                context.setSaga(saga);
-                setSagaExecutionContext(saga, context);
+            try {
+                moduleStarts(context);
 
-                invoker.invoke(saga, invokeParam);
-                updateStateStorage(sagaDescription);
-
-                if (context.dispatchingStopped()) {
-                    LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
-                    break;
-                }
+                invokeSagas(context, sagaDescriptions, invokeParam);
+            } catch (Exception ex) {
+                moduleError(context, invokeParam, ex);
+                throw ex;
+            } finally {
+                moduleFinished(context);
             }
+        }
+    }
+
+    private void invokeSagas(final CurrentExecutionContext context, final Iterable<SagaInstanceDescription> sagaDescriptions, final Object invokeParam)
+            throws InvocationTargetException, IllegalAccessException {
+        for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
+            Saga saga = sagaDescription.getSaga();
+            context.setSaga(saga);
+            setSagaExecutionContext(saga, context);
+
+            invoker.invoke(saga, invokeParam);
+            updateStateStorage(sagaDescription);
+
+            if (context.dispatchingStopped()) {
+                LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
+                break;
+            }
+        }
+    }
+
+    private void moduleError(final ExecutionContext context, final Object invokeParam, final Exception ex) {
+        for (SagaModule module : modules) {
+            module.onError(context, invokeParam, ex);
+        }
+    }
+
+    private void moduleStarts(final ExecutionContext context) {
+        for (SagaModule module : modules) {
+            module.onStart(context);
+        }
+    }
+
+    private void moduleFinished(final ExecutionContext context) {
+        for (SagaModule module : modules) {
+            module.onFinished(context);
         }
     }
 

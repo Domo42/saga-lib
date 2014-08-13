@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
@@ -28,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
@@ -107,6 +109,6 @@ public class SagaMessageStream implements MessageStream {
     }
 
     private SagaExecutionTask createExecutor(final Object message, final Map<String, Object> headers) {
-        return new SagaExecutionTask(environment, invoker, message, headers);
+        return new SagaExecutionTask(environment, invoker, message, headers, new ArrayList<SagaModule>());
     }
 }

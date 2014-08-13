@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.NeedContext;
@@ -26,7 +27,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.InOrder;
 
 import javax.inject.Provider;
@@ -37,6 +40,7 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -60,7 +64,10 @@ public class SagaExecutionTaskTest {
     private Object theMessage;
     private HandlerInvoker invoker;
     private SagaFactory sagaFactory;
-    private SagaEnvironment env;
+    private SagaModule module;
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void init() {
@@ -71,6 +78,7 @@ public class SagaExecutionTaskTest {
         sagaFactory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
         sagaInstanceDescription = mock(SagaInstanceDescription.class);
+        module = mock(SagaModule.class);
 
         theMessage = new Object();
 
@@ -82,8 +90,8 @@ public class SagaExecutionTaskTest {
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
-        env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
-        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>());
+        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
+        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>(), Lists.newArrayList(module));
     }
 
     /**
@@ -259,13 +267,114 @@ public class SagaExecutionTaskTest {
         Map<String, Object> headers = Maps.newHashMap();
         headers.put("headerKey", headerValue);
         SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context));
-        sut = new SagaExecutionTask(env, invoker, theMessage, headers);
+        sut = new SagaExecutionTask(env, invoker, theMessage, headers, Lists.newArrayList(module));
 
         // when
         sut.run();
 
         // then
         assertThat("Expected header value to be part of context.", context.getHeaderValue("headerKey"), equalTo(headerValue));
+    }
+
+    /**
+     * <pre>
+     * Given => Module is available.
+     * When  => saga task is executed
+     * Then  => start called on module before saga is invoked
+     * </pre>
+     */
+    @Test
+    public void run_usingModule_moduleStartedBeforeSaga() throws InvocationTargetException, IllegalAccessException {
+        // given, when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(invoker, module);
+        inOrder.verify(module).onStart(context);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+    }
+
+    /**
+     * <pre>
+     * Given => Module is available.
+     * When  => saga task is executed
+     * Then  => finished is called on module after sagas are invoked
+     * </pre>
+     */
+    @Test
+    public void run_usingModule_moduleFinishedAfterSaga() throws InvocationTargetException, IllegalAccessException {
+        // given, when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(invoker, module);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(module).onFinished(context);
+    }
+
+    /**
+     * <pre>
+     * Given => invoking the saga throws an exception
+     * When  => saga task is executed
+     * Then  => module finished is still called
+     * </pre>
+     */
+    @Test
+    public void run_invokeThrows_moduleFinishedGetsCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        doThrow(NullPointerException.class).when(invoker).invoke(saga, theMessage);
+
+        try {
+            // when
+            sut.run();
+        } catch (NullPointerException ex) {
+            // got you
+        }
+
+        // then
+        verify(module).onFinished(context);
+    }
+
+    /**
+     * <pre>
+     * Given => invoking the saga throws an exception
+     * When  => saga task is executed
+     * Then  => module error is called.
+     * </pre>
+     */
+    @Test
+    public void run_invokeThrows_moduleErrorGetsCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        NullPointerException npe = new NullPointerException();
+        doThrow(npe).when(invoker).invoke(saga, theMessage);
+
+        try {
+            // when
+            sut.run();
+        } catch (NullPointerException ex) {
+            // got you
+        }
+
+        // then
+        verify(module).onError(context, theMessage, npe);
+    }
+    
+    /**
+     * <pre>
+     * Given => invoking the saga throws exception
+     * When  => saga task is executed
+     * Then  => exception still propagated to outside
+     * </pre>
+     */
+    @Test
+    public void run_invokeThrows_publicRunThrows() throws InvocationTargetException, IllegalAccessException {
+        thrown.expect(NullPointerException.class);
+
+        // given
+        doThrow(NullPointerException.class).when(invoker).invoke(saga, theMessage);
+
+        // when
+        sut.run();
     }
 
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {
