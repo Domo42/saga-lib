@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.SagaExecutionContext;
@@ -29,6 +30,7 @@ import com.google.inject.Module;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -57,6 +59,7 @@ public final class SagaModuleBuilder {
     private Class<? extends SagaProviderFactory> providerFactory;
     private Class<? extends CurrentExecutionContext> executionContext;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
+    private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
 
     /**
      * Prevent direct instance creation of class.
@@ -176,6 +179,14 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Adds a module to be called before and after a message is handled by one or more sagas.
+     */
+    public SagaModuleBuilder callModule(final Class<? extends SagaModule> module) {
+        moduleTypes.add(module);
+        return this;
+    }
+
+    /**
      * Creates the module containing all saga lib bindings.
      */
     public Module build() {
@@ -186,6 +197,7 @@ public final class SagaModuleBuilder {
         module.setProviderFactory(providerFactory);
         module.setExecutionOrder(preferredOrder);
         module.setExecutionContext(executionContext);
+        module.setModuleTypes(moduleTypes);
 
         return module;
     }

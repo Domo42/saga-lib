@@ -17,6 +17,7 @@ package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
@@ -36,10 +37,13 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scope;
 import com.google.inject.Scopes;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.multibindings.Multibinder;
+
 import javax.annotation.Nullable;
 import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Guice bindings for saga lib.
@@ -50,6 +54,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
+    private Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private Class<? extends CurrentExecutionContext> executionContext;
 
     /**
@@ -70,6 +75,15 @@ class SagaLibModule extends AbstractModule {
         bind(MessageStream.class).to(SagaMessageStream.class).in(Singleton.class);
         bind(SagaAnalyzer.class).to(AnnotationSagaAnalyzer.class).in(Singleton.class);
         bind(KeyExtractor.class).to(SagaKeyReaderExtractor.class).in(Singleton.class);
+
+        bindModules();
+    }
+
+    private void bindModules() {
+        Multibinder<SagaModule> moduleBinder = Multibinder.newSetBinder(binder(), SagaModule.class);
+        for (Class<? extends  SagaModule> moduleType : moduleTypes) {
+            moduleBinder.addBinding().to(moduleType);
+        }
     }
 
     @Singleton
@@ -139,5 +153,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setExecutionContext(final Class<? extends CurrentExecutionContext> executionContext) {
         this.executionContext = executionContext;
+    }
+
+    /**
+     * Sets the list of available modules.
+     */
+    public void setModuleTypes(final Collection<Class<? extends SagaModule>> moduleTypes) {
+        this.moduleTypes = moduleTypes;
     }
 }

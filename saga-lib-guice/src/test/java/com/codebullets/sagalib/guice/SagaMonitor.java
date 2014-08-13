@@ -20,6 +20,7 @@ package com.codebullets.sagalib.guice;
  */
 public class SagaMonitor {
     private boolean sagaHasStarted;
+    private boolean hasModuleStarted;
 
     public boolean getSagaHasStarted() {
         return sagaHasStarted;
@@ -27,5 +28,13 @@ public class SagaMonitor {
 
     public void setSagaHasStarted(final boolean sagaHasStarted) {
         this.sagaHasStarted = sagaHasStarted;
+    }
+
+    public void moduleHasStarted() {
+        hasModuleStarted = true;
+    }
+
+    public boolean hasModuleStarted() {
+        return hasModuleStarted;
     }
 }

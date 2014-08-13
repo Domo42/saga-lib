@@ -17,6 +17,7 @@ package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
@@ -30,11 +31,14 @@ import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import java.util.ArrayList;
-import java.util.List;
-import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Provider;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -45,6 +49,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(EventStreamBuilder.class);
 
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
+    private final Set<SagaModule> modules = new HashSet<>();
     private HandlerInvoker invoker;
     private SagaAnalyzer sagaAnalyzer;
     private TypeScanner scanner;
@@ -84,7 +89,7 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
 
-        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager, contextProvider);
+        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager, contextProvider, modules);
     }
 
     /**
@@ -148,6 +153,12 @@ public final class EventStreamBuilder implements StreamBuilder {
     @Override
     public FirstSagaToHandle defineHandlerExecutionOrder() {
         return new FirstSagaToHandle(preferredOrder, this);
+    }
+
+    @Override
+    public StreamBuilder callingModule(final SagaModule module) {
+        modules.add(module);
+        return this;
     }
 
     private void buildTypeScanner() {

@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
@@ -79,4 +80,12 @@ public interface StreamBuilder extends AutoCloseable {
      * </pre>
      */
     FirstSagaToHandle defineHandlerExecutionOrder();
+
+    /**
+     * Adds a module to be called before and after a message is handled by one or
+     * more saga implementations.
+     * <p>There can be multiple modules. The order in which the modules are
+     * executed is not defined.</p>
+     */
+    StreamBuilder callingModule(final SagaModule module);
 }

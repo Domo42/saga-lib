@@ -29,9 +29,9 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,6 +44,7 @@ public class SagaMessageStream implements MessageStream {
 
     private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
+    private final Set<SagaModule> modules;
 
     /**
      * Creates a new SagaMessageStream instance.
@@ -51,8 +52,9 @@ public class SagaMessageStream implements MessageStream {
     @Inject
     public SagaMessageStream(
             final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-            final Provider<CurrentExecutionContext> contextProvider) {
+            final Provider<CurrentExecutionContext> contextProvider, final Set<SagaModule> modules) {
         environment = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
+        this.modules = modules;
         this.invoker = invoker;
 
         timeoutManager.addExpiredCallback(new TimeoutExpired() {
@@ -109,6 +111,6 @@ public class SagaMessageStream implements MessageStream {
     }
 
     private SagaExecutionTask createExecutor(final Object message, final Map<String, Object> headers) {
-        return new SagaExecutionTask(environment, invoker, message, headers, new ArrayList<SagaModule>());
+        return new SagaExecutionTask(environment, invoker, message, headers, modules);
     }
 }

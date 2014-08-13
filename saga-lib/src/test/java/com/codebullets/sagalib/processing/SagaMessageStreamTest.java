@@ -15,11 +15,14 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashSet;
 
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -42,7 +45,7 @@ public class SagaMessageStreamTest {
         factory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
 
-        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager, null);
+        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager, null, new HashSet<SagaModule>());
     }
 
     /**
