@@ -114,7 +114,7 @@ public class MemoryStorageTest {
         sut.save(state);
 
         // when
-        Collection<SagaState> loadedStates = convertToCollection(sut.load(expectedState.getType(), expectedState.instanceKey()));
+        Collection<SagaState> loadedStates = convertToCollection(sut.load(expectedState.getType(), expectedState.instanceKeys().iterator().next()));
 
         // then
         assertThat("Expected a single state entry.", loadedStates.size(), equalTo(1));
@@ -162,11 +162,28 @@ public class MemoryStorageTest {
         assertThat("Expected to find nothing after deletion.", foundState, hasSize(0));
     }
 
-    private TestSagaState buildState(final String instanceKey) {
-        TestSagaState newState = buildState();
-        newState.setInstanceKey(instanceKey);
+    /**
+     * <pre>
+     * Given => State saved with multiple instance keys.
+     * When  => load is called with either key
+     * Then  => Both calls return same saved instance.
+     * </pre>
+     */
+    @Test
+    public void loadByKey_itemSavedWithMultipleKey_returnsInstanceWithEitherKey() {
+        // given
+        String key1 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
+        String key2 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
+        SagaState state = buildState(key1, key2);
+        sut.save(state);
 
-        return newState;
+        // when
+        SagaState state1 = sut.load(state.getType(), key1).iterator().next();
+        SagaState state2 = sut.load(state.getType(), key2).iterator().next();
+
+        // then
+        assertThat("Expected sate1 to be the same instance as the added state.", state1, sameInstance(state));
+        assertThat("Expected sate2 to be the same instance as the added state.", state2, sameInstance(state));
     }
 
     private TestSagaState addNewTestState(final StateStorage storage) {
@@ -187,9 +204,16 @@ public class MemoryStorageTest {
     }
 
     private TestSagaState buildState() {
+        return buildState("InstanceKey_" + RandomStringUtils.randomAlphanumeric(10));
+    }
+
+    private TestSagaState buildState(String ... instanceKeys) {
         TestSagaState state = new TestSagaState();
+        for (String key : instanceKeys) {
+            state.addInstanceKey(key);
+        }
+
         state.setSagaId("SagaId_" + RandomStringUtils.randomAlphanumeric(10));
-        state.setInstanceKey("InstanceKey_" + RandomStringUtils.randomAlphanumeric(10));
         state.setType(TestSaga.class.getName());
 
         return state;

@@ -45,7 +45,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
 
     @StartsSaga
     public void sagaStartup(final String startedByString) {
-        state().setInstanceKey(INSTANCE_KEY);
+        state().addInstanceKey(INSTANCE_KEY);
         startupCalled = true;
 
         if (timeoutManager != null) {

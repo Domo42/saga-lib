@@ -15,7 +15,11 @@
  */
 package com.codebullets.sagalib;
 
+import com.google.common.collect.Sets;
+
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Abstract state implementation already containing the basic
@@ -28,6 +32,7 @@ public abstract class AbstractSagaState implements SagaState, Serializable {
 
     private String sagaId;
     private String sagaType;
+    private final Set<String> instanceKeys = new HashSet<>(8);
 
     /**
      * {@inheritDoc}
@@ -59,5 +64,52 @@ public abstract class AbstractSagaState implements SagaState, Serializable {
     @Override
     public void setType(final String type) {
         sagaType = type;
+    }
+
+    /**
+     * Adds a single instance key to the list of matched keys.
+     */
+    public void addInstanceKey(final String key) {
+        instanceKeys.add(key);
+    }
+
+    /**
+     * Removes a single instance from the list of matching keys.
+     */
+    public void removeInstanceKey(final String key) {
+        instanceKeys.remove(key);
+    }
+
+    @Override
+    @Deprecated
+    public String instanceKey() {
+        String key = null;
+
+        if (!instanceKeys.isEmpty()) {
+            key = instanceKeys.iterator().next();
+        }
+
+        return key;
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>This set returns the keys used with {@link #addInstanceKey(String)} or the
+     * deprecated {@link SagaState#instanceKey()} if the set is empty.</p>
+     */
+    @Override
+    public Set<String> instanceKeys() {
+        Set<String> keys;
+
+        // this is for backwards compatibility. If local list is empty
+        // assume implementation returns single key. Use this single key
+        // instead of empty list.
+        if (instanceKeys.isEmpty()) {
+            keys = Sets.newHashSet(instanceKey());
+        } else {
+            keys = instanceKeys;
+        }
+
+        return keys;
     }
 }

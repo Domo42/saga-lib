@@ -47,7 +47,9 @@ public class MemoryStorage implements StateStorage {
 
         synchronized (sync) {
             storedStates.put(state.getSagaId(), state);
-            instanceKeyMap.put(SagaMultiKey.create(state), state);
+            for (String instanceKey : state.instanceKeys()) {
+                instanceKeyMap.put(SagaMultiKey.create(state.getType(), instanceKey), state);
+            }
         }
     }
 
@@ -76,7 +78,9 @@ public class MemoryStorage implements StateStorage {
         synchronized (sync) {
             SagaState removedItem = storedStates.remove(sagaId);
             if (removedItem != null) {
-                instanceKeyMap.remove(SagaMultiKey.create(removedItem), removedItem);
+                for (String instanceKey : removedItem.instanceKeys()) {
+                    instanceKeyMap.remove(SagaMultiKey.create(removedItem.getType(), instanceKey), removedItem);
+                }
             }
         }
     }
@@ -125,10 +129,6 @@ public class MemoryStorage implements StateStorage {
         @Override
         public int hashCode() {
             return Objects.hash(type, instanceKey);
-        }
-
-        public static SagaMultiKey create(final SagaState sagaState) {
-            return new SagaMultiKey(sagaState.getType(), sagaState.instanceKey());
         }
 
         public static SagaMultiKey create(final String type, final String instanceKey) {

@@ -4,7 +4,6 @@ package com.codebullets.sagalib;
  * State used during tests.
  */
 public class TestSagaState extends AbstractSagaState {
-    private String instanceKey;
     private boolean timeoutHandled;
 
     /**
@@ -13,20 +12,8 @@ public class TestSagaState extends AbstractSagaState {
     public TestSagaState() {
     }
 
-    /**
-     * Generates a new instance of TestSagaState.
-     */
     public TestSagaState(final String instanceKey) {
-        this.instanceKey = instanceKey;
-    }
-
-    @Override
-    public String instanceKey() {
-        return instanceKey;
-    }
-
-    public void setInstanceKey(final String instanceKey) {
-        this.instanceKey = instanceKey;
+        addInstanceKey(instanceKey);
     }
 
     public boolean isTimeoutHandled() {

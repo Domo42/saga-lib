@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import java.util.Set;
+
 /**
  * Contains all the state of a sage. This state is stored and
  * loaded by this library. It is automatically attached to a saga
@@ -47,6 +49,15 @@ public interface SagaState {
      * Gets a string to identify a saga in combination with the type. For example a request id
      * from the external API. Any kind of id tied the saga type and messages expected. Can be changed
      * as the events are handled by the saga.
+     * @deprecated Has been replaced by {@link #instanceKeys()}.
      */
+    @Deprecated
     String instanceKey();
+
+    /**
+     * Gets a set of strings to identify a saga in combination with the type. For example this can be
+     * one or more request ids from the external API. Any kind of id tied the saga type and messages expected.
+     * Can be changed as the events are handled by the saga.
+     */
+    Set<String> instanceKeys();
 }
