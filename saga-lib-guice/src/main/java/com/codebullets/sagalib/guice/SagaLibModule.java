@@ -44,6 +44,9 @@ import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Guice bindings for saga lib.
@@ -56,6 +59,7 @@ class SagaLibModule extends AbstractModule {
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private Class<? extends CurrentExecutionContext> executionContext;
+    private Executor executor;
 
     /**
      * {@inheritDoc}
@@ -77,6 +81,24 @@ class SagaLibModule extends AbstractModule {
         bind(KeyExtractor.class).to(SagaKeyReaderExtractor.class).in(Singleton.class);
 
         bindModules();
+        bindExecutor();
+    }
+
+    private void bindExecutor() {
+        if (executor == null) {
+            executor = Executors.newSingleThreadExecutor(
+                    new ThreadFactory() {
+                        @Override
+                        public Thread newThread(final Runnable r) {
+                            Thread thread = new Thread(r, "saga-lib");
+                            thread.setDaemon(true);
+                            return thread;
+                        }
+                    }
+            );
+        }
+
+        bind(Executor.class).toInstance(executor);
     }
 
     private void bindModules() {
@@ -160,5 +182,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setModuleTypes(final Collection<Class<? extends SagaModule>> moduleTypes) {
         this.moduleTypes = moduleTypes;
+    }
+
+    /**
+     * Sets the executor for async operations.
+     */
+    public void setExecutor(final Executor executor) {
+        this.executor = executor;
     }
 }

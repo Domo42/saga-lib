@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashSet;
+import java.util.concurrent.ExecutorService;
 
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -45,7 +46,7 @@ public class SagaMessageStreamTest {
         factory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
 
-        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager, null, new HashSet<SagaModule>());
+        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager, null, new HashSet<SagaModule>(), mock(ExecutorService.class));
     }
 
     /**

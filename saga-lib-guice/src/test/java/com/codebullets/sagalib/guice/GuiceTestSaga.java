@@ -44,7 +44,7 @@ public class GuiceTestSaga extends AbstractSaga<TestSagaState> {
      */
     @StartsSaga
     public void startTheSaga(final String sagaParam) {
-        monitor.setSagaHasStarted(true);
+        monitor.setSagaHasStarted();
         state().setSagaParam(sagaParam);
     }
 

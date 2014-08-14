@@ -23,6 +23,7 @@ import com.google.inject.Module;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -114,5 +115,29 @@ public class SagaModuleBuilderTest {
 
         // then
         assertThat("Expected two different instances.", context2, not(sameInstance(context1)));
+    }
+
+    /**
+     * <pre>
+     * Given => Module is configured.
+     * When  => String message is added to stream
+     * Then  => Monitor reports saga has been started.
+     * </pre>
+     */
+    @Test
+    public void handleString_sagaHandledAsynchronous_isExecutedInBackground() throws InterruptedException {
+        // given
+        Module sagaModule = SagaModuleBuilder.configure().callModule(TestSagaModule.class).build();
+        Injector injector = Guice.createInjector(sagaModule, new CustomModule());
+        MessageStream msgStream = injector.getInstance(MessageStream.class);
+
+        // when
+        msgStream.add("anyString");
+
+        // then
+        SagaMonitor monitor = injector.getInstance(SagaMonitor.class);
+        boolean waitSucceeded = monitor.waitForSagaStarted(2, TimeUnit.SECONDS);
+
+        assertThat("Expected saga to be executed.", waitSucceeded, equalTo(true));
     }
 }

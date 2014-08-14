@@ -39,6 +39,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -57,6 +60,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     private SagaProviderFactory providerFactory;
     private TimeoutManager timeoutManager;
     private Provider<CurrentExecutionContext> contextProvider;
+    private Executor executor;
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -82,6 +86,7 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildSagaAnalyzer();
         buildInvoker();
         buildContextProvider();
+        buildExecutor();
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
         Organizer organizer = new Organizer(sagaAnalyzer, extractor);
@@ -89,7 +94,7 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
 
-        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager, contextProvider, modules);
+        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager, contextProvider, modules, executor);
     }
 
     /**
@@ -151,6 +156,15 @@ public final class EventStreamBuilder implements StreamBuilder {
      * {@inheritDoc}
      */
     @Override
+    public StreamBuilder usingExecutor(final Executor executorService) {
+        executor = executorService;
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public FirstSagaToHandle defineHandlerExecutionOrder() {
         return new FirstSagaToHandle(preferredOrder, this);
     }
@@ -193,6 +207,21 @@ public final class EventStreamBuilder implements StreamBuilder {
                         return new SagaExecutionContext();
                     }
                 };
+        }
+    }
+
+    private void buildExecutor() {
+        if (executor == null) {
+            executor = Executors.newSingleThreadExecutor(
+                    new ThreadFactory() {
+                        @Override
+                        public Thread newThread(final Runnable r) {
+                            Thread thread = new Thread(r, "saga-lib");
+                            thread.setDaemon(true);
+                            return thread;
+                        }
+                    }
+            );
         }
     }
 

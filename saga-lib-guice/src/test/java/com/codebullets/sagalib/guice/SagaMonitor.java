@@ -15,10 +15,14 @@
  */
 package com.codebullets.sagalib.guice;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Custom class to monitor saga calls.
  */
 public class SagaMonitor {
+    private CountDownLatch sagaStarted = new CountDownLatch(1);
     private boolean sagaHasStarted;
     private boolean hasModuleStarted;
 
@@ -26,8 +30,9 @@ public class SagaMonitor {
         return sagaHasStarted;
     }
 
-    public void setSagaHasStarted(final boolean sagaHasStarted) {
-        this.sagaHasStarted = sagaHasStarted;
+    public void setSagaHasStarted() {
+        sagaHasStarted = true;
+        sagaStarted.countDown();
     }
 
     public void moduleHasStarted() {
@@ -36,5 +41,9 @@ public class SagaMonitor {
 
     public boolean hasModuleStarted() {
         return hasModuleStarted;
+    }
+
+    public boolean waitForSagaStarted(long timeout, TimeUnit unit) throws InterruptedException {
+        return sagaStarted.await(timeout, unit);
     }
 }

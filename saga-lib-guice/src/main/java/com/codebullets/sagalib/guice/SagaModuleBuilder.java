@@ -15,9 +15,9 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.ReflectionsTypeScanner;
@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * Creates a Guice module to bind all saga lib dependencies.
@@ -60,6 +61,7 @@ public final class SagaModuleBuilder {
     private Class<? extends CurrentExecutionContext> executionContext;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
+    private Executor executor;
 
     /**
      * Prevent direct instance creation of class.
@@ -187,6 +189,19 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Optional: Sets the executor to use for asynchronous handling. This one is
+     * used when calling {@link com.codebullets.sagalib.MessageStream#add(Object)} to trigger
+     * saga execution. No executor is used for synchronous {@link com.codebullets.sagalib.MessageStream#handle(Object)}
+     * message handling.
+     * <p>If no custom executor is provided a single background thread is used to process all
+     * messages.</p>
+     */
+    public SagaModuleBuilder usingExecutor(final Executor executorService) {
+        executor = executorService;
+        return this;
+    }
+
+    /**
      * Creates the module containing all saga lib bindings.
      */
     public Module build() {
@@ -198,6 +213,7 @@ public final class SagaModuleBuilder {
         module.setExecutionOrder(preferredOrder);
         module.setExecutionContext(executionContext);
         module.setModuleTypes(moduleTypes);
+        module.setExecutor(executor);
 
         return module;
     }

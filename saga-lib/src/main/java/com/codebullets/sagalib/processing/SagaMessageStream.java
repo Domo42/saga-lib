@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -45,6 +46,7 @@ public class SagaMessageStream implements MessageStream {
     private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
     private final Set<SagaModule> modules;
+    private final Executor executorService;
 
     /**
      * Creates a new SagaMessageStream instance.
@@ -52,7 +54,8 @@ public class SagaMessageStream implements MessageStream {
     @Inject
     public SagaMessageStream(
             final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-            final Provider<CurrentExecutionContext> contextProvider, final Set<SagaModule> modules) {
+            final Provider<CurrentExecutionContext> contextProvider, final Set<SagaModule> modules, final Executor executorService) {
+        this.executorService = executorService;
         environment = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
         this.modules = modules;
         this.invoker = invoker;
@@ -71,13 +74,20 @@ public class SagaMessageStream implements MessageStream {
     @Override
     public void add(@Nonnull final Object message) {
         checkNotNull(message, "Message to handle must not be null.");
-        throw new UnsupportedOperationException("Not implemented");
+
+        SagaExecutionTask task = createExecutor(message, EMPTY_HEADERS);
+        executorService.execute(task);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void add(@Nonnull final Object message, final Map<String, Object> headers) {
         checkNotNull(message, "Message to handle must not be null.");
-        throw new UnsupportedOperationException("Not implemented");
+
+        SagaExecutionTask task = createExecutor(message, headers);
+        executorService.execute(task);
     }
 
     /**
@@ -91,6 +101,9 @@ public class SagaMessageStream implements MessageStream {
         executor.handle();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void handle(@Nonnull final Object message, final Map<String, Object> headers) throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");

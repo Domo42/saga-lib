@@ -21,7 +21,9 @@ import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+
 import javax.inject.Provider;
+import java.util.concurrent.Executor;
 
 /**
  * Configures and builds a new saga event stream.
@@ -68,6 +70,16 @@ public interface StreamBuilder extends AutoCloseable {
      * separate the instance when messages are handled from different threads.
      */
     StreamBuilder usingContextProvider(Provider<CurrentExecutionContext> contextProvider);
+
+    /**
+     * Optional: Sets the executor to use for asynchronous handling. This one is
+     * used when calling {@link com.codebullets.sagalib.MessageStream#add(Object)} to trigger
+     * saga execution. No executor is used for synchronous {@link com.codebullets.sagalib.MessageStream#handle(Object)}
+     * message handling.
+     * <p>If no custom executor is provided a single background thread is used to process all
+     * messages.</p>
+     */
+    StreamBuilder usingExecutor(final Executor executorService);
 
     /**
      * Defines the order of saga message handlers in case a message is associated with multiple
