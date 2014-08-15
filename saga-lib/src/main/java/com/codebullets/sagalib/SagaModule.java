@@ -15,8 +15,6 @@
  */
 package com.codebullets.sagalib;
 
-import com.codebullets.sagalib.context.ExecutionContext;
-
 /**
  * A module is called every time before and after a message is handled. In can be used
  * to prepare and cleanup state used during executions of a saga.
@@ -37,7 +35,7 @@ public interface SagaModule {
 
     /**
      * This method is called in case there has been an exception during
-     * the execution of saga handlers. It is executed before {@link #onFinished(com.codebullets.sagalib.context.ExecutionContext)}.
+     * the execution of saga handlers. It is executed before {@link #onFinished(ExecutionContext)}.
      * <p>If there is no error this method will not be called.</p>
      */
     void onError(final ExecutionContext context, Object message, Throwable error);

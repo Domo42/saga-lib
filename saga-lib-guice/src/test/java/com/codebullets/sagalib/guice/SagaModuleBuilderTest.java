@@ -15,14 +15,18 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
-import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -139,5 +143,28 @@ public class SagaModuleBuilderTest {
         boolean waitSucceeded = monitor.waitForSagaStarted(2, TimeUnit.SECONDS);
 
         assertThat("Expected saga to be executed.", waitSucceeded, equalTo(true));
+    }
+
+    /**
+     * <pre>
+     * Given => Custom interceptor is configured
+     * When  => String message is handled
+     * Then  => Interceptor has been called
+     * </pre>
+     */
+    @Test
+    public void handleString_interceptorConfigured_interceptorIsCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Module sagaModule = SagaModuleBuilder.configure().callInterceptor(CustomInterceptor.class).build();
+        Injector injector = Guice.createInjector(sagaModule, new CustomModule());
+        MessageStream msgStream = injector.getInstance(MessageStream.class);
+        Set<SagaLifetimeInterceptor> interceptors = injector.getInstance(Key.get(new TypeLiteral<Set<SagaLifetimeInterceptor>>() {}));
+
+        // when
+        msgStream.handle("anyString");
+
+        // then
+        CustomInterceptor interceptor = (CustomInterceptor) interceptors.iterator().next();
+        assertThat("Expected interceptor to be called.", interceptor.hasStartingBeenCalled(), equalTo(true));
     }
 }

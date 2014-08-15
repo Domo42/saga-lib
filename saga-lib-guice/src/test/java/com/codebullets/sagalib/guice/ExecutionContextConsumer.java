@@ -5,7 +5,7 @@
  */
 package com.codebullets.sagalib.guice;
 
-import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.ExecutionContext;
 import javax.inject.Inject;
 import javax.inject.Provider;
 

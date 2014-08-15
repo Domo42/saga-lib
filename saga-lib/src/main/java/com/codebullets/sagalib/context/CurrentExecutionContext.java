@@ -5,6 +5,7 @@
  */
 package com.codebullets.sagalib.context;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 
 /**

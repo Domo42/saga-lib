@@ -16,22 +16,16 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.MessageStream;
-import com.codebullets.sagalib.SagaModule;
-import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
-import com.codebullets.sagalib.timeout.TimeoutManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -45,7 +39,6 @@ public class SagaMessageStream implements MessageStream {
 
     private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
-    private final Set<SagaModule> modules;
     private final Executor executorService;
 
     /**
@@ -53,14 +46,14 @@ public class SagaMessageStream implements MessageStream {
      */
     @Inject
     public SagaMessageStream(
-            final SagaFactory sagaFactory, final HandlerInvoker invoker, final StateStorage storage, final TimeoutManager timeoutManager,
-            final Provider<CurrentExecutionContext> contextProvider, final Set<SagaModule> modules, final Executor executorService) {
+            final HandlerInvoker invoker,
+            final SagaEnvironment environment,
+            final Executor executorService) {
         this.executorService = executorService;
-        environment = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
-        this.modules = modules;
+        this.environment = environment;
         this.invoker = invoker;
 
-        timeoutManager.addExpiredCallback(new TimeoutExpired() {
+        environment.timeoutManager().addExpiredCallback(new TimeoutExpired() {
             @Override
             public void expired(final Timeout timeout) {
                 timeoutHasExpired(timeout);
@@ -124,6 +117,6 @@ public class SagaMessageStream implements MessageStream {
     }
 
     private SagaExecutionTask createExecutor(final Object message, final Map<String, Object> headers) {
-        return new SagaExecutionTask(environment, invoker, message, headers, modules);
+        return new SagaExecutionTask(environment, invoker, message, headers);
     }
 }

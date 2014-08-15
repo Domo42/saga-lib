@@ -17,6 +17,7 @@ package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
@@ -24,6 +25,7 @@ import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
+import com.codebullets.sagalib.processing.SagaEnvironment;
 import com.codebullets.sagalib.processing.SagaFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
@@ -53,6 +55,7 @@ public final class EventStreamBuilder implements StreamBuilder {
 
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Set<SagaModule> modules = new HashSet<>();
+    private final Set<SagaLifetimeInterceptor> interceptors = new HashSet<>();
     private HandlerInvoker invoker;
     private SagaAnalyzer sagaAnalyzer;
     private TypeScanner scanner;
@@ -93,8 +96,9 @@ public final class EventStreamBuilder implements StreamBuilder {
         organizer.setPreferredOrder(preferredOrder);
 
         SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
+        SagaEnvironment environment = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider, modules, interceptors);
 
-        return new SagaMessageStream(sagaFactory, invoker, storage, timeoutManager, contextProvider, modules, executor);
+        return new SagaMessageStream(invoker, environment, executor);
     }
 
     /**

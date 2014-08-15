@@ -16,7 +16,7 @@
 package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.SagaModule;
-import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.ExecutionContext;
 import com.google.inject.Inject;
 
 /**

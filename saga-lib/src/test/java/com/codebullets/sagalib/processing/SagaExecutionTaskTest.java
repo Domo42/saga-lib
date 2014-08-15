@@ -15,7 +15,9 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
@@ -25,6 +27,7 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,6 +68,7 @@ public class SagaExecutionTaskTest {
     private HandlerInvoker invoker;
     private SagaFactory sagaFactory;
     private SagaModule module;
+    private SagaLifetimeInterceptor interceptor;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -79,6 +83,7 @@ public class SagaExecutionTaskTest {
         invoker = mock(HandlerInvoker.class);
         sagaInstanceDescription = mock(SagaInstanceDescription.class);
         module = mock(SagaModule.class);
+        interceptor = mock(SagaLifetimeInterceptor.class);
 
         theMessage = new Object();
 
@@ -90,8 +95,13 @@ public class SagaExecutionTaskTest {
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
-        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider);
-        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>(), Lists.newArrayList(module));
+        SagaEnvironment env = SagaEnvironment.create(
+                timeoutManager,
+                storage,
+                sagaFactory, contextProvider,
+                Sets.newHashSet(module),
+                Sets.newHashSet(interceptor));
+        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>());
     }
 
     /**
@@ -266,8 +276,9 @@ public class SagaExecutionTaskTest {
         Object headerValue = "headerValue";
         Map<String, Object> headers = Maps.newHashMap();
         headers.put("headerKey", headerValue);
-        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context));
-        sut = new SagaExecutionTask(env, invoker, theMessage, headers, Lists.newArrayList(module));
+        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context), Sets.newHashSet(module),
+                Sets.newHashSet(interceptor));
+        sut = new SagaExecutionTask(env, invoker, theMessage, headers);
 
         // when
         sut.run();
@@ -375,6 +386,88 @@ public class SagaExecutionTaskTest {
 
         // when
         sut.run();
+    }
+
+    /**
+     * <pre>
+     * Given => Interceptor is available.
+     * When  => saga task is executed
+     * Then  => onStarting called on interceptor before saga is invoked
+     * </pre>
+     */
+    @Test
+    public void run_usingInterceptor_interceptorStartCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(invoker, interceptor);
+        inOrder.verify(interceptor).onStarting(saga, context, theMessage);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+    }
+
+    /**
+     * <pre>
+     * Given => Interceptor is available, saga is continuing execution
+     * When  => saga task is executed
+     * Then  => onStarting not called on interceptor
+     * </pre>
+     */
+    @Test
+    public void run_usingInterceptor_interceptorNotCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceDescription.isStarting()).thenReturn(false);
+
+        // when
+        sut.run();
+
+        // then
+        verify(interceptor, never()).onStarting(any(Saga.class), any(ExecutionContext.class), any());
+    }
+
+    /**
+     * <pre>
+     * Given => Interceptor is available, saga is finished
+     * When  => saga task is executed
+     * Then  => onFinished called on interceptor
+     * </pre>
+     */
+    @Test
+    public void run_usingInterceptorSagaFinished_interceptorFinishedCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(invoker, interceptor);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(interceptor).onFinished(saga, context);
+    }
+
+    /**
+     * <pre>
+     * Given => Interceptor is available, saga is not finished
+     * When  => saga task is executed
+     * Then  => onFinished not called on interceptor
+     * </pre>
+     */
+    @Test
+    public void run_usingInterceptorSagaNotFinished_interceptorFinishedNotCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(saga.isFinished()).thenReturn(false);
+
+        // when
+        sut.run();
+
+        // then
+        verify(interceptor, never()).onFinished(any(Saga.class), any(ExecutionContext.class));
     }
 
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {

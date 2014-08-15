@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
@@ -61,6 +62,7 @@ public final class SagaModuleBuilder {
     private Class<? extends CurrentExecutionContext> executionContext;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
+    private final Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
     private Executor executor;
 
     /**
@@ -189,6 +191,14 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Adds a lifetime interceptor that will be called every time an individual saga is started and finished.
+     */
+    public SagaModuleBuilder callInterceptor(final Class<? extends SagaLifetimeInterceptor> interceptor) {
+        interceptorTypes.add(interceptor);
+        return this;
+    }
+
+    /**
      * Optional: Sets the executor to use for asynchronous handling. This one is
      * used when calling {@link com.codebullets.sagalib.MessageStream#add(Object)} to trigger
      * saga execution. No executor is used for synchronous {@link com.codebullets.sagalib.MessageStream#handle(Object)}
@@ -214,6 +224,7 @@ public final class SagaModuleBuilder {
         module.setExecutionContext(executionContext);
         module.setModuleTypes(moduleTypes);
         module.setExecutor(executor);
+        module.setInterceptorTypes(interceptorTypes);
 
         return module;
     }

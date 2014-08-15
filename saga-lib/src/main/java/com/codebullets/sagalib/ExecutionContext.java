@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib.context;
-
-import com.codebullets.sagalib.Saga;
+package com.codebullets.sagalib;
 
 /**
  * Holds and controls the the state when executing one ore more

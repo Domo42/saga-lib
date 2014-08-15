@@ -15,10 +15,11 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.context.ExecutionContext;
 import com.codebullets.sagalib.context.NeedContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,6 @@ class SagaExecutionTask implements Runnable {
     private final HandlerInvoker invoker;
     private final Object message;
     private final Map<String, Object> headers;
-    private final Iterable<SagaModule> modules;
     private final SagaEnvironment env;
 
     /**
@@ -49,13 +49,11 @@ class SagaExecutionTask implements Runnable {
             final SagaEnvironment environment,
             final HandlerInvoker invoker,
             final Object message,
-            final Map<String, Object> headers,
-            final Iterable<SagaModule> modules) {
+            final Map<String, Object> headers) {
         this.env = environment;
         this.invoker = invoker;
         this.message = message;
         this.headers = headers;
-        this.modules = modules;
     }
 
     /**
@@ -101,7 +99,10 @@ class SagaExecutionTask implements Runnable {
             context.setSaga(saga);
             setSagaExecutionContext(saga, context);
 
+            interceptorStart(sagaDescription, context, invokeParam);
             invoker.invoke(saga, invokeParam);
+            interceptorFinished(saga, context);
+
             updateStateStorage(sagaDescription);
 
             if (context.dispatchingStopped()) {
@@ -111,20 +112,36 @@ class SagaExecutionTask implements Runnable {
         }
     }
 
+    private void interceptorFinished(final Saga saga, final ExecutionContext context) {
+        if (saga.isFinished()) {
+            for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
+                interceptor.onFinished(saga, context);
+            }
+        }
+    }
+
+    private void interceptorStart(final SagaInstanceDescription sagaDescription, final ExecutionContext context, final Object invokeParam) {
+        if (sagaDescription.isStarting()) {
+            for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
+                interceptor.onStarting(sagaDescription.getSaga(), context, invokeParam);
+            }
+        }
+    }
+
     private void moduleError(final ExecutionContext context, final Object invokeParam, final Exception ex) {
-        for (SagaModule module : modules) {
+        for (SagaModule module : env.modules()) {
             module.onError(context, invokeParam, ex);
         }
     }
 
     private void moduleStarts(final ExecutionContext context) {
-        for (SagaModule module : modules) {
+        for (SagaModule module : env.modules()) {
             module.onStart(context);
         }
     }
 
     private void moduleFinished(final ExecutionContext context) {
-        for (SagaModule module : modules) {
+        for (SagaModule module : env.modules()) {
             module.onFinished(context);
         }
     }

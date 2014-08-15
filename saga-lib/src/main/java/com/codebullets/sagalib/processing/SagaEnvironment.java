@@ -15,33 +15,44 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
+import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
+import javax.inject.Inject;
 import javax.inject.Provider;
+import java.util.Set;
 
 /**
  * Collects saga environment instances used during saga execution.
  */
-final class SagaEnvironment {
+public final class SagaEnvironment {
     private final TimeoutManager timeoutManager;
     private final StateStorage storage;
     private final SagaFactory sagaFactory;
     private final Provider<CurrentExecutionContext> contextProvider;
+    private final Iterable<SagaModule> modules;
+    private final Iterable<SagaLifetimeInterceptor> interceptors;
 
     /**
      * Generates a new instance of SagaEnvironment.
      */
-    private SagaEnvironment(
+    @Inject
+    public SagaEnvironment(
             final TimeoutManager timeoutManager,
             final StateStorage storage,
             final SagaFactory sagaFactory,
-            final Provider<CurrentExecutionContext> contextProvider) {
+            final Provider<CurrentExecutionContext> contextProvider,
+            final Set<SagaModule> modules,
+            final Set<SagaLifetimeInterceptor> interceptors) {
         this.timeoutManager = timeoutManager;
         this.storage = storage;
         this.sagaFactory = sagaFactory;
         this.contextProvider = contextProvider;
+        this.modules = modules;
+        this.interceptors = interceptors;
     }
 
     /**
@@ -66,17 +77,36 @@ final class SagaEnvironment {
     }
 
     /**
+     * Gets the list of known saga modules.
+     */
+    public Iterable<SagaModule> modules() {
+        return modules;
+    }
+
+    /**
+     * Gets the list of known interceptors.
+     */
+    public Iterable<SagaLifetimeInterceptor> interceptors() {
+        return interceptors;
+    }
+
+    /**
      * Gets the execution context provider.
      */
     public Provider<CurrentExecutionContext> contextProvider() {
         return contextProvider;
     }
 
+    /**
+     * Creates a new SagaEnvironment instance.
+     */
     public static SagaEnvironment create(
             final TimeoutManager timeoutManager,
             final StateStorage storage,
             final SagaFactory sagaFactory,
-            final Provider<CurrentExecutionContext> contextProvider) {
-        return new SagaEnvironment(timeoutManager, storage, sagaFactory, contextProvider);
+            final Provider<CurrentExecutionContext> contextProvider,
+            final Set<SagaModule> modules,
+            final Set<SagaLifetimeInterceptor> interceptors) {
+        return new SagaEnvironment(timeoutManager, storage, sagaFactory, contextProvider, modules, interceptors);
     }
 }

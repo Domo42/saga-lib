@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
@@ -46,7 +47,11 @@ public class SagaMessageStreamTest {
         factory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
 
-        sut = new SagaMessageStream(factory, invoker, storage, timeoutManager, null, new HashSet<SagaModule>(), mock(ExecutorService.class));
+        SagaEnvironment environment = SagaEnvironment.create(
+                timeoutManager, storage, factory, null, new HashSet<SagaModule>(),
+                new HashSet<SagaLifetimeInterceptor>());
+
+        sut = new SagaMessageStream(invoker, environment, mock(ExecutorService.class));
     }
 
     /**

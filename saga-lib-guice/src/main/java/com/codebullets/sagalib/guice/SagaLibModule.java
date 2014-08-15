@@ -17,9 +17,10 @@ package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.context.ExecutionContext;
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.Organizer;
@@ -58,6 +59,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends SagaProviderFactory> providerFactory;
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
+    private Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
     private Class<? extends CurrentExecutionContext> executionContext;
     private Executor executor;
 
@@ -82,6 +84,14 @@ class SagaLibModule extends AbstractModule {
 
         bindModules();
         bindExecutor();
+        bindInterceptors();
+    }
+
+    private void bindInterceptors() {
+        Multibinder<SagaLifetimeInterceptor> multiBinder = Multibinder.newSetBinder(binder(), SagaLifetimeInterceptor.class);
+        for (Class<? extends SagaLifetimeInterceptor> interceptorType : interceptorTypes) {
+            multiBinder.addBinding().to(interceptorType).in(Singleton.class);
+        }
     }
 
     private void bindExecutor() {
@@ -104,7 +114,7 @@ class SagaLibModule extends AbstractModule {
     private void bindModules() {
         Multibinder<SagaModule> moduleBinder = Multibinder.newSetBinder(binder(), SagaModule.class);
         for (Class<? extends  SagaModule> moduleType : moduleTypes) {
-            moduleBinder.addBinding().to(moduleType);
+            moduleBinder.addBinding().to(moduleType).in(Singleton.class);
         }
     }
 
@@ -182,6 +192,13 @@ class SagaLibModule extends AbstractModule {
      */
     public void setModuleTypes(final Collection<Class<? extends SagaModule>> moduleTypes) {
         this.moduleTypes = moduleTypes;
+    }
+
+    /**
+     * Set the list of known interceptors.
+     */
+    public void setInterceptorTypes(final Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes) {
+        this.interceptorTypes = interceptorTypes;
     }
 
     /**

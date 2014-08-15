@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib.context;
 
+import com.codebullets.sagalib.ExecutionContext;
+
 /**
  * When implemented by a saga the saga will the setter of the execution
  * context will be called before any of the saga handlers is executed.<p/>
