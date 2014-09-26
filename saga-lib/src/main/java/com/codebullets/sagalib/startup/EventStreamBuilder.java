@@ -173,9 +173,21 @@ public final class EventStreamBuilder implements StreamBuilder {
         return new FirstSagaToHandle(preferredOrder, this);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public StreamBuilder callingModule(final SagaModule module) {
         modules.add(module);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StreamBuilder callingInterceptor(final SagaLifetimeInterceptor interceptor) {
+        interceptors.add(interceptor);
         return this;
     }
 

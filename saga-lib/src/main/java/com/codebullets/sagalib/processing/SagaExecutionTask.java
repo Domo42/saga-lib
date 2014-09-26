@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.DeadMessage;
 import com.codebullets.sagalib.ExecutedRunnable;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
@@ -73,23 +74,33 @@ class SagaExecutionTask implements ExecutedRunnable {
      */
     private void handleSagaMessage(final Object invokeParam) throws InvocationTargetException, IllegalAccessException {
         Collection<SagaInstanceDescription> sagaDescriptions = env.sagaFactory().create(invokeParam);
-        if (sagaDescriptions.isEmpty()) {
-            LOG.warn("No saga found to handle message. {}", invokeParam);
+        if (!sagaDescriptions.isEmpty()) {
+            executeMessage(invokeParam, sagaDescriptions);
         } else {
-            CurrentExecutionContext context = env.contextProvider().get();
-            context.setMessage(invokeParam);
-            setHeaders(context);
-
-            try {
-                moduleStarts(context);
-
-                invokeSagas(context, sagaDescriptions, invokeParam);
-            } catch (Exception ex) {
-                moduleError(context, invokeParam, ex);
-                throw ex;
-            } finally {
-                moduleFinished(context);
+            DeadMessage deadMessage = new DeadMessage(invokeParam);
+            sagaDescriptions = env.sagaFactory().create(deadMessage);
+            if (!sagaDescriptions.isEmpty()) {
+                executeMessage(deadMessage, sagaDescriptions);
+            } else {
+                LOG.warn("No saga found to handle message. (message = {})", invokeParam);
             }
+        }
+    }
+
+    private void executeMessage(final Object invokeParam, final Iterable<SagaInstanceDescription> sagaDescriptions)
+            throws InvocationTargetException, IllegalAccessException {
+        CurrentExecutionContext context = env.contextProvider().get();
+        context.setMessage(invokeParam);
+        setHeaders(context);
+
+        try {
+            moduleStarts(context);
+            invokeSagas(context, sagaDescriptions, invokeParam);
+        } catch (Exception ex) {
+            moduleError(context, invokeParam, ex);
+            throw ex;
+        } finally {
+            moduleFinished(context);
         }
     }
 

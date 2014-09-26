@@ -24,6 +24,9 @@ import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.SagaTimeoutTask;
 import com.codebullets.sagalib.timeout.SystemClock;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +67,7 @@ public class MessageStreamTest {
     private Set<String> calledSagas;
     ScheduledExecutorService scheduler;
     ScheduledFuture timeout;
+    private SagaInterceptor interceptor = new SagaInterceptor();
 
     @Before
     @SuppressWarnings("unchecked")
@@ -82,6 +86,7 @@ public class MessageStreamTest {
                 .usingScanner(new LocalScanner())
                 .usingSagaProviderFactory(new TestSagaProviderFactory(timeoutManager, numbers, calledSagas))
                 .usingTimeoutManager(timeoutManager)
+                .callingInterceptor(interceptor)
                 .defineHandlerExecutionOrder()
                     .firstExecute(NumberSaga.class).builder()
                 .build();
@@ -220,6 +225,26 @@ public class MessageStreamTest {
         assertThat("Number saga is never called.", calledSagas, not(hasItem(IntegerSaga.class.getName())));
     }
 
+    /**
+     * <pre>
+     * Given => Message created where no saga handler exists.
+     * When  => Message is handled
+     * Then  => Dead message handler is created.
+     * </pre>
+     */
+    @Test
+    public void handle_messageWithNoHandler_deadMessageSagaIsStarted() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Object message = new Object() {};
+
+        // when
+        sut.handle(message);
+
+        // then
+        Optional<Saga> deadMsgSaga = Iterables.tryFind(interceptor.getStartedSagas(), Predicates.instanceOf(DeadMessageSaga.class));
+        assertThat("Expected DeadMessageSaga in list of started sagas.", deadMsgSaga.isPresent(), equalTo(true));
+    }
+
     private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
         Collection<T> newCollection = new ArrayList<>(source.size());
         for (T entry : source) {
@@ -246,6 +271,7 @@ public class MessageStreamTest {
             sagas.add(TestSaga.class);
             sagas.add(IntegerSaga.class);
             sagas.add(NumberSaga.class);
+            sagas.add(DeadMessageSaga.class);
 
             return sagas;
         }
@@ -289,9 +315,41 @@ public class MessageStreamTest {
                             return new IntegerSaga(calledSagas);
                         }
                     };
+            } else if (sagaClass.equals(DeadMessageSaga.class)) {
+                provider = new Provider<Saga>() {
+                        @Override
+                        public Saga get() {
+                            return new DeadMessageSaga();
+                        }
+                    };
             }
 
             return provider;
+        }
+    }
+
+    private static class SagaInterceptor implements SagaLifetimeInterceptor {
+        private Collection<Saga> startedSagas = new ArrayList<>();
+
+        public Collection<Saga> getStartedSagas() {
+            return startedSagas;
+        }
+
+        @Override
+        public void onStarting(final Saga<?> saga, final ExecutionContext context, final Object message) {
+            startedSagas.add(saga);
+        }
+
+        @Override
+        public void onHandlerExecuting(final Saga<?> saga, final ExecutionContext context, final Object message) {
+        }
+
+        @Override
+        public void onHandlerExecuted(final Saga<?> saga, final ExecutionContext context, final Object message) {
+        }
+
+        @Override
+        public void onFinished(final Saga<?> saga, final ExecutionContext context) {
         }
     }
 }

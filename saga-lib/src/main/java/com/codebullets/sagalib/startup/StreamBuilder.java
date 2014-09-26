@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
@@ -100,4 +101,10 @@ public interface StreamBuilder extends AutoCloseable {
      * executed is not defined.</p>
      */
     StreamBuilder callingModule(final SagaModule module);
+
+    /**
+     * Adds a lifetime interceptor that will be called every time an individual saga is started and finished.
+     * <p>It is possible to add multiple interceptors.</p>
+     */
+    StreamBuilder callingInterceptor(final SagaLifetimeInterceptor interceptor);
 }
