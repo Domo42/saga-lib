@@ -56,7 +56,7 @@ public class SagaFactory {
                 Saga newSaga = startNewSaga(sagaType.getSagaClass());
                 sagaInstances.add(SagaInstanceDescription.define(newSaga, true));
             } else {
-                Collection<Saga> sagas = continueExistingSaga(sagaType);
+                Collection<Saga> sagas = continueExistingSaga(sagaType, message);
                 for (Saga saga : sagas) {
                     sagaInstances.add(SagaInstanceDescription.define(saga, false));
                 }
@@ -69,13 +69,13 @@ public class SagaFactory {
     /**
      * Create a new saga instance with already existing saga state.
      */
-    private Collection<Saga> continueExistingSaga(final SagaType sagaType) {
+    private Collection<Saga> continueExistingSaga(final SagaType sagaType, final Object message) {
         Collection<Saga> sagas = new ArrayList<>();
 
         String sagaId = sagaType.getSagaId();
         if (sagaId != null) {
             // saga id is known -> we can create saga directly from know state.
-            Saga saga = createSagaBasedOnId(sagaId);
+            Saga saga = createSagaBasedOnId(sagaType, message);
             sagas.add(saga);
         } else {
             // no saga id available, search for existing state based on instance key.
@@ -86,15 +86,18 @@ public class SagaFactory {
         return sagas;
     }
 
-    private Saga createSagaBasedOnId(final String sagaId) {
+    private Saga createSagaBasedOnId(final SagaType sagaType, final Object message) {
         Saga sagaToContinue = null;
 
-        // saga id is know -> we can create saga directly from know state.
-        SagaState state = stateStorage.load(sagaId);
+        // saga id is known -> we can create saga directly from know state.
+        SagaState state = stateStorage.load(sagaType.getSagaId());
         if (state != null) {
             sagaToContinue = continueSaga(state.getType(), state);
         } else {
-            LOG.warn("No open saga state found. saga id = {}", sagaId);
+            LOG.warn("No open saga state found. (message type = {}, saga type = {}, saga id = {})",
+                     message.getClass(),
+                     sagaType.getSagaClass(),
+                     sagaType.getSagaId());
         }
 
         return sagaToContinue;
