@@ -28,6 +28,19 @@ public interface SagaLifetimeInterceptor {
     void onStarting(Saga<?> saga, ExecutionContext context, Object message);
 
     /**
+     * This method is called right before any handler of a saga is called. This
+     * includes the start handler as well as all other handlers called as long
+     * as the saga is not finished.
+     */
+    void onHandlerExecuting(Saga<?> saga, ExecutionContext context, Object message);
+
+    /**
+     * This method is called after any handler of a saga has been called. This
+     * includes the start handler as well as all other handlers
+     */
+    void onHandlerExecuted(Saga<?> saga, ExecutionContext context, Object message);
+
+    /**
      * This method is called whenever a saga has finished. The call is done
      * after a saga handler has executed and the sagas {@code isFinished()}
      * method returns true.

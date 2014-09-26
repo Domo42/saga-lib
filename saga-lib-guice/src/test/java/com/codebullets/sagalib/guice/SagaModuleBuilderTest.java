@@ -167,4 +167,27 @@ public class SagaModuleBuilderTest {
         CustomInterceptor interceptor = (CustomInterceptor) interceptors.iterator().next();
         assertThat("Expected interceptor to be called.", interceptor.hasStartingBeenCalled(), equalTo(true));
     }
+
+    /**
+     * <pre>
+     * Given => Custom interceptor is configured
+     * When  => String message is handled
+     * Then  => Interceptor handling has been called
+     * </pre>
+     */
+    @Test
+    public void handleString_interceptorConfigured_interceptorHandlingIsCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Module sagaModule = SagaModuleBuilder.configure().callInterceptor(CustomInterceptor.class).build();
+        Injector injector = Guice.createInjector(sagaModule, new CustomModule());
+        MessageStream msgStream = injector.getInstance(MessageStream.class);
+        Set<SagaLifetimeInterceptor> interceptors = injector.getInstance(Key.get(new TypeLiteral<Set<SagaLifetimeInterceptor>>() {}));
+
+        // when
+        msgStream.handle("anyString");
+
+        // then
+        CustomInterceptor interceptor = (CustomInterceptor) interceptors.iterator().next();
+        assertThat("Expected interceptor executing to be called.", interceptor.hasExecutingBeenCalled(), equalTo(true));
+    }
 }

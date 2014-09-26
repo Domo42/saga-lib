@@ -99,16 +99,33 @@ class SagaExecutionTask implements Runnable {
             context.setSaga(saga);
             setSagaExecutionContext(saga, context);
 
+            // call interceptor pre handling hooks
             interceptorStart(sagaDescription, context, invokeParam);
-            invoker.invoke(saga, invokeParam);
-            interceptorFinished(saga, context);
+            interceptorHandling(saga, context, invokeParam);
 
+            // perform actual saga invoke
+            invoker.invoke(saga, invokeParam);
+
+            // call interceptor handler finished hooks
+            interceptorHandlingFinished(saga, context, invokeParam);
             updateStateStorage(sagaDescription);
 
             if (context.dispatchingStopped()) {
                 LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
                 break;
             }
+        }
+    }
+
+    private void interceptorHandling(final Saga saga, final ExecutionContext context, final Object message) {
+        for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
+            interceptor.onHandlerExecuting(saga, context, message);
+        }
+    }
+
+    private void interceptorHandlingFinished(final Saga saga, final ExecutionContext context, final Object message) {
+        for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
+            interceptor.onHandlerExecuted(saga, context, message);
         }
     }
 
