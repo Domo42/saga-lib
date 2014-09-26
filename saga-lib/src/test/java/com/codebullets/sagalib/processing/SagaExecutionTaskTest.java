@@ -470,6 +470,48 @@ public class SagaExecutionTaskTest {
         verify(interceptor, never()).onFinished(any(Saga.class), any(ExecutionContext.class));
     }
 
+    /**
+     * <pre>
+     * Given => Interceptor is available
+     * When  => saga task is executed
+     * Then  => onHandlerExecuting called on interceptor
+     * </pre>
+     */
+    @Test
+    public void run_usingInterceptor_interceptorHandlerExecutingCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(invoker, interceptor);
+        inOrder.verify(interceptor).onHandlerExecuting(saga, context, theMessage);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+    }
+
+    /**
+     * <pre>
+     * Given => Interceptor is available
+     * When  => saga task is executed
+     * Then  => onHandlerExecuted called on interceptor
+     * </pre>
+     */
+    @Test
+    public void run_usingInterceptor_interceptorHandlerExecutedCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        InOrder inOrder = inOrder(invoker, interceptor);
+        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(interceptor).onHandlerExecuted(saga, context, theMessage);
+    }
+
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {
         return new Provider<CurrentExecutionContext>() {
                 @Override

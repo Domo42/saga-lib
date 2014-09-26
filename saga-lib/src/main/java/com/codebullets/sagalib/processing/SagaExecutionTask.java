@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.ExecutedRunnable;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
@@ -34,7 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Perform execution of saga message handling. This class is the execution
  * root unit when handling messages as part of an execution strategy.
  */
-class SagaExecutionTask implements Runnable {
+class SagaExecutionTask implements ExecutedRunnable {
     private static final Logger LOG = LoggerFactory.getLogger(SagaExecutionTask.class);
 
     private final HandlerInvoker invoker;
@@ -107,7 +108,8 @@ class SagaExecutionTask implements Runnable {
             invoker.invoke(saga, invokeParam);
 
             // call interceptor handler finished hooks
-            interceptorHandlingFinished(saga, context, invokeParam);
+            interceptorHandlingExecuted(saga, context, invokeParam);
+            interceptorFinished(saga, context);
             updateStateStorage(sagaDescription);
 
             if (context.dispatchingStopped()) {
@@ -117,15 +119,15 @@ class SagaExecutionTask implements Runnable {
         }
     }
 
-    private void interceptorHandling(final Saga saga, final ExecutionContext context, final Object message) {
+    private void interceptorHandling(final Saga saga, final ExecutionContext context, final Object invokeParam) {
         for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
-            interceptor.onHandlerExecuting(saga, context, message);
+            interceptor.onHandlerExecuting(saga, context, invokeParam);
         }
     }
 
-    private void interceptorHandlingFinished(final Saga saga, final ExecutionContext context, final Object message) {
+    private void interceptorHandlingExecuted(final Saga saga, final ExecutionContext context, final Object invokeParam) {
         for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
-            interceptor.onHandlerExecuted(saga, context, message);
+            interceptor.onHandlerExecuted(saga, context, invokeParam);
         }
     }
 
@@ -203,5 +205,10 @@ class SagaExecutionTask implements Runnable {
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Object message() {
+        return message;
     }
 }
