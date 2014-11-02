@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -91,7 +91,7 @@ public final class Timeout implements Serializable {
      */
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("sagaId", sagaId)
                 .add("expiredAt", expiredAt)
                 .add("name", name)

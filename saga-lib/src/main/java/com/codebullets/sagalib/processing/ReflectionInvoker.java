@@ -19,6 +19,7 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -30,8 +31,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.google.common.base.Objects.toStringHelper;
 
 /**
  * Invokes the target handler on the provided saga for the given handler.
@@ -147,7 +146,7 @@ public class ReflectionInvoker implements HandlerInvoker {
 
         @Override
         public String toString() {
-            return toStringHelper(this)
+            return MoreObjects.toStringHelper(this)
                     .add("saga", sagaClazz)
                     .add("msg", msgClazz)
                     .toString();
