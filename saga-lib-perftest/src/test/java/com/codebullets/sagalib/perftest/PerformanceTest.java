@@ -42,7 +42,7 @@ public class PerformanceTest {
         warmup();
 
         Histogram histogram = new Histogram(TimeUnit.MILLISECONDS.toMicros(1000), 3);
-        Stopwatch stopwatch = new Stopwatch();
+        Stopwatch stopwatch = Stopwatch.createUnstarted();
         int repeats = 100_000;
 
         for (int i = 0; i < repeats; ++i) {
@@ -98,12 +98,9 @@ public class PerformanceTest {
     }
 
     private <T extends AbstractTestMessage> T createTestMessage(Class<T> msgClass) throws Exception {
-        T msg = null;
-
-        msg = msgClass.newInstance();
+        T msg = msgClass.newInstance();
         msg.setCorrelationId(UUID.randomUUID().toString());
         msg.setSagaFinished(true);
-
 
         return msg;
     }

@@ -19,6 +19,7 @@ import com.codebullets.sagalib.SagaState;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MemoryStorage implements StateStorage {
     private final Object sync = new Object();
 
-    private final Map<String, SagaState> storedStates = new HashMap<>();
+    private final Map<String, StateStorageItem> storedStates = new HashMap<>();
     private final Multimap<SagaMultiKey, SagaState> instanceKeyMap = HashMultimap.create();
 
     /**
@@ -46,9 +47,25 @@ public class MemoryStorage implements StateStorage {
         checkNotNull(state.getType(), "Saga type must not be null.");
 
         synchronized (sync) {
-            storedStates.put(state.getSagaId(), state);
-            for (String instanceKey : state.instanceKeys()) {
-                instanceKeyMap.put(SagaMultiKey.create(state.getType(), instanceKey), state);
+            String sagaId = state.getSagaId();
+
+            StateStorageItem stateStorageItem = storedStates.get(sagaId);
+            if (stateStorageItem == null) {
+                stateStorageItem = StateStorageItem.withCurrentInstanceKeys(state);
+                storedStates.put(state.getSagaId(), stateStorageItem);
+            } else {
+                // remove previous stored keys from map
+                // some entries may have been removed from the state during
+                // saga execution
+                removeInstancesForItem(stateStorageItem);
+
+                // once old values have been removed update item with current
+                // values
+                stateStorageItem.updateInstanceKeys();
+            }
+
+            for (SagaMultiKey key : stateStorageItem.instanceKeys()) {
+                instanceKeyMap.put(key, state);
             }
         }
     }
@@ -60,9 +77,12 @@ public class MemoryStorage implements StateStorage {
     public SagaState load(final String sagaId) {
         checkNotNull(sagaId, "Saga id key must be set.");
 
-        SagaState state;
+        SagaState state = null;
         synchronized (sync) {
-            state = storedStates.get(sagaId);
+            StateStorageItem storage = storedStates.get(sagaId);
+            if (storage != null) {
+                state = storage.sagaState();
+            }
         }
 
         return state;
@@ -76,11 +96,9 @@ public class MemoryStorage implements StateStorage {
         checkNotNull(sagaId, "Saga id key must be set.");
 
         synchronized (sync) {
-            SagaState removedItem = storedStates.remove(sagaId);
+            StateStorageItem removedItem = storedStates.remove(sagaId);
             if (removedItem != null) {
-                for (String instanceKey : removedItem.instanceKeys()) {
-                    instanceKeyMap.remove(SagaMultiKey.create(removedItem.getType(), instanceKey), removedItem);
-                }
+                removeInstancesForItem(removedItem);
             }
         }
     }
@@ -97,6 +115,12 @@ public class MemoryStorage implements StateStorage {
         }
 
         return items;
+    }
+
+    private void removeInstancesForItem(final StateStorageItem stateStorageItem) {
+        for (SagaMultiKey key : stateStorageItem.instanceKeys()) {
+            instanceKeyMap.removeAll(key);
+        }
     }
 
     /**
@@ -133,6 +157,52 @@ public class MemoryStorage implements StateStorage {
 
         public static SagaMultiKey create(final String type, final String instanceKey) {
             return new SagaMultiKey(type, instanceKey);
+        }
+    }
+
+    /**
+     * Encapsulates the saga state as well as a separate copy of instance
+     * keys, originally provided by the saga state.
+     */
+    private static final class StateStorageItem {
+        private final SagaState sagaState;
+        private Collection<SagaMultiKey> instanceKeys;
+
+        /**
+         * Create a new storage item create a separate copy of the list
+         * of associated instance keys.
+         */
+        public static StateStorageItem withCurrentInstanceKeys(final SagaState sagaState) {
+            return new StateStorageItem(sagaState);
+        }
+
+        private StateStorageItem(final SagaState sagaState) {
+            this.sagaState = sagaState;
+            instanceKeys = createSagaKeys(sagaState);
+        }
+
+        public SagaState sagaState() {
+            return sagaState;
+        }
+
+        /**
+         * Instruct storage object to update its own private copy of instance keys.
+         */
+        public void updateInstanceKeys() {
+            instanceKeys = createSagaKeys(sagaState);
+        }
+
+        public Iterable<SagaMultiKey> instanceKeys() {
+            return instanceKeys;
+        }
+
+        private Collection<SagaMultiKey> createSagaKeys(final SagaState state) {
+            Collection<SagaMultiKey> keys = new ArrayList<>(state.instanceKeys().size());
+            for (String key : state.instanceKeys()) {
+                keys.add(SagaMultiKey.create(state.getType(), key));
+            }
+
+            return keys;
         }
     }
 }

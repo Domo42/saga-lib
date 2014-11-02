@@ -22,8 +22,11 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -129,14 +132,13 @@ public class MemoryStorageTest {
     @Test
     public void loadByKey_multipleEntriesWithSameKeyAdded_returnsAllEntriesWithKey() {
         // given
-        TestSagaState newState = addNewTestState(sut);
-        addNewTestState(sut);
-        TestSagaState other = buildState(newState.instanceKey());
+        TestSagaState newState = addNewTestState();
+        addNewTestState();
+        TestSagaState other = buildState(newState.instanceKeys());
         sut.save(other);
 
         // when
-        // when
-        Collection<SagaState> loadedStates = convertToCollection(sut.load(newState.getType(), newState.instanceKey()));
+        Collection<SagaState> loadedStates = convertToCollection(sut.load(newState.getType(), newState.instanceKeys().iterator().next()));
 
         // then
         assertThat("Expected a two state entries.", loadedStates, hasSize(2));
@@ -150,13 +152,14 @@ public class MemoryStorageTest {
      * Then  => Item no longer returned after deletion.
      */
     @Test
-    public void loadByKey_itemSavedAndDelete_noLongerReturnsKey() {
+    public void loadByKey_itemSavedAndDeleted_noLongerReturnsKey() {
         // given
-        TestSagaState saga = addNewTestState(sut);
+        TestSagaState saga = addNewTestState();
+        String instanceKey = saga.instanceKeys().iterator().next();
         sut.delete(saga.getSagaId());
 
         // when
-        Collection<SagaState> foundState = convertToCollection(sut.load(saga.getType(), saga.instanceKey()));
+        Collection<SagaState> foundState = convertToCollection(sut.load(saga.getType(), instanceKey));
 
         // then
         assertThat("Expected to find nothing after deletion.", foundState, hasSize(0));
@@ -173,7 +176,7 @@ public class MemoryStorageTest {
     public void loadByKey_itemSavedWithMultipleKey_returnsInstanceWithEitherKey() {
         // given
         String key1 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
-        String key2 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
+        String key2 = "key2_" + RandomStringUtils.randomAlphanumeric(10);
         SagaState state = buildState(key1, key2);
         sut.save(state);
 
@@ -186,9 +189,34 @@ public class MemoryStorageTest {
         assertThat("Expected sate2 to be the same instance as the added state.", state2, sameInstance(state));
     }
 
-    private TestSagaState addNewTestState(final StateStorage storage) {
+    /**
+     * <pre>
+     * Given => state saved multiple times with different key sets
+     * When  => load is called using removed key
+     * Then  => call returns an empty list
+     * </pre>
+     */
+    @Test
+    public void loadByKey_keyHasBeenRemovedWithSecondSave_returnsEmptyList() {
+        // given
+        String key1 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
+        String key2 = "key2_" + RandomStringUtils.randomAlphanumeric(10);
+        TestSagaState state = buildState(key1, key2);
+        sut.save(state);
+
+        state.removeInstanceKey(key1);
+        sut.save(state);
+
+        // when
+        Collection<? extends SagaState> searchResult = sut.load(state.getType(), key1);
+
+        // then
+        assertThat("Expected a null instance if instance key has been removed.", searchResult, hasSize(0));
+    }
+
+    private TestSagaState addNewTestState() {
         TestSagaState newState = buildState();
-        storage.save(newState);
+        sut.save(newState);
 
         return newState;
     }
@@ -217,5 +245,16 @@ public class MemoryStorageTest {
         state.setType(TestSaga.class.getName());
 
         return state;
+    }
+
+    private TestSagaState buildState(Set<String> instanceKeys) {
+        String[] keys = (String[]) Array.newInstance(String.class, instanceKeys.size());
+
+        Iterator<String> iterator = instanceKeys.iterator();
+        for (int i = 0; i < instanceKeys.size() && iterator.hasNext(); ++i) {
+            keys[i] = iterator.next();
+        }
+
+        return buildState(keys);
     }
 }
