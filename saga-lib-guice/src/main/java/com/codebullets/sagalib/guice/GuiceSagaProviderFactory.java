@@ -45,7 +45,7 @@ public class GuiceSagaProviderFactory implements SagaProviderFactory {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public Provider<? extends Saga> createProvider(final Class sagaClass) {
+    public <T extends Saga> Provider<T> createProvider(final Class<T> sagaClass) {
         return guiceInjector.getProvider(sagaClass);
     }
 }

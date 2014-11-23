@@ -27,5 +27,5 @@ public interface SagaProviderFactory {
      * Creates a new provider capable of creating a new instance of the class
      * specified in the parameter.
      */
-    Provider<? extends Saga> createProvider(Class sagaClass);
+    <T extends Saga> Provider<T> createProvider(Class<T> sagaClass);
 }
