@@ -76,7 +76,9 @@ public class SagaFactory {
         if (sagaId != null) {
             // saga id is known -> we can create saga directly from know state.
             Saga saga = createSagaBasedOnId(sagaType, message);
-            sagas.add(saga);
+            if (saga != null) {
+                sagas.add(saga);
+            }
         } else {
             // no saga id available, search for existing state based on instance key.
             Collection<Saga> existingSagas = continueSagas(sagaType);

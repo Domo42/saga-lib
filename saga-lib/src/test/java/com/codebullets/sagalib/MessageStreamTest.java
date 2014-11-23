@@ -23,6 +23,7 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.SagaTimeoutTask;
 import com.codebullets.sagalib.timeout.SystemClock;
+import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -36,6 +37,7 @@ import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -243,6 +245,25 @@ public class MessageStreamTest {
         // then
         Optional<Saga> deadMsgSaga = Iterables.tryFind(interceptor.getStartedSagas(), Predicates.instanceOf(DeadMessageSaga.class));
         assertThat("Expected DeadMessageSaga in list of started sagas.", deadMsgSaga.isPresent(), equalTo(true));
+    }
+
+    /**
+     * <pre>
+     * Given => Timeout message where handler exists but no saga state
+     * When  => Message is handled
+     * Then  => Does not result in an exception
+     * </pre>
+     */
+    @Test
+    public void handle_timeoutWithNoInstance_doesNotThrow() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Timeout timeout = Timeout.create("theSagaId", null, new Date());
+
+        // when
+        sut.handle(timeout);
+
+        // then
+        assertThat("Expected this line to be reached.", true);
     }
 
     private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
