@@ -21,8 +21,9 @@ import java.util.Set;
  * Contains all the state of a sage. This state is stored and
  * loaded by this library. It is automatically attached to a saga
  * as a matching message arrives.
+ * @param <KEY> The type of the instance keys matching the state to a message.
  */
-public interface SagaState {
+public interface SagaState<KEY> {
 
     /**
      * Gets the identifier of the saga. The id is generated automatically
@@ -59,5 +60,5 @@ public interface SagaState {
      * one or more request ids from the external API. Any kind of id tied the saga type and messages expected.
      * Can be changed as the events are handled by the saga.
      */
-    Set<String> instanceKeys();
+    Set<KEY> instanceKeys();
 }

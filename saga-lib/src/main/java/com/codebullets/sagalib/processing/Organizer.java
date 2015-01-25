@@ -115,7 +115,7 @@ public class Organizer {
                 sagaTypes.add(type);
             } else {
                 // for continuation the instance key needs to be set.
-                String key = readInstanceKey(type, message);
+                Object key = readInstanceKey(type, message);
                 if (key != null) {
                     sagaTypes.add(SagaType.continueSaga(type, key));
                 } else {
@@ -132,7 +132,7 @@ public class Organizer {
         return sagaTypes;
     }
 
-    private String readInstanceKey(final SagaType sagaType, final Object message) {
+    private Object readInstanceKey(final SagaType sagaType, final Object message) {
         return keyExtractor.findSagaInstanceKey(sagaType.getSagaClass(), message);
     }
 

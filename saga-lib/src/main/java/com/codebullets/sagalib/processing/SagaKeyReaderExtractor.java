@@ -53,8 +53,8 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
      * {@inheritDoc}
      */
     @Override
-    public String findSagaInstanceKey(final Class<? extends Saga> sagaClazz, final Object message) {
-        String keyValue = null;
+    public Object findSagaInstanceKey(final Class<? extends Saga> sagaClazz, final Object message) {
+        Object keyValue = null;
 
         KeyReader reader = tryGetKeyReader(sagaClazz, message);
         if (reader != null) {

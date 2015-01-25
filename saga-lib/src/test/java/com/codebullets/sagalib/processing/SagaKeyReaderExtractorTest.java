@@ -15,10 +15,8 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.FunctionKeyReader;
-import com.codebullets.sagalib.KeyReadFunction;
+import com.codebullets.sagalib.*;
 import com.codebullets.sagalib.KeyReader;
-import com.codebullets.sagalib.Saga;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,10 +68,10 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object)keyValue));
     }
 
     /**
@@ -94,7 +92,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
 
         // then
         assertThat("Expected returned key to be null.", foundKey, nullValue());
@@ -125,10 +123,10 @@ public class SagaKeyReaderExtractorTest {
         sut.findSagaInstanceKey(Saga.class, new Integer(5));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
     }
 
     /**
@@ -149,10 +147,10 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object)keyValue));
     }
 
     /**
@@ -179,10 +177,10 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(numberReader, integerReader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object)keyValue));
     }
 
     /**
@@ -203,10 +201,10 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
     }
 
     /**
@@ -233,10 +231,10 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader, stringReader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
     }
 
     /**
@@ -269,9 +267,9 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(comparableReader, numberReader, integerReader));
 
         // when
-        String foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
 
         // then
-        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo(keyValue));
+        assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
     }
 }

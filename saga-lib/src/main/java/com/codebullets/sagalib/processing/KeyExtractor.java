@@ -11,5 +11,5 @@ public interface KeyExtractor {
     /**
      * Extract the instance key from the message to find the matching saga instance.
      */
-    String findSagaInstanceKey(Class<? extends Saga> sagaClazz, Object message);
+    Object findSagaInstanceKey(Class<? extends Saga> sagaClazz, Object message);
 }

@@ -46,5 +46,5 @@ public interface StateStorage {
      *
      * @return List of found saga state instances.
      */
-    Collection<? extends SagaState> load(String type, String instanceKey);
+    Collection<? extends SagaState> load(String type, Object instanceKey);
 }

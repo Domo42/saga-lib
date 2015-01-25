@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Stefan Domnanovits
+ * Copyright 2014 Stefan Domnanovits
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,17 @@
  */
 package com.codebullets.sagalib;
 
+import javax.annotation.Nullable;
+
 /**
- * Called when the key needs to be extracted from a message.
- *
- * @param <MESSAGE> The type of message to read the key from.
+ * Extract an instance key of a specific type for a specific message.
+ * @param <MESSAGE> The type of the message to extract the key from.
+ * @param <KEY> The type of the key returned after extraction.
  */
-public interface KeyReadFunction<MESSAGE> extends KeyExtractFunction<MESSAGE, String> {
+public interface KeyExtractFunction<MESSAGE, KEY> {
+    /**
+     * Returns the key value to identify a running saga.
+     */
+    @Nullable
+    KEY key(MESSAGE message);
 }

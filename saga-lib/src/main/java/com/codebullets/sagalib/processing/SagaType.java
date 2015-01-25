@@ -24,7 +24,7 @@ import com.google.common.base.MoreObjects;
 public final class SagaType {
     private boolean startsNew;
     private Class<? extends Saga> sagaClass;
-    private String instanceKey;
+    private Object instanceKey;
     private String sagaId;
 
     /**
@@ -50,7 +50,7 @@ public final class SagaType {
     /**
      * Gets the instance key of a running saga.
      */
-    public String getInstanceKey() {
+    public Object getInstanceKey() {
         return instanceKey;
     }
 
@@ -90,7 +90,7 @@ public final class SagaType {
     /**
      * Creates a type continuing a saga from a message based on a specific instance key.
      */
-    public static SagaType continueSaga(final SagaType originalType, final String instanceKey) {
+    public static SagaType continueSaga(final SagaType originalType, final Object instanceKey) {
         SagaType sagaType = new SagaType();
         sagaType.startsNew = false;
         sagaType.sagaClass = originalType.getSagaClass();

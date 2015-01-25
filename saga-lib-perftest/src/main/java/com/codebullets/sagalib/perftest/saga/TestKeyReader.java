@@ -20,7 +20,7 @@ import com.codebullets.sagalib.perftest.messages.AbstractTestMessage;
 
 import javax.annotation.Nullable;
 
-public class TestKeyReader<T extends AbstractTestMessage> implements KeyReader<T> {
+public class TestKeyReader<T extends AbstractTestMessage> implements KeyReader<T, String> {
     private final Class<T> clazz;
 
     /**

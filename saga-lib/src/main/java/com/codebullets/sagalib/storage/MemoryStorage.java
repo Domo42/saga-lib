@@ -107,7 +107,7 @@ public class MemoryStorage implements StateStorage {
      * {@inheritDoc}
      */
     @Override
-    public Collection<? extends SagaState> load(final String type, final String instanceKey) {
+    public Collection<? extends SagaState> load(final String type, final Object instanceKey) {
         Collection<? extends SagaState> items;
 
         synchronized (sync) {
@@ -128,9 +128,9 @@ public class MemoryStorage implements StateStorage {
      */
     private static final class SagaMultiKey {
         private final String type;
-        private final String instanceKey;
+        private final Object instanceKey;
 
-        public SagaMultiKey(final String type, final String instanceKey) {
+        public SagaMultiKey(final String type, final Object instanceKey) {
             checkNotNull(type, "type must not be null");
 
             this.type = type;
@@ -155,7 +155,7 @@ public class MemoryStorage implements StateStorage {
             return Objects.hash(type, instanceKey);
         }
 
-        public static SagaMultiKey create(final String type, final String instanceKey) {
+        public static SagaMultiKey create(final String type, final Object instanceKey) {
             return new SagaMultiKey(type, instanceKey);
         }
     }
@@ -198,7 +198,7 @@ public class MemoryStorage implements StateStorage {
 
         private Collection<SagaMultiKey> createSagaKeys(final SagaState state) {
             Collection<SagaMultiKey> keys = new ArrayList<>(state.instanceKeys().size());
-            for (String key : state.instanceKeys()) {
+            for (Object key : state.instanceKeys()) {
                 keys.add(SagaMultiKey.create(state.getType(), key));
             }
 
