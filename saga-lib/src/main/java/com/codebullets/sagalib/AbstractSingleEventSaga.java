@@ -105,11 +105,6 @@ public abstract class AbstractSingleEventSaga implements Saga, NeedContext {
         }
 
         @Override
-        public String instanceKey() {
-            return "AbstractSingleEventSaga";
-        }
-
-        @Override
         public Set<String> instanceKeys() {
             return INSTANCE_KEYS;
         }

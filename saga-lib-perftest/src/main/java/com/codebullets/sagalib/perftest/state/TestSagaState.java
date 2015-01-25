@@ -20,7 +20,7 @@ import com.codebullets.sagalib.AbstractSagaState;
 /**
  * State for test sagas.
  */
-public class TestSagaState extends AbstractSagaState {
+public class TestSagaState extends AbstractSagaState<String> {
     private String correlationId;
 
     public String getCorrelationId() {
@@ -29,10 +29,5 @@ public class TestSagaState extends AbstractSagaState {
 
     public void setCorrelationId(final String correlationId) {
         this.correlationId = correlationId;
-    }
-
-    @Override
-    public String instanceKey() {
-        return getCorrelationId();
     }
 }

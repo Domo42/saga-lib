@@ -15,9 +15,8 @@
  */
 package com.codebullets.sagalib;
 
-import com.google.common.collect.Sets;
-
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,13 +25,14 @@ import java.util.Set;
  * properties expected from {@link SagaState}.<p/>
  * The instance key method is intentionally missing. This one should
  * be modelled and implemented individually for each saga.
+ * @param <KEY> The type of the instance to match state and messages.
  */
-public abstract class AbstractSagaState implements SagaState, Serializable {
+public abstract class AbstractSagaState<KEY> implements SagaState<KEY>, Serializable {
     private static final long serialVersionUID = 1L;
 
     private String sagaId;
     private String sagaType;
-    private final Set<String> instanceKeys = new HashSet<>(8);
+    private final Set<KEY> instanceKeys = new HashSet<>(8);
 
     /**
      * {@inheritDoc}
@@ -69,47 +69,23 @@ public abstract class AbstractSagaState implements SagaState, Serializable {
     /**
      * Adds a single instance key to the list of matched keys.
      */
-    public void addInstanceKey(final String key) {
+    public void addInstanceKey(final KEY key) {
         instanceKeys.add(key);
     }
 
     /**
      * Removes a single instance from the list of matching keys.
      */
-    public void removeInstanceKey(final String key) {
+    public void removeInstanceKey(final KEY key) {
         instanceKeys.remove(key);
-    }
-
-    @Override
-    @Deprecated
-    public String instanceKey() {
-        String key = null;
-
-        if (!instanceKeys.isEmpty()) {
-            key = instanceKeys.iterator().next();
-        }
-
-        return key;
     }
 
     /**
      * {@inheritDoc}
-     * <p>This set returns the keys used with {@link #addInstanceKey(String)} or the
-     * deprecated {@link SagaState#instanceKey()} if the set is empty.</p>
+     * <p>This set returns the keys used with {@link #addInstanceKey(Object)}.
      */
     @Override
-    public Set<String> instanceKeys() {
-        Set<String> keys;
-
-        // this is for backwards compatibility. If local list is empty
-        // assume implementation returns single key. Use this single key
-        // instead of empty list.
-        if (instanceKeys.isEmpty()) {
-            keys = Sets.newHashSet(instanceKey());
-        } else {
-            keys = instanceKeys;
-        }
-
-        return keys;
+    public Set<KEY> instanceKeys() {
+        return Collections.unmodifiableSet(instanceKeys);
     }
 }

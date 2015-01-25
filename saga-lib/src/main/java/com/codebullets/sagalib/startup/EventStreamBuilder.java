@@ -30,6 +30,7 @@ import com.codebullets.sagalib.processing.SagaFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
+import com.codebullets.sagalib.storage.MemoryStorage;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.TimeoutManager;
@@ -90,6 +91,7 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildInvoker();
         buildContextProvider();
         buildExecutor();
+        buildStorage();
 
         KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
         Organizer organizer = new Organizer(sagaAnalyzer, extractor);
@@ -194,6 +196,12 @@ public final class EventStreamBuilder implements StreamBuilder {
     private void buildTypeScanner() {
         if (scanner == null) {
             scanner = new ReflectionsTypeScanner();
+        }
+    }
+
+    private void buildStorage() {
+        if (storage == null) {
+            storage = new MemoryStorage();
         }
     }
 

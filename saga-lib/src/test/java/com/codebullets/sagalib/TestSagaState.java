@@ -3,7 +3,7 @@ package com.codebullets.sagalib;
 /**
  * State used during tests.
  */
-public class TestSagaState extends AbstractSagaState {
+public class TestSagaState extends AbstractSagaState<String> {
     private boolean timeoutHandled;
 
     /**

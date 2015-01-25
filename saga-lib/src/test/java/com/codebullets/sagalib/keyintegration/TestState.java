@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Stefan Domnanovits
+ * Copyright 2014 Stefan Domnanovits
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib.guice;
+package com.codebullets.sagalib.keyintegration;
 
-import com.codebullets.sagalib.AbstractSagaState;
+public class TestState {
+    private boolean responseHandled;
 
-public class TestSagaState extends AbstractSagaState<String> {
-    private String sagaParam;
-
-
-    public String getSagaParam() {
-        return sagaParam;
+    public boolean isResponseHandled() {
+        return responseHandled;
     }
 
-    public void setSagaParam(final String sagaParam) {
-        this.sagaParam = sagaParam;
+    public void setResponseHandled(final boolean responseHandled) {
+        this.responseHandled = responseHandled;
     }
 }
