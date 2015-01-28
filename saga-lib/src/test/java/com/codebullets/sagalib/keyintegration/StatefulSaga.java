@@ -59,8 +59,8 @@ public class StatefulSaga extends AbstractSaga<UuidSagaState> {
                         ResponseMessage.class,
                         new KeyExtractFunction<ResponseMessage, UUID>() {
                             @Override
-                            public UUID key(final ResponseMessage o) {
-                                return o.getResponseId();
+                            public UUID key(final ResponseMessage response) {
+                                return response.getResponseId();
                             }
                         }));
 

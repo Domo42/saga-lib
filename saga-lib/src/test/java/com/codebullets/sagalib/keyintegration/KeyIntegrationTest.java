@@ -20,14 +20,15 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
+import javax.inject.Provider;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -36,6 +37,8 @@ import static org.hamcrest.Matchers.equalTo;
  * Test whether saga lib works with different instance key than String
  */
 public class KeyIntegrationTest {
+    private static final Logger LOG = LoggerFactory.getLogger(KeyIntegrationTest.class);
+
     private MessageStream messageStream;
     private TestState state;
 
@@ -67,12 +70,27 @@ public class KeyIntegrationTest {
         assertThat("Expected response to be handled in original saga.", state.isResponseHandled(), equalTo(true));
     }
 
+    @Test
+    public void handleSaga_unknownMessage_doNotShowWarning() throws InvocationTargetException, IllegalAccessException {
+        // given
+        Integer unknownMessage = 42;
+
+        // when
+        messageStream.handle(unknownMessage);
+    }
+
+    @Test
+    public void handleSaga_messageWithNoSagaState_doShowWarning() throws InvocationTargetException, IllegalAccessException {
+        messageStream.handle(new ResponseMessage(UUID.randomUUID()));
+    }
+
     private static class Scanner implements TypeScanner {
 
         @Override
         public Collection<Class<? extends Saga>> scanForSagas() {
             ArrayList<Class<? extends Saga>> sagaTypes = new ArrayList<>();
             sagaTypes.add(StatefulSaga.class);
+            sagaTypes.add(DeadMessageSaga.class);
 
             return sagaTypes;
         }
@@ -93,6 +111,13 @@ public class KeyIntegrationTest {
                     @Override
                     public StatefulSaga get() {
                         return new StatefulSaga(state);
+                    }
+                };
+            } else if (sagaClass.equals(DeadMessageSaga.class)) {
+                provider = new Provider<DeadMessageSaga>() {
+                    @Override
+                    public DeadMessageSaga get() {
+                        return new DeadMessageSaga();
                     }
                 };
             }

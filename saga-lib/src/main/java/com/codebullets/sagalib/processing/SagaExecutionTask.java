@@ -78,11 +78,11 @@ class SagaExecutionTask implements ExecutedRunnable {
             executeMessage(invokeParam, sagaDescriptions);
         } else {
             DeadMessage deadMessage = new DeadMessage(invokeParam);
-            sagaDescriptions = env.sagaFactory().create(deadMessage);
-            if (!sagaDescriptions.isEmpty()) {
-                executeMessage(deadMessage, sagaDescriptions);
+            Collection<SagaInstanceDescription> deadSagaDescription = env.sagaFactory().create(deadMessage);
+            if (!deadSagaDescription.isEmpty()) {
+                executeMessage(deadMessage, deadSagaDescription);
             } else {
-                LOG.warn("No saga found to handle message. (message = {})", invokeParam);
+                LOG.warn("No saga or saga state found to handle message. (message = {})", invokeParam);
             }
         }
     }

@@ -16,7 +16,6 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
-import com.google.common.base.MoreObjects;
 
 /**
  * Describes the saga and expected handling.
@@ -114,8 +113,6 @@ public final class SagaType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("sagaClass", sagaClass)
-                .toString();
+        return sagaClass != null ? sagaClass.getSimpleName() : "SagaId=" + sagaId;
     }
 }
