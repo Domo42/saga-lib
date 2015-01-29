@@ -81,6 +81,13 @@ public abstract class AbstractSagaState<KEY> implements SagaState<KEY>, Serializ
     }
 
     /**
+     * Clears all instances key currently assigned to the saga state.
+     */
+    public void clearInstanceKeys() {
+        instanceKeys.clear();
+    }
+
+    /**
      * {@inheritDoc}
      * <p>This set returns the keys used with {@link #addInstanceKey(Object)}.
      */
