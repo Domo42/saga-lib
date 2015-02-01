@@ -17,7 +17,7 @@ It is recommended to use Maven to reference the saga-lib binaries.
 <dependency>
    <groupId>com.codebullets.saga-lib</groupId>
    <artifactId>saga-lib</artifactId>
-   <version>0.12.0</version>
+   <version>0.13.0</version>
 </dependency>
 ```
 
@@ -90,10 +90,9 @@ public class MySaga extends AbstractSaga<MySagaState> {
         // creates a reader used to map between the OtherMessage event
         // and the stored instance key of the existing saga state.
         // Note: Much simpler with Java 8 lambda expressions.
-        KeyReader reader = FunctionKeyReader.create(
+        KeyReader reader = KeyReaders.forMessage(
                 OtherMessage.class,
-                new KeyReadFunction<OtherMessage>() {
-
+                new KeyExtractFunction<OtherMessage, String>() {
                     @Override
                     public String key(final OtherMessage message) {
                         return message.getId();
