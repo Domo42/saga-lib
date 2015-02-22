@@ -21,7 +21,6 @@ import com.google.common.collect.Multimap;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -111,7 +110,7 @@ public class MemoryStorage implements StateStorage {
         Collection<? extends SagaState> items;
 
         synchronized (sync) {
-            items = Collections.unmodifiableCollection(instanceKeyMap.get(SagaMultiKey.create(type, instanceKey)));
+            items = new ArrayList<>(instanceKeyMap.get(SagaMultiKey.create(type, instanceKey)));
         }
 
         return items;
