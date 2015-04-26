@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
@@ -24,12 +25,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import javax.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -71,13 +73,14 @@ public class Organizer {
     /**
      * Returns the saga types to create in the excepted order to be executed.
      */
-    public Iterable<SagaType> sagaTypesForMessage(final Object message) {
+    public Iterable<SagaType> sagaTypesForMessage(final LookupContext context) {
         Iterable<SagaType> sagaTypes;
 
+        Object message = context.message();
         if (message instanceof Timeout) {
             sagaTypes = prepareTimeoutList((Timeout) message);
         } else {
-            sagaTypes = prepareSagaTypeList(message);
+            sagaTypes = prepareSagaTypeList(context);
         }
 
         return sagaTypes;
@@ -105,8 +108,8 @@ public class Organizer {
         return sagaTypes;
     }
 
-    private Iterable<SagaType> prepareSagaTypeList(final Object message) {
-        Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(message.getClass());
+    private Iterable<SagaType> prepareSagaTypeList(final LookupContext context) {
+        Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(context.message().getClass());
         Collection<SagaType> sagaTypes = new ArrayList<>(sagasToExecute.size());
 
         for (SagaType type : sagasToExecute) {
@@ -114,11 +117,11 @@ public class Organizer {
                 sagaTypes.add(type);
             } else {
                 // for continuation the instance key needs to be set.
-                Object key = readInstanceKey(type, message);
+                Object key = readInstanceKey(type, context);
                 if (key != null) {
                     sagaTypes.add(SagaType.continueSaga(type, key));
                 } else {
-                    LOG.debug("Can not determine saga instance key from message {}", message);
+                    LOG.debug("Can not determine saga instance key from message {}", context.message().getClass());
                 }
             }
         }
@@ -126,8 +129,8 @@ public class Organizer {
         return sagaTypes;
     }
 
-    private Object readInstanceKey(final SagaType sagaType, final Object message) {
-        return keyExtractor.findSagaInstanceKey(sagaType.getSagaClass(), message);
+    private Object readInstanceKey(final SagaType sagaType, final LookupContext context) {
+        return keyExtractor.findSagaInstanceKey(sagaType.getSagaClass(), context);
     }
 
     /**

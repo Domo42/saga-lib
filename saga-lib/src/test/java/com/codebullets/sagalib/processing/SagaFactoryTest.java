@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
@@ -69,11 +70,10 @@ public class SagaFactoryTest {
     @Test
     public void create_messageStartingTheSaga_returnsNewSagaInstance() {
         // given
-        String message = "using string as input message";
-        mockMessageToCreateSaga(message);
+        LookupContext context = mockContextToCreateSaga("using string as input message");
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         assertThat("Expected only one saga to be created.", sagas, hasSize(1));
@@ -90,11 +90,10 @@ public class SagaFactoryTest {
     @Test
     public void create_messageStartingTheSaga_newSagaStateHasIdAndType() {
         // given
-        String message = "using string as input message";
-        mockMessageToCreateSaga(message);
+        LookupContext context = mockContextToCreateSaga("using string as input message");
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         TestSaga saga = (TestSaga) Iterables.get(sagas, 0).getSaga();
@@ -111,11 +110,10 @@ public class SagaFactoryTest {
     @Test
     public void create_messageStartingTheSaga_descriptionDefinesStartingSagaTrue() {
         // given
-        String message = "using string as input message";
-        mockMessageToCreateSaga(message);
+        LookupContext context = mockContextToCreateSaga("using string as input message");
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         SagaInstanceDescription description = Iterables.get(sagas, 0);
@@ -134,10 +132,10 @@ public class SagaFactoryTest {
         Integer message = 42;
         String instanceKey = "theInstanceKey";
         TestSagaState existingState = new TestSagaState(instanceKey);
-        mockMessageToContinueSaga(message, instanceKey, existingState);
+        LookupContext context = mockMessageToContinueSaga(message, instanceKey, existingState);
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         SagaInstanceDescription description = Iterables.get(sagas, 0);
@@ -156,10 +154,10 @@ public class SagaFactoryTest {
         Integer message = 42;
         String instanceKey = "theInstanceKey";
         TestSagaState existingState = new TestSagaState(instanceKey);
-        mockMessageToContinueSaga(message, instanceKey, existingState);
+        LookupContext context = mockMessageToContinueSaga(message, instanceKey, existingState);
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(message);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         assertThat("Expected a saga to be created.", sagas, hasSize(1));
@@ -177,10 +175,10 @@ public class SagaFactoryTest {
         Timeout timeout = Timeout.create("sagaId", "timeoutName", new Date());
         TestSagaState existingState = new TestSagaState();
         existingState.setType(TestSaga.class.getName());
-        mockTimeoutToContinueSaga(timeout, existingState);
+        LookupContext context = mockTimeoutToContinueSaga(timeout, existingState);
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(timeout);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         assertThat("Expected one saga entry for single timeout.", sagas, hasSize(1));
@@ -198,39 +196,51 @@ public class SagaFactoryTest {
         Timeout timeout = Timeout.create("sagaId", "timeoutName", new Date());
         TestSagaState existingState = new TestSagaState();
         existingState.setType(TestSaga.class.getName());
-        mockTimeoutToContinueSaga(timeout, existingState);
+        LookupContext context = mockTimeoutToContinueSaga(timeout, existingState);
 
         // when
-        Collection<SagaInstanceDescription> sagas = sut.create(timeout);
+        Collection<SagaInstanceDescription> sagas = sut.create(context);
 
         // then
         SagaInstanceDescription description = Iterables.get(sagas, 0);
         assertThat("Expected started info to be false for timeouts.", description.isStarting(), equalTo(false));
     }
 
-    private void mockMessageToCreateSaga(final Object message) {
+    private LookupContext mockContextToCreateSaga(final Object message) {
+        LookupContext context = SagaLookupContext.forMessage(message);
+
         Collection<SagaType> sagaTypes = new ArrayList<>();
         sagaTypes.add(SagaType.startsNewSaga(TestSaga.class));
 
-        when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
+        when(organizer.sagaTypesForMessage(context)).thenReturn(sagaTypes);
+
+        return context;
     }
 
     @SuppressWarnings("unchecked")
-    private void mockMessageToContinueSaga(final Object message, final String instanceKey, final TestSagaState existingState) {
+    private LookupContext mockMessageToContinueSaga(final Object message, final String instanceKey, final TestSagaState existingState) {
+        LookupContext context = SagaLookupContext.forMessage(message);
+
         Collection<SagaType> sagaTypes = new ArrayList<>();
         SagaType originalType = SagaType.continueSaga(TestSaga.class);
         sagaTypes.add(SagaType.continueSaga(originalType, instanceKey));
 
-        when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
+        when(organizer.sagaTypesForMessage(context)).thenReturn(sagaTypes);
         when(stateStorage.load(TestSaga.class.getName(), instanceKey)).thenReturn((Collection) Lists.newArrayList(existingState));
+
+        return context;
     }
 
-    private void mockTimeoutToContinueSaga(final Timeout message, final TestSagaState existingState) {
+    private LookupContext mockTimeoutToContinueSaga(final Timeout message, final TestSagaState existingState) {
+        LookupContext context = SagaLookupContext.forMessage(message);
+
         Collection<SagaType> sagaTypes = new ArrayList<>();
         sagaTypes.add(SagaType.sagaFromTimeout(message.getSagaId()));
 
-        when(organizer.sagaTypesForMessage(message)).thenReturn(sagaTypes);
+        when(organizer.sagaTypesForMessage(context)).thenReturn(sagaTypes);
         when(stateStorage.load(message.getSagaId())).thenReturn(existingState);
+
+        return context;
     }
 
     private static class TestSagaProvider implements Provider<TestSaga> {

@@ -34,4 +34,19 @@ public final class KeyReaders {
             final KeyExtractFunction<MESSAGE, KEY> extractFunction) {
         return FunctionKeyReader.create(messageClass, extractFunction);
     }
+
+    /**
+     * Create a new key reader for a specific message class.
+     *
+     * @param messageClass    The class of the message for which a key reader is to be created.
+     * @param extractFunction The function to use to extract a saga instance key from a message.
+     * @param <MESSAGE>       The type of the message this reader is for.
+     * @param <KEY>           The type of the key to be extracted.
+     * @return Returns a new key reader instance.
+     */
+    public static <MESSAGE, KEY> KeyReader<MESSAGE, KEY> forMessage(
+            final Class<MESSAGE> messageClass,
+            final ContextKeyExtractFunction<MESSAGE, KEY> extractFunction) {
+        return FunctionKeyReader.create(messageClass, extractFunction);
+    }
 }

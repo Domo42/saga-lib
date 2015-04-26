@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.context.LookupContext;
+
 import javax.annotation.Nullable;
 
 /**
@@ -27,13 +29,13 @@ import javax.annotation.Nullable;
  * @param <KEY> The type of the key to be read.
  */
 public final class FunctionKeyReader<MESSAGE, KEY> implements KeyReader<MESSAGE, KEY> {
-    private final KeyExtractFunction<MESSAGE, KEY> extractFunction;
+    private final ContextKeyExtractFunction<MESSAGE, KEY> extractFunction;
     private final Class<MESSAGE> messageClass;
 
     /**
      * Generates a new instance of FunctionKeyReader.
      */
-    private FunctionKeyReader(final Class<MESSAGE> messageClass, final KeyExtractFunction<MESSAGE, KEY> extractFunction) {
+    private FunctionKeyReader(final Class<MESSAGE> messageClass, final ContextKeyExtractFunction<MESSAGE, KEY> extractFunction) {
         this.messageClass = messageClass;
         this.extractFunction = extractFunction;
     }
@@ -43,8 +45,8 @@ public final class FunctionKeyReader<MESSAGE, KEY> implements KeyReader<MESSAGE,
      */
     @Override
     @Nullable
-    public KEY readKey(final MESSAGE message) {
-        return extractFunction.key(message);
+    public KEY readKey(final MESSAGE message, final LookupContext context) {
+        return extractFunction.key(message, context);
     }
 
     /**
@@ -58,8 +60,8 @@ public final class FunctionKeyReader<MESSAGE, KEY> implements KeyReader<MESSAGE,
     /**
      * Creates new extractor capable of extracting a saga instance key from a message.
      */
-    public static <MESSAGE, KEY> FunctionKeyReader<MESSAGE, KEY> create(final Class<MESSAGE> messageClazz, final KeyReadFunction<MESSAGE> readFunction) {
-        return new FunctionKeyReader<>(messageClazz, (KeyExtractFunction<MESSAGE, KEY>) readFunction);
+    public static <MESSAGE> FunctionKeyReader<MESSAGE, String> create(final Class<MESSAGE> messageClazz, final KeyReadFunction<MESSAGE> readFunction) {
+        return new FunctionKeyReader<>(messageClazz, ExtractFunctionReader.encapsulate(readFunction));
     }
 
     /**
@@ -67,8 +69,16 @@ public final class FunctionKeyReader<MESSAGE, KEY> implements KeyReader<MESSAGE,
      */
     public static <MESSAGE, KEY> FunctionKeyReader<MESSAGE, KEY> create(
             final Class<MESSAGE> messageClazz,
-            final KeyExtractFunction<MESSAGE,
-            KEY> readFunction) {
-        return new FunctionKeyReader<>(messageClazz, readFunction);
+            final ContextKeyExtractFunction<MESSAGE, KEY>  contextReadFunction) {
+        return new FunctionKeyReader<>(messageClazz, contextReadFunction);
+    }
+
+    /**
+     * Creates new extractor capable of extracting a saga instance key from a message.
+     */
+    public static <MESSAGE, KEY> FunctionKeyReader<MESSAGE, KEY> create(
+            final Class<MESSAGE> messageClazz,
+            final KeyExtractFunction<MESSAGE, KEY> readFunction) {
+        return new FunctionKeyReader<>(messageClazz, ExtractFunctionReader.encapsulate(readFunction));
     }
 }

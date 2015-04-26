@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
@@ -42,7 +43,9 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.isA;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -89,7 +92,7 @@ public class SagaExecutionTaskTest {
 
         when(saga.state()).thenReturn(state);
         when(sagaInstanceDescription.getSaga()).thenReturn(saga);
-        when(sagaFactory.create(theMessage)).thenReturn(Lists.newArrayList(sagaInstanceDescription));
+        when(sagaFactory.create(argThat(isA(LookupContext.class)))).thenReturn(Lists.newArrayList(sagaInstanceDescription));
 
         context = mock(CurrentExecutionContext.class);
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);

@@ -1,5 +1,7 @@
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.context.LookupContext;
+
 import javax.annotation.Nullable;
 
 /**
@@ -15,7 +17,7 @@ public interface KeyReader<MESSAGE, KEY> {
      * @return instance key of the message or null if key is empty or not found.
      */
     @Nullable
-    KEY readKey(MESSAGE message);
+    KEY readKey(MESSAGE message, LookupContext lookupContext);
 
     /**
      * Gets the class associated with the reader.

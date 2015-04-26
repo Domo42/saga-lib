@@ -17,6 +17,7 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.AbstractSingleEventSaga;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
@@ -27,6 +28,8 @@ import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,6 +40,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,14 +49,16 @@ import static org.mockito.Mockito.when;
 public class OrganizerTest {
     private Organizer sut;
     private SagaAnalyzer analyzer;
+    private KeyExtractor keyExtractor;
 
     @Before
     public void initOrganizer() {
         analyzer = mock(SagaAnalyzer.class);
+        keyExtractor = mock(KeyExtractor.class);
 
         when(analyzer.scanHandledMessageTypes()).thenReturn(availableSagaTypes());
 
-        sut = new Organizer(analyzer, mock(KeyExtractor.class));
+        sut = new Organizer(analyzer, keyExtractor);
     }
 
     /**
@@ -68,7 +74,7 @@ public class OrganizerTest {
         sut.setPreferredOrder(createOrder(SagaB.class));
 
         // when
-        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage("A string message");
+        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(SagaLookupContext.forMessage("A string message"));
 
         // then
         SagaType first = Iterables.getFirst(sagaTypes, null);
@@ -89,7 +95,7 @@ public class OrganizerTest {
         sut.setPreferredOrder(createOrder(SagaC.class, SagaB.class));
 
         // when
-        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage("A string message");
+        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(SagaLookupContext.forMessage("A string message"));
 
         // then
         SagaType first = Iterables.getFirst(sagaTypes, null);
@@ -111,7 +117,7 @@ public class OrganizerTest {
         Integer message = 42;
 
         // when
-        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(message);
+        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(SagaLookupContext.forMessage(message));
 
         assertThat("Expect list of 2 sagas", Iterables.size(sagaTypes), equalTo(2));
         assertThat("Contains integer saga.", sagaTypes, hasItem(matchesSagaClass(IntegerSaga.class)));
@@ -131,11 +137,31 @@ public class OrganizerTest {
         List message = new ArrayList();
 
         // when
-        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(message);
+        Iterable<SagaType> sagaTypes = sut.sagaTypesForMessage(SagaLookupContext.forMessage(message));
 
         // then
         assertThat("Expected a single return value.", Iterables.size(sagaTypes), equalTo(1));
         assertThat("Expected saga matching base interface handler.", sagaTypes, hasItem(matchesSagaClass(IterablesSaga.class)));
+    }
+
+    /**
+     * <pre>
+     * Given => Message is type to continue saga
+     * When  => sagaTypesForMessage is called
+     * Then  => Extracts instance key for message
+     * </pre>
+     */
+    @Test
+    public void sagaTypesForMessage_handlerMessage_extractInstanceKeyForMessage() {
+        // given
+        URI message = URI.create("mailto:any@anywhere.com");
+        LookupContext context = SagaLookupContext.forMessage(message);
+
+        // when
+        sut.sagaTypesForMessage(context);
+
+        // then
+        verify(keyExtractor).findSagaInstanceKey(SagaD.class, context);
     }
 
     private Matcher<SagaType> matchesSagaClass(final Class<?> sagaClass) {
@@ -184,6 +210,7 @@ public class OrganizerTest {
         sagaTypes.put(SagaA.class, createMap(SagaA.class));
         sagaTypes.put(SagaB.class, createMap(SagaB.class));
         sagaTypes.put(SagaC.class, createMap(SagaC.class));
+        sagaTypes.put(SagaD.class, createMap(SagaD.class, InetSocketAddress.class, URI.class));
         sagaTypes.put(IntegerSaga.class, createMap(IntegerSaga.class, Integer.class));
         sagaTypes.put(NumberSaga.class, createMap(NumberSaga.class, Number.class));
         sagaTypes.put(IterablesSaga.class, createMap(IterablesSaga.class, Iterable.class));
@@ -191,9 +218,17 @@ public class OrganizerTest {
         return sagaTypes;
     }
 
-    private SagaHandlersMap createMap(Class<? extends Saga> clazz, Class<?> handlerType) {
+    private SagaHandlersMap createMap(Class<? extends Saga> clazz, Class<?> startType) {
         SagaHandlersMap map = new SagaHandlersMap(clazz);
-        map.add(new MessageHandler(handlerType, null, true));
+        map.add(new MessageHandler(startType, null, true));
+
+        return map;
+    }
+
+    private SagaHandlersMap createMap(Class<? extends Saga> clazz, Class<?> startType, Class<?> handlerType) {
+        SagaHandlersMap map = new SagaHandlersMap(clazz);
+        map.add(new MessageHandler(startType, null, true));
+        map.add(new MessageHandler(handlerType, null, false));
 
         return map;
     }
@@ -207,6 +242,8 @@ public class OrganizerTest {
     public class SagaB extends AbstractSingleEventSaga { }
 
     public class SagaC extends AbstractSingleEventSaga { }
+
+    public class SagaD extends AbstractSingleEventSaga {}
 
     public class NumberSaga extends AbstractSingleEventSaga { }
 

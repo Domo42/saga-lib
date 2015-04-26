@@ -17,16 +17,19 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.*;
 import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.context.LookupContext;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import javax.annotation.Nullable;
 import javax.inject.Provider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -68,10 +71,40 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage("my input event message"));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object)keyValue));
+    }
+
+    /**
+     * <pre>
+     * Given => Lookup context provided for message
+     * When  => instance for message is looked up
+     * Then  => key reader gets original context as parameter
+     * </pre>
+     */
+    @Test
+    public void findSagaInstanceKey_sagaCalledWithContext_contextUsedAsReaderParameter() {
+        // given
+        LookupContext originalContext = SagaLookupContext.forMessage("my input event message");
+        final LookupContext[] providedReaderContext = new LookupContext[1];
+
+        KeyReader reader = KeyReaders.forMessage(String.class, new ContextKeyExtractFunction<String, String>() {
+                @Nullable
+                @Override
+                public String key(final String message, final LookupContext context) {
+                    providedReaderContext[0] = context;
+                    return null;
+                }
+            });
+        when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
+
+        // when
+        sut.findSagaInstanceKey(Saga.class, originalContext);
+
+        // then
+        assertThat("Expected context in key reader to be the same as the original.", providedReaderContext[0], sameInstance(originalContext));
     }
 
     /**
@@ -92,7 +125,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage("my input event message"));
 
         // then
         assertThat("Expected returned key to be null.", foundKey, nullValue());
@@ -120,10 +153,10 @@ public class SagaKeyReaderExtractorTest {
             }
         });
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader, intReader));
-        sut.findSagaInstanceKey(Saga.class, new Integer(5));
+        sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage(new Integer(5)));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage("my input event message"));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
@@ -147,7 +180,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage(Integer.valueOf(123)));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object)keyValue));
@@ -177,7 +210,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(numberReader, integerReader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage(Integer.valueOf(123)));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object)keyValue));
@@ -201,7 +234,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage("my input event message"));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
@@ -231,7 +264,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader, stringReader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, "my input event message");
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage("my input event message"));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));
@@ -267,7 +300,7 @@ public class SagaKeyReaderExtractorTest {
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(comparableReader, numberReader, integerReader));
 
         // when
-        Object foundKey = sut.findSagaInstanceKey(Saga.class, Integer.valueOf(123));
+        Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage(Integer.valueOf(123)));
 
         // then
         assertThat("Expected returned key to match key value provided reader.", foundKey, equalTo((Object) keyValue));

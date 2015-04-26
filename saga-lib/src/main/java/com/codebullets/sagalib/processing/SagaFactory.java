@@ -1,5 +1,6 @@
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.storage.StateStorage;
@@ -48,15 +49,15 @@ public class SagaFactory {
      * Creates new instances based on the message type provided.
      * @return Returns a saga instance.
      */
-    public Collection<SagaInstanceDescription> create(final Object message) {
+    public Collection<SagaInstanceDescription> create(final LookupContext context) {
         Collection<SagaInstanceDescription> sagaInstances = new ArrayList<>();
 
-        for (SagaType sagaType : organizer.sagaTypesForMessage(message)) {
+        for (SagaType sagaType : organizer.sagaTypesForMessage(context)) {
             if (sagaType.isStartingNewSaga()) {
                 Saga newSaga = startNewSaga(sagaType.getSagaClass());
                 sagaInstances.add(SagaInstanceDescription.define(newSaga, true));
             } else {
-                Collection<Saga> sagas = continueExistingSaga(sagaType, message);
+                Collection<Saga> sagas = continueExistingSaga(sagaType, context.message());
                 for (Saga saga : sagas) {
                     sagaInstances.add(SagaInstanceDescription.define(saga, false));
                 }

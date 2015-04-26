@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -53,12 +54,12 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
      * {@inheritDoc}
      */
     @Override
-    public Object findSagaInstanceKey(final Class<? extends Saga> sagaClazz, final Object message) {
+    public Object findSagaInstanceKey(final Class<? extends Saga> sagaClazz, final LookupContext context) {
         Object keyValue = null;
 
-        KeyReader reader = tryGetKeyReader(sagaClazz, message);
+        KeyReader reader = tryGetKeyReader(sagaClazz, context.message());
         if (reader != null) {
-            keyValue = reader.readKey(message);
+            keyValue = reader.readKey(context.message(), context);
         }
 
         return keyValue;

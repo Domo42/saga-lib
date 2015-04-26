@@ -1,5 +1,6 @@
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 
 /**
@@ -11,5 +12,5 @@ public interface KeyExtractor {
     /**
      * Extract the instance key from the message to find the matching saga instance.
      */
-    Object findSagaInstanceKey(Class<? extends Saga> sagaClazz, Object message);
+    Object findSagaInstanceKey(Class<? extends Saga> sagaClazz, LookupContext context);
 }
