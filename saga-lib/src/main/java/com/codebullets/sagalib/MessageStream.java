@@ -16,12 +16,21 @@
 package com.codebullets.sagalib;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 /**
  * Add messages and events to the steam so that they are processed and
  * trigger saga events.
+ * <p>There are two ways saga execution is triggered</p>
+ * <ul>
+ *     <li>calling one of the {@code add()} methods: This will execute
+ *     the sagas asynchronously based on the executor provided during the
+ *     saga-lib instantiation.</li>
+ *     <li>calling one of the {@code handle()} methods: This will execute
+ *     the sagas right away on the current call stack.</li>
+ * </ul>
  */
 public interface MessageStream {
     /**
@@ -40,7 +49,7 @@ public interface MessageStream {
      * @param headers A list of header values not part of the messages. These value
      *                can be accessed within the sagas from the {@code ExecutionContext}.
      */
-    void add(@Nonnull Object message, Map<String, Object> headers);
+    void add(@Nonnull Object message, @Nullable Map<String, Object> headers);
 
     /**
      * Handles the given message on synchronously on the the calling thread.
@@ -52,6 +61,20 @@ public interface MessageStream {
     void handle(@Nonnull Object message) throws InvocationTargetException, IllegalAccessException;
 
     /**
+     * Handles the given message on synchronously on the the calling thread. The parent context
+     * might provides information for handles when saga are executed in a nested fashion.
+     *
+     * <p>Header values are copied over from the parent context on to the new execution context.</p>
+     *
+     * @param message The message to be handled.
+     * @param parentContext The parent context from which the new saga handling is triggered.
+     *
+     * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
+     * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
+     */
+    void handle(@Nonnull Object message, @Nullable ExecutionContext parentContext) throws InvocationTargetException, IllegalAccessException;
+
+    /**
      * Handles the given message on synchronously on the the calling thread.
      * @param message The message to be handled.
      * @param headers A list of header values not part of the messages. These value
@@ -60,5 +83,24 @@ public interface MessageStream {
      * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
      * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
      */
-    void handle(@Nonnull Object message, Map<String, Object> headers) throws InvocationTargetException, IllegalAccessException;
+    void handle(@Nonnull Object message, @Nullable Map<String, Object> headers) throws InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Handles the given message on synchronously on the the calling thread. The parent context
+     * might provides information for handles when saga are executed in a nested fashion.
+     *
+     * <p>Header values are copied over from the parent context on to the new execution context.
+     * Header values provided with the {@code headers} parameter will added to the
+     * the currents context header as well and override possible existing values.</p>
+     *
+     * @param message The message to be handled.
+     * @param headers A list of header values not part of the messages. These value
+     *                can be accessed within the sagas from the {@code ExecutionContext}.
+     * @param parentContext The parent context from which the new saga handling is triggered.
+     *
+     * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
+     * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
+     */
+    void handle(@Nonnull Object message, @Nullable Map<String, Object> headers, @Nullable ExecutionContext parentContext)
+            throws InvocationTargetException, IllegalAccessException;
 }

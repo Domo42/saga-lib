@@ -15,20 +15,30 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.context.LookupContext;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.inject.Provider;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link SagaMessageStream} class.
@@ -39,6 +49,7 @@ public class SagaMessageStreamTest {
     private SagaMessageStream sut;
     private SagaFactory factory;
     private HandlerInvoker invoker;
+    private ExecutorService executorService;
 
     @Before
     public void init() {
@@ -46,12 +57,19 @@ public class SagaMessageStreamTest {
         timeoutManager = mock(TimeoutManager.class);
         factory = mock(SagaFactory.class);
         invoker = mock(HandlerInvoker.class);
+        executorService = mock(ExecutorService.class);
 
         SagaEnvironment environment = SagaEnvironment.create(
-                timeoutManager, storage, factory, null, new HashSet<SagaModule>(),
+                timeoutManager, storage, factory, new Provider<CurrentExecutionContext>() {
+                    @Override
+                    public CurrentExecutionContext get() {
+                        return new SagaExecutionContext();
+                    }
+                }, new HashSet<SagaModule>(),
                 new HashSet<SagaLifetimeInterceptor>());
 
-        sut = new SagaMessageStream(invoker, environment, mock(ExecutorService.class));
+        mockSagaCreation();
+        sut = new SagaMessageStream(invoker, environment, executorService);
     }
 
     /**
@@ -65,5 +83,48 @@ public class SagaMessageStreamTest {
         // when
         // then
         verify(timeoutManager).addExpiredCallback(isA(TimeoutExpired.class));
+    }
+
+    /**
+     * <pre>
+     * Given => do this always
+     * When  => add is called
+     * Then  => executes a saga on the provided executor service.
+     * </pre>
+     */
+    @Test
+    public void add_always_taskAddedToExecutor() {
+        // given
+        String message = "theMessage";
+
+        // when
+        sut.add(message);
+
+        // then
+        verify(executorService).execute(isA(SagaExecutionTask.class));
+    }
+
+    /**
+     * <pre>
+     * Given => Do this always.
+     * When  => handle is called
+     * Then  => Saga is directly executed.
+     * </pre>
+     */
+    @Test
+    public void handle_always_invokesSagaRightAway() throws InvocationTargetException, IllegalAccessException {
+        // given
+        String message = "theMessage";
+
+        // when
+        sut.handle(message);
+
+        // then
+        verify(invoker).invoke(isA(Saga.class), same(message));
+    }
+
+    private void mockSagaCreation() {
+        SagaInstanceDescription saga = new SagaInstanceDescription(mock(Saga.class), true);
+        when(factory.create(any(LookupContext.class))).thenReturn(Lists.newArrayList(saga));
     }
 }

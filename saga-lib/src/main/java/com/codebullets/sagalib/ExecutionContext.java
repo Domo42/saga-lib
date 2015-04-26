@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import javax.annotation.Nullable;
+
 /**
  * Holds and controls the the state when executing one ore more
  * sagas based for a single message.
@@ -54,4 +56,14 @@ public interface ExecutionContext {
      * Sets a specific header value.
      */
     void setHeaderValue(String header, Object value);
+
+    /**
+     * Gets the optional parent execution context. A parent context might exist if
+     * saga handling was triggered within another saga.
+     *
+     * @return Returns the current parent context or {@code null} if no parent
+     *         context is available.
+     */
+    @Nullable
+    ExecutionContext parentContext();
 }

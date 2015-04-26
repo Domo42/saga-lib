@@ -38,12 +38,14 @@ import org.mockito.InOrder;
 
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doThrow;
@@ -104,7 +106,7 @@ public class SagaExecutionTaskTest {
                 sagaFactory, contextProvider,
                 Sets.newHashSet(module),
                 Sets.newHashSet(interceptor));
-        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>());
+        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>(), null);
     }
 
     /**
@@ -281,13 +283,37 @@ public class SagaExecutionTaskTest {
         headers.put("headerKey", headerValue);
         SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context), Sets.newHashSet(module),
                 Sets.newHashSet(interceptor));
-        sut = new SagaExecutionTask(env, invoker, theMessage, headers);
+        sut = new SagaExecutionTask(env, invoker, theMessage, headers, null);
 
         // when
         sut.run();
 
         // then
         assertThat("Expected header value to be part of context.", context.getHeaderValue("headerKey"), equalTo(headerValue));
+    }
+
+    /**
+     * <pre>
+     * Given => Parent execution context is provided
+     * When  => task runs
+     * Then  => Parent context set as part of execution context.
+     * </pre>
+     */
+    @Test
+    public void run_parentContextProvided_contextHasParentContext() {
+        // given
+        CurrentExecutionContext context = new SagaExecutionContext();
+        ExecutionContext parentContext = mock(ExecutionContext.class);
+
+        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context), Sets.newHashSet(module),
+                Sets.newHashSet(interceptor));
+        sut = new SagaExecutionTask(env, invoker, theMessage, Collections.EMPTY_MAP, parentContext);
+
+        // when
+        sut.run();
+
+        // then
+        assertThat("Expected header value to be part of context.", context.parentContext(), sameInstance(parentContext));
     }
 
     /**

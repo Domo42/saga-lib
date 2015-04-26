@@ -21,4 +21,9 @@ public interface CurrentExecutionContext extends ExecutionContext {
      * Sets the current saga handler instance being executed.
      */
     void setSaga(Saga saga);
+
+    /**
+     * Sets the parent context of the execution.
+     */
+    void setParentContext(ExecutionContext parentContext);
 }

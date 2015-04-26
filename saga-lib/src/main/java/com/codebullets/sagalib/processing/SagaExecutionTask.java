@@ -27,6 +27,7 @@ import com.codebullets.sagalib.context.NeedContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Map;
@@ -44,6 +45,9 @@ class SagaExecutionTask implements ExecutedRunnable {
     private final SagaEnvironment env;
     private final LookupContext lookupContext;
 
+    @Nullable
+    private final ExecutionContext parentContext;
+
     /**
      * Generates a new instance of SagaExecutionTask.
      */
@@ -51,7 +55,9 @@ class SagaExecutionTask implements ExecutedRunnable {
             final SagaEnvironment environment,
             final HandlerInvoker invoker,
             final Object message,
-            final Map<String, Object> headers) {
+            final Map<String, Object> headers,
+            @Nullable final ExecutionContext parentContext) {
+        this.parentContext = parentContext;
         this.lookupContext = new SagaLookupContext(message, headers);
         this.env = environment;
         this.invoker = invoker;
@@ -91,6 +97,7 @@ class SagaExecutionTask implements ExecutedRunnable {
             throws InvocationTargetException, IllegalAccessException {
         CurrentExecutionContext context = env.contextProvider().get();
         context.setMessage(messageLookupContext.message());
+        context.setParentContext(parentContext);
         setHeaders(context);
 
         try {

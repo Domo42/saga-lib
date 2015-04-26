@@ -15,8 +15,10 @@
  */
 package com.codebullets.sagalib.context;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +30,7 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     private Object message;
     private Saga saga;
     private Map<String, Object> headers = new HashMap<>();
+    private ExecutionContext parentContext;
 
     /**
      * {@inheritDoc}
@@ -70,6 +73,12 @@ public class SagaExecutionContext implements CurrentExecutionContext {
         headers.put(header, value);
     }
 
+    @Nullable
+    @Override
+    public ExecutionContext parentContext() {
+        return parentContext;
+    }
+
     @Override
     public void setMessage(final Object message) {
         this.message = message;
@@ -78,5 +87,10 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     @Override
     public void setSaga(final Saga saga) {
         this.saga = saga;
+    }
+
+    @Override
+    public void setParentContext(@Nullable final ExecutionContext parentContext) {
+        this.parentContext = parentContext;
     }
 }
