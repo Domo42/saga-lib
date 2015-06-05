@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.timeout;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -74,7 +75,8 @@ public class InMemoryTimeoutManager implements TimeoutManager {
      * {@inheritDoc}
      */
     @Override
-    public void requestTimeout(final String sagaId, final long delay, final TimeUnit timeUnit, @Nullable final String name, @Nullable final Object data) {
+    public void requestTimeout(final ExecutionContext context, final String sagaId, final long delay, final TimeUnit timeUnit, @Nullable final String name,
+                               @Nullable final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
 
         SagaTimeoutTask timeoutTask = new SagaTimeoutTask(

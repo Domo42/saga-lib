@@ -16,11 +16,14 @@
 package com.codebullets.sagalib.perftest.saga;
 
 import com.codebullets.sagalib.EventHandler;
+import com.codebullets.sagalib.KeyReadFunction;
 import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.KeyReaders;
 import com.codebullets.sagalib.StartsSaga;
 import com.codebullets.sagalib.perftest.messages.StopSaga;
 import com.codebullets.sagalib.perftest.messages.TestMessage1;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -46,7 +49,15 @@ public class TestSaga1 extends AbstractTestSaga {
     public Collection<KeyReader> keyReaders() {
         Collection<KeyReader> readers = new ArrayList<>();
 
-        readers.add(TestKeyReader.create(StopSaga.class));
+        readers.add(KeyReaders.forMessage(
+                StopSaga.class,
+                new KeyReadFunction<StopSaga>() {
+                            @Nullable
+                            @Override
+                            public String key(final StopSaga stopSaga) {
+                                return stopSaga.getCorrelationId();
+                            }
+                        }));
 
         return readers;
     }
