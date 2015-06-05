@@ -27,6 +27,7 @@ import java.util.Date;
 public final class Timeout implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private TimeoutId id;
     private String sagaId;
     private Date expiredAt;
     private String name;
@@ -36,6 +37,13 @@ public final class Timeout implements Serializable {
      * Use static builder method to create instance.
      */
     private Timeout() {
+    }
+
+    /**
+     * Gets the id of this timeout.
+     */
+    public TimeoutId getId() {
+        return id;
     }
 
     /**
@@ -69,15 +77,16 @@ public final class Timeout implements Serializable {
     /**
      * Creates a new Timeout instance.
      */
-    public static Timeout create(final String sagaId, final String name, final Date expiredAt) {
-        return Timeout.create(sagaId, name, expiredAt, null);
+    public static Timeout create(final TimeoutId id, final String sagaId, final String name, final Date expiredAt) {
+        return Timeout.create(id, sagaId, name, expiredAt, null);
     }
 
     /**
      * Creates a new Timeout instance.
      */
-    public static Timeout create(final String sagaId, final String name, final Date expiredAt, final Object data) {
+    public static Timeout create(final TimeoutId id, final String sagaId, final String name, final Date expiredAt, final Object data) {
         Timeout timeout = new Timeout();
+        timeout.id = id;
         timeout.sagaId = sagaId;
         timeout.expiredAt = expiredAt;
         timeout.name = name;
@@ -92,6 +101,7 @@ public final class Timeout implements Serializable {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("id", id)
                 .add("sagaId", sagaId)
                 .add("expiredAt", expiredAt)
                 .add("name", name)

@@ -42,10 +42,15 @@ public interface TimeoutManager {
      * @param name A custom name for the timeout. Is returned as timeout has expired.
      * @param data Optional data object associated with the timeout. Can be null.
      */
-    void requestTimeout(ExecutionContext context, String sagaId, long delay, TimeUnit timeUnit, @Nullable String name, @Nullable Object data);
+    TimeoutId requestTimeout(ExecutionContext context, String sagaId, long delay, TimeUnit timeUnit, @Nullable String name, @Nullable Object data);
 
     /**
-     * Cancel all timeouts of a saga. If no timeout exist does nothing.
+     * Cancel all timeouts of a saga. If no timeout exists does nothing.
      */
     void cancelTimeouts(String sagaId);
+
+    /**
+     * Cancel a specific timeout. If no timeout is found does nothing.
+     */
+    void cancelTimeout(final TimeoutId id);
 }

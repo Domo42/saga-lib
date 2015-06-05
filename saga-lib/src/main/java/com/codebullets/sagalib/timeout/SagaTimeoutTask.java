@@ -19,6 +19,7 @@ package com.codebullets.sagalib.timeout;
  * Calls the {@code expiredCallback} method when executed.
  */
 public class SagaTimeoutTask implements Runnable {
+    private final TimeoutId timeoutId;
     private final String sagaId;
     private final String name;
     private final TimeoutExpired expiredCallback;
@@ -28,7 +29,14 @@ public class SagaTimeoutTask implements Runnable {
     /**
      * Generates a new instance of SagaTimeoutTask.
      */
-    public SagaTimeoutTask(final String sagaId, final String name, final TimeoutExpired expiredCallback, final Clock clock, final Object data) {
+    public SagaTimeoutTask(
+            final TimeoutId timeoutId,
+            final String sagaId,
+            final String name,
+            final TimeoutExpired expiredCallback,
+            final Clock clock,
+            final Object data) {
+        this.timeoutId = timeoutId;
         this.sagaId = sagaId;
         this.name = name;
         this.expiredCallback = expiredCallback;
@@ -41,7 +49,7 @@ public class SagaTimeoutTask implements Runnable {
      */
     @Override
     public void run() {
-        Timeout timeout = Timeout.create(sagaId, name, clock.now(), data);
+        Timeout timeout = Timeout.create(timeoutId, sagaId, name, clock.now(), data);
         expiredCallback.expired(timeout);
     }
 }

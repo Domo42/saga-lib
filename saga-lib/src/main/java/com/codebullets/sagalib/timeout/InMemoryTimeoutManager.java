@@ -16,9 +16,8 @@
 package com.codebullets.sagalib.timeout;
 
 import com.codebullets.sagalib.ExecutionContext;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +25,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -39,9 +39,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class InMemoryTimeoutManager implements TimeoutManager {
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryTimeoutManager.class);
     private static final int TIMER_THREAD_POOL_SIZE = 50;
+    private final Object sync = new Object();
 
     private final Collection<TimeoutExpired> callbacks = Collections.synchronizedCollection(new ArrayList<TimeoutExpired>());
-    private final Multimap<String, ScheduledFuture> openTimeouts = Multimaps.synchronizedMultimap(HashMultimap.<String, ScheduledFuture>create());
+    private final Table<TimeoutId, String, ScheduledFuture> openTimeouts = HashBasedTable.create();
+
     private final ScheduledExecutorService scheduledService;
     private final Clock clock;
 
@@ -75,11 +77,14 @@ public class InMemoryTimeoutManager implements TimeoutManager {
      * {@inheritDoc}
      */
     @Override
-    public void requestTimeout(final ExecutionContext context, final String sagaId, final long delay, final TimeUnit timeUnit, @Nullable final String name,
+    public TimeoutId requestTimeout(final ExecutionContext context, final String sagaId, final long delay, final TimeUnit timeUnit, @Nullable final String name,
                                @Nullable final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
 
+        TimeoutId id = TimeoutId.generateNewId();
+
         SagaTimeoutTask timeoutTask = new SagaTimeoutTask(
+                id,
                 sagaId,
                 name,
                 new TimeoutExpired() {
@@ -92,7 +97,12 @@ public class InMemoryTimeoutManager implements TimeoutManager {
                 data);
 
         ScheduledFuture future = scheduledService.schedule(timeoutTask, delay, timeUnit);
-        openTimeouts.put(sagaId, future);
+
+        synchronized (sync) {
+            openTimeouts.put(id, sagaId, future);
+        }
+
+        return id;
     }
 
     /**
@@ -102,10 +112,23 @@ public class InMemoryTimeoutManager implements TimeoutManager {
     public void cancelTimeouts(final String sagaId) {
         checkNotNull(sagaId, "SagaId parameter must not be null.");
 
-        Collection<ScheduledFuture> sagaTimeouts = new ArrayList<>(openTimeouts.get(sagaId));
-        for (ScheduledFuture timeout : sagaTimeouts) {
-            timeout.cancel(false);
-            openTimeouts.remove(sagaId, timeout);
+        synchronized (sync) {
+            Map<TimeoutId, ScheduledFuture> sagaTimeouts = openTimeouts.column(sagaId);
+            for (Map.Entry<TimeoutId, ScheduledFuture> timeout : sagaTimeouts.entrySet()) {
+                timeout.getValue().cancel(false);
+                openTimeouts.remove(timeout.getKey(), sagaId);
+            }
+        }
+    }
+
+    @Override
+    public void cancelTimeout(final TimeoutId id) {
+        synchronized (sync) {
+            Map<String, ScheduledFuture> timeouts = openTimeouts.row(id);
+            for (Map.Entry<String, ScheduledFuture> timeout : timeouts.entrySet()) {
+                timeout.getValue().cancel(false);
+                openTimeouts.remove(id, timeout.getKey());
+            }
         }
     }
 

@@ -22,12 +22,15 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
@@ -45,6 +48,7 @@ public class InMemoryTimeoutManagerTest {
     @Before
     public void init() {
         executor = mock(ScheduledExecutorService.class);
+        when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(mock(ScheduledFuture.class));
 
         clock = mock(Clock.class);
         when(clock.now()).thenReturn(new Date());
@@ -85,7 +89,7 @@ public class InMemoryTimeoutManagerTest {
         Date expectedTimeoutIn = new Date(clock.now().getTime() + TimeUnit.SECONDS.toMillis(delayInSec));
         TimeoutExpired expiredCallback = mock(TimeoutExpired.class);
         sut.addExpiredCallback(expiredCallback);
-        Timeout expected = Timeout.create("theSagaId", "theTimeoutName", expectedTimeoutIn, expectedData);
+        Timeout expected = Timeout.create(TimeoutId.generateNewId(), "theSagaId", "theTimeoutName", expectedTimeoutIn, expectedData);
 
         // when
         requestAndTriggerTimeout(expected.getSagaId(), expected.getName(), delayInSec, TimeUnit.SECONDS, expectedData);
@@ -121,6 +125,27 @@ public class InMemoryTimeoutManagerTest {
         verify(callback2).expired(isA(Timeout.class));
     }
 
+    /**
+     * <pre>
+     * Given => Timeout is added
+     * When  => timeout is canceled afterwards
+     * Then  => timeout is removed from schedule
+     * </pre>
+     */
+    @Test
+    public void timeoutCanceled_timeoutHasBeenAdded_timeoutRemovedFromSchedule() {
+        // given
+        ScheduledFuture future = mock(ScheduledFuture.class);
+        when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
+        TimeoutId timeoutId = sut.requestTimeout(null, "", 1, TimeUnit.DAYS, null, null);
+
+        // when
+        sut.cancelTimeout(timeoutId);
+
+        // then
+        verify(future).cancel(false);
+    }
+
     private void requestAndTriggerTimeout() {
         requestAndTriggerTimeout(
                 RandomStringUtils.randomAlphanumeric(10),
@@ -130,7 +155,8 @@ public class InMemoryTimeoutManagerTest {
                 null);
     }
 
-    private void requestAndTriggerTimeout(final String sagaId, final String name, final long delay, final TimeUnit unit, final Object data) {
+    private void requestAndTriggerTimeout(
+            final String sagaId, final String name, final long delay, final TimeUnit unit, final Object data) {
         sut.requestTimeout(null, sagaId, delay, unit, name, data);
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
         verify(executor).schedule(captor.capture(), eq(delay), eq(unit));

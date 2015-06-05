@@ -17,6 +17,7 @@ package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.timeout.NeedTimeouts;
+import com.codebullets.sagalib.timeout.TimeoutId;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
 import javax.annotation.Nullable;
@@ -82,31 +83,38 @@ public abstract class AbstractSaga<SAGA_STATE extends SagaState> implements Saga
     /**
      * Requests a timeout event to be sent back to this saga.
      */
-    protected void requestTimeout(final long delay, final TimeUnit unit) {
-        requestTimeout(delay, unit, null, null);
+    protected TimeoutId requestTimeout(final long delay, final TimeUnit unit) {
+        return requestTimeout(delay, unit, null, null);
     }
 
     /**
      * Requests a timeout event with a specific name to this saga. The name can
      * be used to distinguish the timeout if multiple ones have been requested by the saga.
      */
-    protected  void requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name) {
-        requestTimeout(delay, unit, name, null);
+    protected TimeoutId requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name) {
+        return requestTimeout(delay, unit, name, null);
     }
 
     /**
      * Requests a timeout event attaching specific timeout data. This data is returned
      * with the timeout message received.
      */
-    protected void requestTimeout(final long delay, final TimeUnit unit, @Nullable final Object data) {
-        requestTimeout(delay, unit, null, data);
+    protected TimeoutId requestTimeout(final long delay, final TimeUnit unit, @Nullable final Object data) {
+        return requestTimeout(delay, unit, null, data);
     }
 
     /**
      * Requests a timeout event with a specific name and attached data.
      */
-    protected void requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name, @Nullable final Object data) {
-        timeoutManager.requestTimeout(context(), state().getSagaId(), delay, unit, name, data);
+    protected TimeoutId requestTimeout(final long delay, final TimeUnit unit, @Nullable final String name, @Nullable final Object data) {
+        return timeoutManager.requestTimeout(context(), state().getSagaId(), delay, unit, name, data);
+    }
+
+    /**
+     * Cancels a specific timeout.
+     */
+    protected void cancelTimeout(final TimeoutId timeoutId) {
+        timeoutManager.cancelTimeout(timeoutId);
     }
 
     /**
