@@ -1,5 +1,5 @@
 @ECHO OFF
-SET targetVersion=0.13.1
+SET targetVersion=0.14.0
 SET baseDir=%~dp0
 SET targetUrl=https://oss.sonatype.org/service/local/staging/deploy/maven2
 REM SET targetUrl=file://v:\temp\repo
