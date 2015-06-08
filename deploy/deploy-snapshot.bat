@@ -1,4 +1,4 @@
-SET targetVersion=0.14.0-SNAPSHOT
+SET targetVersion=0.15.0-SNAPSHOT
 SET baseDir=%~dp0
 
 REM change version number in project tree
