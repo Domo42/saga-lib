@@ -28,8 +28,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static com.googlecode.catchexception.CatchException.catchException;
+import static com.googlecode.catchexception.CatchException.caughtException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Tests for {@link ReflectionInvoker} class.
@@ -88,5 +92,25 @@ public class ReflectionInvokerTest {
 
         // then
         assertThat("Expected saga handler method to be called.", saga.handlerCalled(), equalTo(true));
+    }
+
+    /**
+     * <pre>
+     * Given => no handler method for message available
+     * When  => invoke is called
+     * Then  => does not throw
+     * </pre>
+     */
+    @Test
+    public void invoke_anyMessage_handleMethodNotFound_doesNotThrow() throws InvocationTargetException, IllegalAccessException {
+        // given
+        TestSaga saga = new TestSaga();
+        saga.createNewState();
+
+        // when
+        catchException(sut).invoke(saga, 42);
+
+        // then
+        assertThat("Expected no exception to be thrown.", caughtException(), is(nullValue()));
     }
 }
