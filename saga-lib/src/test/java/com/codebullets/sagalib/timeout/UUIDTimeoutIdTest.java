@@ -25,9 +25,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
- * Tests for {@link TimeoutId} class.
+ * Tests for {@link UUIDTimeoutId} class.
  */
-public class TimeoutIdTest {
+public class UUIDTimeoutIdTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -42,8 +42,8 @@ public class TimeoutIdTest {
     public void equals_twoDifferentInstancesSameId_returnsTrue() {
         // given
         UUID uuid = UUID.randomUUID();
-        TimeoutId instance1 = new TimeoutId(uuid);
-        TimeoutId instance2 = new TimeoutId(uuid);
+        UUIDTimeoutId instance1 = new UUIDTimeoutId(uuid);
+        UUIDTimeoutId instance2 = new UUIDTimeoutId(uuid);
 
         // when
         boolean isEqual = instance1.equals(instance2);
@@ -62,8 +62,8 @@ public class TimeoutIdTest {
     @Test
     public void equals_twoDifferentInstancesDifferentIds_returnsFalse() {
         // given
-        TimeoutId instance1 = TimeoutId.generateNewId();
-        TimeoutId instance2 = TimeoutId.generateNewId();
+        UUIDTimeoutId instance1 = UUIDTimeoutId.generateNewId();
+        UUIDTimeoutId instance2 = UUIDTimeoutId.generateNewId();
 
         // when
         boolean isEqual = instance1.equals(instance2);
@@ -82,7 +82,7 @@ public class TimeoutIdTest {
     @Test
     public void equals_sameInstance_returnsTrue() {
         // given
-        TimeoutId instance = TimeoutId.generateNewId();
+        UUIDTimeoutId instance = UUIDTimeoutId.generateNewId();
 
         // when
         boolean isEqual = instance.equals(instance);
@@ -102,8 +102,8 @@ public class TimeoutIdTest {
     public void hashCode_twoDifferentInstancesSameId_haveSameHashCode() {
         // given
         UUID uuid = UUID.randomUUID();
-        TimeoutId instance1 = new TimeoutId(uuid);
-        TimeoutId instance2 = new TimeoutId(uuid);
+        UUIDTimeoutId instance1 = new UUIDTimeoutId(uuid);
+        UUIDTimeoutId instance2 = new UUIDTimeoutId(uuid);
 
         // when
         int hc1 = instance1.hashCode();
@@ -128,6 +128,6 @@ public class TimeoutIdTest {
         UUID ctorParam = null;
 
         // when
-        new TimeoutId(ctorParam);
+        new UUIDTimeoutId(ctorParam);
     }
 }

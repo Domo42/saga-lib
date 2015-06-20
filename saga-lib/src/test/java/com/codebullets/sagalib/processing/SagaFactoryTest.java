@@ -21,7 +21,7 @@ import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
-import com.codebullets.sagalib.timeout.TimeoutId;
+import com.codebullets.sagalib.timeout.UUIDTimeoutId;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -173,7 +173,7 @@ public class SagaFactoryTest {
     @Test
     public void create_timeoutMessage_returnsExistingSagaInstance() {
         // given
-        Timeout timeout = Timeout.create(TimeoutId.generateNewId(),"sagaId", "timeoutName", new Date());
+        Timeout timeout = Timeout.create(UUIDTimeoutId.generateNewId(),"sagaId", "timeoutName", new Date());
         TestSagaState existingState = new TestSagaState();
         existingState.setType(TestSaga.class.getName());
         LookupContext context = mockTimeoutToContinueSaga(timeout, existingState);
@@ -194,7 +194,7 @@ public class SagaFactoryTest {
     @Test
     public void create_timeoutMessage_descriptionDefinesSagaStartingFalse() {
         // given
-        Timeout timeout = Timeout.create(TimeoutId.generateNewId(), "sagaId", "timeoutName", new Date());
+        Timeout timeout = Timeout.create(UUIDTimeoutId.generateNewId(), "sagaId", "timeoutName", new Date());
         TestSagaState existingState = new TestSagaState();
         existingState.setType(TestSaga.class.getName());
         LookupContext context = mockTimeoutToContinueSaga(timeout, existingState);

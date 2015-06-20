@@ -15,54 +15,25 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import java.io.Serializable;
-import java.util.UUID;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * Uniquely identifies a timeout.
+ * Uniquely identifies a timeout. An implementation of timeout id
+ * has to act as a value type. This means two instances have return the
+ * same hash code and to compare as equal if the identify the same
+ * timeout.
  */
-public final class TimeoutId implements Serializable {
-    private static final long serialVersionUID = 1L;
-
-    private final UUID id;
+public interface TimeoutId {
+    /**
+     * Compares whether two timeout ids are equal. Two timeout id instances
+     * representing the same timeout have to compare with equal true.
+     * @param obj Any other object instance.
+     * @return True if timeouts ids are equals; otherwise false
+     */
+    boolean equals(Object obj);
 
     /**
-     * Generates a new instance of TimeoutId.
+     * Returns a hashcode of of the timeout id. Two timeout ID instances
+     * representing the same timeout have to return the same hash code.
+     * @return a hash code value for this object.
      */
-    public TimeoutId(final UUID id) {
-        checkNotNull(id, "Id parameter is not allowed to be null.");
-
-        this.id = id;
-    }
-
-    /**
-     * Generates a new unique TimeoutId instance.
-     */
-    public static TimeoutId generateNewId() {
-        return new TimeoutId(UUID.randomUUID());
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        boolean isEqual = false;
-        if (this == obj) {
-            isEqual = true;
-        } else if (obj instanceof TimeoutId) {
-            isEqual = id.equals(((TimeoutId) obj).id);
-        }
-
-        return isEqual;
-    }
-
-    @Override
-    public String toString() {
-        return id.toString();
-    }
+    int hashCode();
 }

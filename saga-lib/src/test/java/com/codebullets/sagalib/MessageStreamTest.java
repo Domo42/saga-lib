@@ -24,7 +24,7 @@ import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.SagaTimeoutTask;
 import com.codebullets.sagalib.timeout.SystemClock;
 import com.codebullets.sagalib.timeout.Timeout;
-import com.codebullets.sagalib.timeout.TimeoutId;
+import com.codebullets.sagalib.timeout.UUIDTimeoutId;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -258,7 +258,7 @@ public class MessageStreamTest {
     @Test
     public void handle_timeoutWithNoInstance_doesNotThrow() throws InvocationTargetException, IllegalAccessException {
         // given
-        Timeout timeout = Timeout.create(TimeoutId.generateNewId(), "theSagaId", null, new Date());
+        Timeout timeout = Timeout.create(UUIDTimeoutId.generateNewId(), "theSagaId", null, new Date());
 
         // when
         sut.handle(timeout);

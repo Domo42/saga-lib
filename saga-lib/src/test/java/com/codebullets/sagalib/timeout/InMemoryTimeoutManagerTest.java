@@ -89,7 +89,7 @@ public class InMemoryTimeoutManagerTest {
         Date expectedTimeoutIn = new Date(clock.now().getTime() + TimeUnit.SECONDS.toMillis(delayInSec));
         TimeoutExpired expiredCallback = mock(TimeoutExpired.class);
         sut.addExpiredCallback(expiredCallback);
-        Timeout expected = Timeout.create(TimeoutId.generateNewId(), "theSagaId", "theTimeoutName", expectedTimeoutIn, expectedData);
+        Timeout expected = Timeout.create(UUIDTimeoutId.generateNewId(), "theSagaId", "theTimeoutName", expectedTimeoutIn, expectedData);
 
         // when
         requestAndTriggerTimeout(expected.getSagaId(), expected.getName(), delayInSec, TimeUnit.SECONDS, expectedData);

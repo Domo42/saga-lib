@@ -81,7 +81,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
                                @Nullable final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
 
-        TimeoutId id = TimeoutId.generateNewId();
+        UUIDTimeoutId id = UUIDTimeoutId.generateNewId();
 
         SagaTimeoutTask timeoutTask = new SagaTimeoutTask(
                 id,
