@@ -105,6 +105,7 @@ public final class Timeout implements Serializable {
                 .add("sagaId", sagaId)
                 .add("expiredAt", expiredAt)
                 .add("name", name)
+                .add("data", data)
                 .toString();
     }
 }

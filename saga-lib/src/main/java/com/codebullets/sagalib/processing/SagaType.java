@@ -17,14 +17,14 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Describes the saga and expected handling.
  */
 public final class SagaType {
     private boolean startsNew;
     private Class<? extends Saga> sagaClass;
-    private Object instanceKey;
-    private String sagaId;
 
     /**
      * Use static builder methods to create instance.
@@ -47,54 +47,14 @@ public final class SagaType {
     }
 
     /**
-     * Gets the instance key of a running saga.
-     */
-    public Object getInstanceKey() {
-        return instanceKey;
-    }
-
-    /**
-     * Gets the id of the saga if known from source message.
-     */
-    public String getSagaId() {
-        return sagaId;
-    }
-
-    /**
      * Creates a type indicating to start a complete new saga.
      */
     public static SagaType startsNewSaga(final Class<? extends Saga> sagaClass) {
+        checkNotNull(sagaClass, "The type of the saga has to be defined.");
+
         SagaType sagaType = new SagaType();
         sagaType.startsNew = true;
         sagaType.sagaClass = sagaClass;
-        sagaType.sagaId = null;
-        sagaType.instanceKey = null;
-
-        return sagaType;
-    }
-
-    /**
-     * Creates a type continuing a saga as result of a timeout message.
-     */
-    public static SagaType sagaFromTimeout(final String sagaId) {
-        SagaType sagaType = new SagaType();
-        sagaType.startsNew = false;
-        sagaType.sagaClass = null;
-        sagaType.sagaId = sagaId;
-        sagaType.instanceKey = null;
-
-        return sagaType;
-    }
-
-    /**
-     * Creates a type continuing a saga from a message based on a specific instance key.
-     */
-    public static SagaType continueSaga(final SagaType originalType, final Object instanceKey) {
-        SagaType sagaType = new SagaType();
-        sagaType.startsNew = false;
-        sagaType.sagaClass = originalType.getSagaClass();
-        sagaType.sagaId = null;
-        sagaType.instanceKey = instanceKey;
 
         return sagaType;
     }
@@ -103,16 +63,17 @@ public final class SagaType {
      * Creates a type continuing a saga with an instance key that has yet to be defined.
      */
     public static SagaType continueSaga(final Class<? extends Saga> sagaClass) {
+        checkNotNull(sagaClass, "The type of the saga has to be defined.");
+
         SagaType sagaType = new SagaType();
         sagaType.startsNew = false;
         sagaType.sagaClass = sagaClass;
-        sagaType.sagaId = null;
 
         return sagaType;
     }
 
     @Override
     public String toString() {
-        return sagaClass != null ? sagaClass.getSimpleName() : "SagaId=" + sagaId;
+        return sagaClass.getSimpleName();
     }
 }

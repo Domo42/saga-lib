@@ -47,7 +47,7 @@ public class SagaMessageStreamTest {
     private TimeoutManager timeoutManager;
     private StateStorage storage;
     private SagaMessageStream sut;
-    private SagaFactory factory;
+    private InstanceResolver instanceResolver;
     private HandlerInvoker invoker;
     private ExecutorService executorService;
 
@@ -55,18 +55,19 @@ public class SagaMessageStreamTest {
     public void init() {
         storage = mock(StateStorage.class);
         timeoutManager = mock(TimeoutManager.class);
-        factory = mock(SagaFactory.class);
+        instanceResolver = mock(InstanceResolver.class);
         invoker = mock(HandlerInvoker.class);
         executorService = mock(ExecutorService.class);
 
         SagaEnvironment environment = SagaEnvironment.create(
-                timeoutManager, storage, factory, new Provider<CurrentExecutionContext>() {
+                timeoutManager, storage, new Provider<CurrentExecutionContext>() {
                     @Override
                     public CurrentExecutionContext get() {
                         return new SagaExecutionContext();
                     }
                 }, new HashSet<SagaModule>(),
-                new HashSet<SagaLifetimeInterceptor>());
+                new HashSet<SagaLifetimeInterceptor>(),
+                instanceResolver);
 
         mockSagaCreation();
         sut = new SagaMessageStream(invoker, environment, executorService);
@@ -124,7 +125,7 @@ public class SagaMessageStreamTest {
     }
 
     private void mockSagaCreation() {
-        SagaInstanceDescription saga = new SagaInstanceDescription(mock(Saga.class), true);
-        when(factory.create(any(LookupContext.class))).thenReturn(Lists.newArrayList(saga));
+        SagaInstanceInfo saga = new SagaInstanceInfo(mock(Saga.class), true);
+        when(instanceResolver.resolve(any(LookupContext.class))).thenReturn(Lists.newArrayList(saga));
     }
 }

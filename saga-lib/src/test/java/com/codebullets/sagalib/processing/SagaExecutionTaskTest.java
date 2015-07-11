@@ -66,12 +66,12 @@ public class SagaExecutionTaskTest {
     private TimeoutManager timeoutManager;
     private StateStorage storage;
     private Saga saga;
-    private SagaInstanceDescription sagaInstanceDescription;
+    private SagaInstanceInfo sagaInstanceInfo;
     private SagaState state;
     private CurrentExecutionContext context;
     private Object theMessage;
     private HandlerInvoker invoker;
-    private SagaFactory sagaFactory;
+    private InstanceResolver instanceResolver;
     private SagaModule module;
     private SagaLifetimeInterceptor interceptor;
 
@@ -84,17 +84,17 @@ public class SagaExecutionTaskTest {
         state = mock(SagaState.class);
         timeoutManager = mock(TimeoutManager.class);
         storage = mock(StateStorage.class);
-        sagaFactory = mock(SagaFactory.class);
+        instanceResolver = mock(InstanceResolver.class);
         invoker = mock(HandlerInvoker.class);
-        sagaInstanceDescription = mock(SagaInstanceDescription.class);
+        sagaInstanceInfo = mock(SagaInstanceInfo.class);
         module = mock(SagaModule.class);
         interceptor = mock(SagaLifetimeInterceptor.class);
 
         theMessage = new Object();
 
         when(saga.state()).thenReturn(state);
-        when(sagaInstanceDescription.getSaga()).thenReturn(saga);
-        when(sagaFactory.create(argThat(isA(LookupContext.class)))).thenReturn(Lists.newArrayList(sagaInstanceDescription));
+        when(sagaInstanceInfo.getSaga()).thenReturn(saga);
+        when(instanceResolver.resolve(argThat(isA(LookupContext.class)))).thenReturn(Lists.newArrayList(sagaInstanceInfo));
 
         context = mock(CurrentExecutionContext.class);
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
@@ -103,9 +103,9 @@ public class SagaExecutionTaskTest {
         SagaEnvironment env = SagaEnvironment.create(
                 timeoutManager,
                 storage,
-                sagaFactory, contextProvider,
+                contextProvider,
                 Sets.newHashSet(module),
-                Sets.newHashSet(interceptor));
+                Sets.newHashSet(interceptor), instanceResolver);
         sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>(), null);
     }
 
@@ -135,7 +135,7 @@ public class SagaExecutionTaskTest {
     public void run_sagaIsStartedAndFinished_doesNotSaveSate() {
         // given
         when(saga.isFinished()).thenReturn(true);
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
         // when
         sut.run();
@@ -156,7 +156,7 @@ public class SagaExecutionTaskTest {
     public void run_sagaIsStartedAndFinished_doesNotDeleteSate() {
         // given
         when(saga.isFinished()).thenReturn(true);
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
         // when
         sut.run();
@@ -178,7 +178,7 @@ public class SagaExecutionTaskTest {
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
         when(saga.isFinished()).thenReturn(true);
-        when(sagaInstanceDescription.isStarting()).thenReturn(false);
+        when(sagaInstanceInfo.isStarting()).thenReturn(false);
 
         // when
         sut.run();
@@ -200,7 +200,7 @@ public class SagaExecutionTaskTest {
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
         when(saga.isFinished()).thenReturn(true);
-        when(sagaInstanceDescription.isStarting()).thenReturn(false);
+        when(sagaInstanceInfo.isStarting()).thenReturn(false);
 
         // when
         sut.run();
@@ -220,7 +220,7 @@ public class SagaExecutionTaskTest {
     public void run_sagaIsStartedAndIsFinished_doNotCancelTimeouts() {
         // given
         when(saga.isFinished()).thenReturn(true);
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
         // when
         sut.run();
@@ -281,8 +281,8 @@ public class SagaExecutionTaskTest {
         Object headerValue = "headerValue";
         Map<String, Object> headers = Maps.newHashMap();
         headers.put("headerKey", headerValue);
-        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context), Sets.newHashSet(module),
-                Sets.newHashSet(interceptor));
+        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, createContextProvider(context), Sets.newHashSet(module),
+                Sets.newHashSet(interceptor), instanceResolver);
         sut = new SagaExecutionTask(env, invoker, theMessage, headers, null);
 
         // when
@@ -305,8 +305,8 @@ public class SagaExecutionTaskTest {
         CurrentExecutionContext context = new SagaExecutionContext();
         ExecutionContext parentContext = mock(ExecutionContext.class);
 
-        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, sagaFactory, createContextProvider(context), Sets.newHashSet(module),
-                Sets.newHashSet(interceptor));
+        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, createContextProvider(context), Sets.newHashSet(module),
+                Sets.newHashSet(interceptor), instanceResolver);
         sut = new SagaExecutionTask(env, invoker, theMessage, Collections.EMPTY_MAP, parentContext);
 
         // when
@@ -427,7 +427,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_usingInterceptor_interceptorStartCalled() throws InvocationTargetException, IllegalAccessException {
         // given
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
         // when
         sut.run();
@@ -448,7 +448,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_usingInterceptor_interceptorNotCalled() throws InvocationTargetException, IllegalAccessException {
         // given
-        when(sagaInstanceDescription.isStarting()).thenReturn(false);
+        when(sagaInstanceInfo.isStarting()).thenReturn(false);
 
         // when
         sut.run();
@@ -467,7 +467,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_usingInterceptorSagaFinished_interceptorFinishedCalled() throws InvocationTargetException, IllegalAccessException {
         // given
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
         when(saga.isFinished()).thenReturn(true);
 
         // when
@@ -489,7 +489,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_usingInterceptorSagaNotFinished_interceptorFinishedNotCalled() throws InvocationTargetException, IllegalAccessException {
         // given
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
         when(saga.isFinished()).thenReturn(false);
 
         // when
@@ -509,7 +509,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_usingInterceptor_interceptorHandlerExecutingCalled() throws InvocationTargetException, IllegalAccessException {
         // given
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
         // when
         sut.run();
@@ -530,7 +530,7 @@ public class SagaExecutionTaskTest {
     @Test
     public void run_usingInterceptor_interceptorHandlerExecutedCalled() throws InvocationTargetException, IllegalAccessException {
         // given
-        when(sagaInstanceDescription.isStarting()).thenReturn(true);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
         // when
         sut.run();

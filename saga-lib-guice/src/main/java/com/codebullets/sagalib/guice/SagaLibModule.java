@@ -15,20 +15,24 @@
  */
 package com.codebullets.sagalib.guice;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
+import com.codebullets.sagalib.processing.InstanceResolver;
 import com.codebullets.sagalib.processing.KeyExtractor;
-import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
-import com.codebullets.sagalib.processing.SagaFactory;
+import com.codebullets.sagalib.processing.SagaInstanceCreator;
+import com.codebullets.sagalib.processing.SagaInstanceFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
+import com.codebullets.sagalib.processing.StrategyFinder;
+import com.codebullets.sagalib.processing.StrategyInstanceResolver;
+import com.codebullets.sagalib.processing.TypesForMessageMapper;
 import com.codebullets.sagalib.startup.AnnotationSagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.TypeScanner;
@@ -57,6 +61,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends TimeoutManager> timeoutManager;
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
+    private Class<? extends StrategyFinder> strategyFinder;
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
@@ -72,11 +77,14 @@ class SagaLibModule extends AbstractModule {
         bindIfNotNull(TimeoutManager.class, timeoutManager, Scopes.SINGLETON);
         bindIfNotNull(TypeScanner.class, scanner, Scopes.SINGLETON);
         bindIfNotNull(SagaProviderFactory.class, providerFactory, Scopes.SINGLETON);
+        bindIfNotNull(StrategyFinder.class, strategyFinder, Scopes.SINGLETON);
 
         bindIfNotNull(CurrentExecutionContext.class, executionContext);
         bind(ExecutionContext.class).toProvider(binder().getProvider(CurrentExecutionContext.class));
 
-        bind(SagaFactory.class).in(Singleton.class);
+        bind(SagaInstanceCreator.class).in(Singleton.class);
+        bind(SagaInstanceFactory.class).in(Singleton.class);
+        bind(InstanceResolver.class).to(StrategyInstanceResolver.class).in(Singleton.class);
         bind(HandlerInvoker.class).to(ReflectionInvoker.class);
         bind(MessageStream.class).to(SagaMessageStream.class).in(Singleton.class);
         bind(SagaAnalyzer.class).to(AnnotationSagaAnalyzer.class).in(Singleton.class);
@@ -120,11 +128,11 @@ class SagaLibModule extends AbstractModule {
 
     @Singleton
     @Provides
-    private Organizer provideOrganizer(final SagaAnalyzer analyzer, final KeyExtractor extractor) {
-        Organizer organizer = new Organizer(analyzer, extractor);
-        organizer.setPreferredOrder(preferredOrder);
+    private TypesForMessageMapper provide(final SagaAnalyzer analyzer) {
+        TypesForMessageMapper mapper = new TypesForMessageMapper(analyzer);
+        mapper.setPreferredOrder(preferredOrder);
 
-        return organizer;
+        return mapper;
     }
 
     /**
@@ -206,5 +214,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setExecutor(final Executor executor) {
         this.executor = executor;
+    }
+
+    /**
+     * Sets the type of strategy finder to use.
+     */
+    public void setStrategyFinder(final Class<? extends StrategyFinder> strategyFinderType) {
+        this.strategyFinder = strategyFinderType;
     }
 }

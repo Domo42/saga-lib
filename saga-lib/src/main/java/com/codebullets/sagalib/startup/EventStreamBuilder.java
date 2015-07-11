@@ -21,15 +21,18 @@ import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
+import com.codebullets.sagalib.processing.DefaultStrategyFinder;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
-import com.codebullets.sagalib.processing.Organizer;
 import com.codebullets.sagalib.processing.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaEnvironment;
-import com.codebullets.sagalib.processing.SagaFactory;
+import com.codebullets.sagalib.processing.SagaInstanceCreator;
+import com.codebullets.sagalib.processing.SagaInstanceFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
 import com.codebullets.sagalib.processing.SagaMessageStream;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
+import com.codebullets.sagalib.processing.StrategyInstanceResolver;
+import com.codebullets.sagalib.processing.TypesForMessageMapper;
 import com.codebullets.sagalib.storage.MemoryStorage;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
@@ -93,12 +96,16 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildExecutor();
         buildStorage();
 
-        KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
-        Organizer organizer = new Organizer(sagaAnalyzer, extractor);
-        organizer.setPreferredOrder(preferredOrder);
+        SagaInstanceCreator instanceCreator = new SagaInstanceCreator(providerFactory, timeoutManager);
+        SagaInstanceFactory instanceFactory = new SagaInstanceFactory(instanceCreator);
+        TypesForMessageMapper messageMapper = new TypesForMessageMapper(sagaAnalyzer);
+        messageMapper.setPreferredOrder(preferredOrder);
 
-        SagaFactory sagaFactory = new SagaFactory(providerFactory, storage, timeoutManager, organizer);
-        SagaEnvironment environment = SagaEnvironment.create(timeoutManager, storage, sagaFactory, contextProvider, modules, interceptors);
+        KeyExtractor extractor = new SagaKeyReaderExtractor(providerFactory);
+        DefaultStrategyFinder strategyFinder = new DefaultStrategyFinder(messageMapper, instanceFactory, extractor, storage);
+        StrategyInstanceResolver instanceResolver = new StrategyInstanceResolver(strategyFinder);
+
+        SagaEnvironment environment = SagaEnvironment.create(timeoutManager, storage, contextProvider, modules, interceptors, instanceResolver);
 
         return new SagaMessageStream(invoker, environment, executor);
     }

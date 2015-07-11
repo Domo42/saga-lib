@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Stefan Domnanovits
+ * Copyright 2015 Stefan Domnanovits
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,45 +15,39 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
-import com.codebullets.sagalib.timeout.Timeout;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Matches incoming messages returning the expected saga types in the
- * defined order.
+ * Knows about the types of sagas to be created based on the message.
+ * This is done by scanning the the sagas for annotations.<br>
+ * Based on the parameter types of the annotated handlers a list of specific saga types
+ * is created per incoming message.
+ *
+ * <p>The returned order is important, and can be manipulated by setting using
+ * {@link #setPreferredOrder(Collection)} to manipulate the result.</p>
  */
-public class Organizer {
-    private static final Logger LOG = LoggerFactory.getLogger(Organizer.class);
-
-    private final KeyExtractor keyExtractor;
-
+public class TypesForMessageMapper {
     private final SagaTypeCacheLoader cacheLoader;
     private final LoadingCache<Class, Collection<SagaType>> sagasForMessageType;
 
     /**
-     * Generates a new instance of Organizer.
+     * Generates a new instance of TypesForMessageMapper.
      */
     @Inject
-    public Organizer(final SagaAnalyzer analyzer, final KeyExtractor keyExtractor) {
-        this.keyExtractor = keyExtractor;
-
+    public TypesForMessageMapper(final SagaAnalyzer analyzer) {
         // scan for sagas and their messages being handled
         Map<Class<? extends Saga>, SagaHandlersMap> handlersMap = analyzer.scanHandledMessageTypes();
         cacheLoader = new SagaTypeCacheLoader(initializeMessageMappings(handlersMap));
@@ -71,66 +65,10 @@ public class Organizer {
     }
 
     /**
-     * Returns the saga types to create in the excepted order to be executed.
+     * Returns a list of saga types that have an annotated handler method matching the provided message class.
      */
-    public Iterable<SagaType> sagaTypesForMessage(final LookupContext context) {
-        Iterable<SagaType> sagaTypes;
-
-        Object message = context.message();
-        if (message instanceof Timeout) {
-            sagaTypes = prepareTimeoutList((Timeout) message);
-        } else {
-            sagaTypes = prepareSagaTypeList(context);
-        }
-
-        return sagaTypes;
-    }
-
-    /**
-     * Timeouts are special. They do not need an instance key to be found. However
-     * there may be other starting sagas that want to handle timeouts of other saga instances.
-     */
-    private Iterable<SagaType> prepareTimeoutList(final Timeout timeout) {
-        Collection<SagaType> sagaTypes = new ArrayList<>();
-
-        // search for other sagas started by timeouts
-        Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(Timeout.class);
-        for (SagaType type : sagasToExecute) {
-            if (type.isStartingNewSaga()) {
-                sagaTypes.add(type);
-            }
-        }
-
-        // saga id is already known
-        SagaType sagaType = SagaType.sagaFromTimeout(timeout.getSagaId());
-        sagaTypes.add(sagaType);
-
-        return sagaTypes;
-    }
-
-    private Iterable<SagaType> prepareSagaTypeList(final LookupContext context) {
-        Collection<SagaType> sagasToExecute = sagasForMessageType.getUnchecked(context.message().getClass());
-        Collection<SagaType> sagaTypes = new ArrayList<>(sagasToExecute.size());
-
-        for (SagaType type : sagasToExecute) {
-            if (type.isStartingNewSaga()) {
-                sagaTypes.add(type);
-            } else {
-                // for continuation the instance key needs to be set.
-                Object key = readInstanceKey(type, context);
-                if (key != null) {
-                    sagaTypes.add(SagaType.continueSaga(type, key));
-                } else {
-                    LOG.debug("Can not determine saga instance key from message {}", context.message().getClass());
-                }
-            }
-        }
-
-        return sagaTypes;
-    }
-
-    private Object readInstanceKey(final SagaType sagaType, final LookupContext context) {
-        return keyExtractor.findSagaInstanceKey(sagaType.getSagaClass(), context);
+    public Collection<SagaType> getSagasForMessageType(final Class messageClass) {
+        return sagasForMessageType.getUnchecked(messageClass);
     }
 
     /**

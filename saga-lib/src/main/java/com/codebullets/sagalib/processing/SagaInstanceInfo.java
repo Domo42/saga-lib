@@ -20,14 +20,14 @@ import com.codebullets.sagalib.Saga;
 /**
  * Holds the created saga as well as additional creation information.
  */
-public class SagaInstanceDescription {
+public class SagaInstanceInfo {
     private final Saga saga;
     private final boolean starting;
 
     /**
      * Generates a new instance of SagaInstanceDescription.
      */
-    public SagaInstanceDescription(final Saga saga, final boolean starting) {
+    public SagaInstanceInfo(final Saga saga, final boolean starting) {
         this.saga = saga;
         this.starting = starting;
     }
@@ -52,7 +52,7 @@ public class SagaInstanceDescription {
      * and the information whether the saga is currently starting or continuing
      * and existing workflow.
      */
-    public static SagaInstanceDescription define(final Saga saga, final boolean isStarting) {
-        return new SagaInstanceDescription(saga, isStarting);
+    public static SagaInstanceInfo define(final Saga saga, final boolean isStarting) {
+        return new SagaInstanceInfo(saga, isStarting);
     }
 }

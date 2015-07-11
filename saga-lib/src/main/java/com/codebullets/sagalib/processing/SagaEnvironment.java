@@ -31,10 +31,10 @@ import java.util.Set;
 public final class SagaEnvironment {
     private final TimeoutManager timeoutManager;
     private final StateStorage storage;
-    private final SagaFactory sagaFactory;
     private final Provider<CurrentExecutionContext> contextProvider;
     private final Iterable<SagaModule> modules;
     private final Iterable<SagaLifetimeInterceptor> interceptors;
+    private final InstanceResolver instanceResolver;
 
     /**
      * Generates a new instance of SagaEnvironment.
@@ -43,13 +43,13 @@ public final class SagaEnvironment {
     public SagaEnvironment(
             final TimeoutManager timeoutManager,
             final StateStorage storage,
-            final SagaFactory sagaFactory,
             final Provider<CurrentExecutionContext> contextProvider,
             final Set<SagaModule> modules,
-            final Set<SagaLifetimeInterceptor> interceptors) {
+            final Set<SagaLifetimeInterceptor> interceptors,
+            final InstanceResolver sagaInstanceResolver) {
         this.timeoutManager = timeoutManager;
         this.storage = storage;
-        this.sagaFactory = sagaFactory;
+        this.instanceResolver = sagaInstanceResolver;
         this.contextProvider = contextProvider;
         this.modules = modules;
         this.interceptors = interceptors;
@@ -67,13 +67,6 @@ public final class SagaEnvironment {
      */
     public StateStorage storage() {
         return storage;
-    }
-
-    /**
-     * Gets the saga factory.
-     */
-    public SagaFactory sagaFactory() {
-        return sagaFactory;
     }
 
     /**
@@ -98,15 +91,23 @@ public final class SagaEnvironment {
     }
 
     /**
+     * Gets the resolver, that will turn the message into a list of saga instances
+     * handling the message.
+     */
+    public InstanceResolver instanceResolver() {
+        return instanceResolver;
+    }
+
+    /**
      * Creates a new SagaEnvironment instance.
      */
     public static SagaEnvironment create(
             final TimeoutManager timeoutManager,
             final StateStorage storage,
-            final SagaFactory sagaFactory,
             final Provider<CurrentExecutionContext> contextProvider,
             final Set<SagaModule> modules,
-            final Set<SagaLifetimeInterceptor> interceptors) {
-        return new SagaEnvironment(timeoutManager, storage, sagaFactory, contextProvider, modules, interceptors);
+            final Set<SagaLifetimeInterceptor> interceptors,
+            final InstanceResolver sagaInstanceResolver) {
+        return new SagaEnvironment(timeoutManager, storage, contextProvider, modules, interceptors, sagaInstanceResolver);
     }
 }

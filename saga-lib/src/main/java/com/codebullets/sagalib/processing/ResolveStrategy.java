@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Stefan Domnanovits
+ * Copyright 2015 Stefan Domnanovits
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.Saga;
-import javax.inject.Provider;
+import com.codebullets.sagalib.context.LookupContext;
+
+import java.util.Collection;
 
 /**
- * When asked returns a provider capable of create a new saga instance.
+ * Provides a very specific way to resolve a certain message (or type
+ * of message into a saga instance.
  */
-public interface SagaProviderFactory {
+public interface ResolveStrategy {
     /**
-     * Creates a new provider capable of creating a new instance of the class
-     * specified in the parameter.
-     * @return returns a <b>non-null</b> instance that creates new instances of sagas.
+     * Specific strategy to resolve a message into a list of saga instances.
      */
-    <T extends Saga> Provider<T> createProvider(Class<T> sagaClass);
+    Collection<SagaInstanceInfo> resolve(LookupContext context);
 }

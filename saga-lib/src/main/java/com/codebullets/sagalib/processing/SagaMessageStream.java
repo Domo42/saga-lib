@@ -37,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Controls the saga message flow.
  */
 public class SagaMessageStream implements MessageStream {
-    private static final Logger LOG = LoggerFactory.getLogger(SagaFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SagaMessageStream.class);
     private static final Map<String, Object> EMPTY_HEADERS = Collections.EMPTY_MAP;
 
     private final SagaEnvironment environment;

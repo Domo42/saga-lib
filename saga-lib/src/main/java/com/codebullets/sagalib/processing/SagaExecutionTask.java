@@ -78,13 +78,13 @@ class SagaExecutionTask implements ExecutedRunnable {
      * Perform handling of a single message.
      */
     private void handleSagaMessage() throws InvocationTargetException, IllegalAccessException {
-        Collection<SagaInstanceDescription> sagaDescriptions = env.sagaFactory().create(lookupContext);
+        Collection<SagaInstanceInfo> sagaDescriptions = env.instanceResolver().resolve(lookupContext);
         if (!sagaDescriptions.isEmpty()) {
             executeMessage(lookupContext, sagaDescriptions);
         } else {
             DeadMessage deadMessage = new DeadMessage(lookupContext.message());
             LookupContext deadMessageContext = new SagaLookupContext(deadMessage, lookupContext);
-            Collection<SagaInstanceDescription> deadSagaDescription = env.sagaFactory().create(deadMessageContext);
+            Collection<SagaInstanceInfo> deadSagaDescription = env.instanceResolver().resolve(deadMessageContext);
             if (!deadSagaDescription.isEmpty()) {
                 executeMessage(deadMessageContext, deadSagaDescription);
             } else {
@@ -93,7 +93,7 @@ class SagaExecutionTask implements ExecutedRunnable {
         }
     }
 
-    private void executeMessage(final LookupContext messageLookupContext, final Iterable<SagaInstanceDescription> sagaDescriptions)
+    private void executeMessage(final LookupContext messageLookupContext, final Iterable<SagaInstanceInfo> sagaDescriptions)
             throws InvocationTargetException, IllegalAccessException {
         CurrentExecutionContext context = env.contextProvider().get();
         context.setMessage(messageLookupContext.message());
@@ -111,9 +111,9 @@ class SagaExecutionTask implements ExecutedRunnable {
         }
     }
 
-    private void invokeSagas(final CurrentExecutionContext context, final Iterable<SagaInstanceDescription> sagaDescriptions, final Object invokeParam)
+    private void invokeSagas(final CurrentExecutionContext context, final Iterable<SagaInstanceInfo> sagaDescriptions, final Object invokeParam)
             throws InvocationTargetException, IllegalAccessException {
-        for (SagaInstanceDescription sagaDescription : sagaDescriptions) {
+        for (SagaInstanceInfo sagaDescription : sagaDescriptions) {
             Saga saga = sagaDescription.getSaga();
             context.setSaga(saga);
             setSagaExecutionContext(saga, context);
@@ -157,7 +157,7 @@ class SagaExecutionTask implements ExecutedRunnable {
         }
     }
 
-    private void interceptorStart(final SagaInstanceDescription sagaDescription, final ExecutionContext context, final Object invokeParam) {
+    private void interceptorStart(final SagaInstanceInfo sagaDescription, final ExecutionContext context, final Object invokeParam) {
         if (sagaDescription.isStarting()) {
             for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
                 interceptor.onStarting(sagaDescription.getSaga(), context, invokeParam);
@@ -198,7 +198,7 @@ class SagaExecutionTask implements ExecutedRunnable {
     /**
      * Updates the state storage depending on whether the saga is completed or keeps on running.
      */
-    private void updateStateStorage(final SagaInstanceDescription description) {
+    private void updateStateStorage(final SagaInstanceInfo description) {
         Saga saga = description.getSaga();
 
         // if saga has finished delete existing state and possible timeouts

@@ -20,7 +20,9 @@ import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
+import com.codebullets.sagalib.processing.DefaultStrategyFinder;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
+import com.codebullets.sagalib.processing.StrategyFinder;
 import com.codebullets.sagalib.startup.ReflectionsTypeScanner;
 import com.codebullets.sagalib.startup.TypeScanner;
 import com.codebullets.sagalib.storage.MemoryStorage;
@@ -60,6 +62,7 @@ public final class SagaModuleBuilder {
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
     private Class<? extends CurrentExecutionContext> executionContext;
+    private Class<? extends StrategyFinder> strategyFinder;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private final Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
@@ -75,6 +78,7 @@ public final class SagaModuleBuilder {
         scanner = ReflectionsTypeScanner.class;
         providerFactory = GuiceSagaProviderFactory.class;
         executionContext = SagaExecutionContext.class;
+        strategyFinder = DefaultStrategyFinder.class;
     }
 
     /**
@@ -153,6 +157,23 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Use custom strategy finder. This allows control to how to resolve saga instances
+     * for specific message types.
+     */
+    public SagaModuleBuilder useStrategyFinder(@Nullable final Class<? extends StrategyFinder> strategyFinderClass) {
+        strategyFinder = strategyFinderClass;
+        return this;
+    }
+
+    /**
+     * Clears the default implementation of the {@link StrategyFinder} used.
+     */
+    public SagaModuleBuilder clearStrategyFinder() {
+        strategyFinder = null;
+        return this;
+    }
+
+    /**
      * Use custom implementation for {@link CurrentExecutionContext} interface.
      */
     public SagaModuleBuilder useExecutionContext(@Nullable final Class<? extends CurrentExecutionContext> contextClass) {
@@ -225,6 +246,7 @@ public final class SagaModuleBuilder {
         module.setModuleTypes(moduleTypes);
         module.setExecutor(executor);
         module.setInterceptorTypes(interceptorTypes);
+        module.setStrategyFinder(strategyFinder);
 
         return module;
     }
