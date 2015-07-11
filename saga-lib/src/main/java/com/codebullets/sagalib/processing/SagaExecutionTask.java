@@ -58,7 +58,7 @@ class SagaExecutionTask implements ExecutedRunnable {
             final Map<String, Object> headers,
             @Nullable final ExecutionContext parentContext) {
         this.parentContext = parentContext;
-        this.lookupContext = new SagaLookupContext(message, headers);
+        this.lookupContext = new SagaLookupContext(message, headers, parentContext);
         this.env = environment;
         this.invoker = invoker;
     }
@@ -83,7 +83,7 @@ class SagaExecutionTask implements ExecutedRunnable {
             executeMessage(lookupContext, sagaDescriptions);
         } else {
             DeadMessage deadMessage = new DeadMessage(lookupContext.message());
-            LookupContext deadMessageContext = new SagaLookupContext(deadMessage, lookupContext);
+            LookupContext deadMessageContext = new SagaLookupContext(deadMessage, lookupContext, parentContext);
             Collection<SagaInstanceInfo> deadSagaDescription = env.instanceResolver().resolve(deadMessageContext);
             if (!deadSagaDescription.isEmpty()) {
                 executeMessage(deadMessageContext, deadSagaDescription);

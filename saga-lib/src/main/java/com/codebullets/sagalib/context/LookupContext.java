@@ -15,6 +15,10 @@
  */
 package com.codebullets.sagalib.context;
 
+import com.codebullets.sagalib.ExecutionContext;
+
+import javax.annotation.Nullable;
+
 /**
  * Provides context information when looking for and building sagas
  * to use for message handling.
@@ -39,4 +43,14 @@ public interface LookupContext {
      * Sets a specific header value.
      */
     void setHeaderValue(String header, Object value);
+
+    /**
+     * Gets the optional parent execution context. A parent context might exist if
+     * saga handling was triggered within another saga.
+     *
+     * @return Returns the current parent context or {@code null} if no parent
+     * context is available.
+     */
+    @Nullable
+    ExecutionContext parentContext();
 }

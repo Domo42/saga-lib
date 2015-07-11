@@ -15,8 +15,10 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.context.LookupContext;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,30 +26,34 @@ import java.util.Map;
  * Holds the context information provided during saga lookup.
  */
 class SagaLookupContext implements LookupContext {
+    private final ExecutionContext parentContext;
+
     private Object message;
     private Map<String, Object> headers = new HashMap<>();
 
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    public SagaLookupContext(final Object message) {
+    public SagaLookupContext(final Object message, @Nullable final ExecutionContext parentContext) {
         this.message = message;
         this.headers = new HashMap<>();
+        this.parentContext = parentContext;
     }
 
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    public SagaLookupContext(final Object message, final Map<String, Object> headers) {
+    public SagaLookupContext(final Object message, final Map<String, Object> headers, @Nullable final ExecutionContext parentContext) {
         this.message = message;
+        this.parentContext = parentContext;
         this.headers = new HashMap<>(headers);
     }
 
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    public SagaLookupContext(final Object message, final LookupContext baseContext) {
-        this (message);
+    public SagaLookupContext(final Object message, final LookupContext baseContext, @Nullable final ExecutionContext parentContext) {
+        this (message, parentContext);
         for (String key : baseContext.getHeaders()) {
             headers.put(key, baseContext.getHeaderValue(key));
         }
@@ -73,11 +79,17 @@ class SagaLookupContext implements LookupContext {
         headers.put(header, value);
     }
 
+    @Nullable
+    @Override
+    public ExecutionContext parentContext() {
+        return parentContext;
+    }
+
     /**
      * Creates a new saga lookup context for a message.
      * @return Returns a new lookup context instance.
      */
     public static LookupContext forMessage(final Object message) {
-        return new SagaLookupContext(message);
+        return new SagaLookupContext(message, null);
     }
 }

@@ -58,13 +58,13 @@ public class DefaultStrategyFinder implements StrategyFinder {
         if (context.message() instanceof Timeout) {
             strategies.add(new TimeoutResolveStrategy(typesForMessageMapper, instanceFactory, stateStorage));
         } else {
-            strategies.addAll(prepareSagaTypeList(context));
+            strategies.addAll(checkAnnotatedMethodTypes(context));
         }
 
         return strategies;
     }
 
-    private Collection<ResolveStrategy> prepareSagaTypeList(final LookupContext context) {
+    private Collection<ResolveStrategy> checkAnnotatedMethodTypes(final LookupContext context) {
         Collection<ResolveStrategy> strategies = new ArrayList<>();
         Collection<SagaType> sagasToExecute = typesForMessageMapper.getSagasForMessageType(context.message().getClass());
 
