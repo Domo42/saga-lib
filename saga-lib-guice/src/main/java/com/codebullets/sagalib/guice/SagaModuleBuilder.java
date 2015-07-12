@@ -21,6 +21,8 @@ import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.DefaultStrategyFinder;
+import com.codebullets.sagalib.processing.HandlerInvoker;
+import com.codebullets.sagalib.processing.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.processing.StrategyFinder;
 import com.codebullets.sagalib.startup.ReflectionsTypeScanner;
@@ -63,6 +65,7 @@ public final class SagaModuleBuilder {
     private Class<? extends SagaProviderFactory> providerFactory;
     private Class<? extends CurrentExecutionContext> executionContext;
     private Class<? extends StrategyFinder> strategyFinder;
+    private Class<? extends HandlerInvoker> invoker;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private final Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
@@ -79,6 +82,7 @@ public final class SagaModuleBuilder {
         providerFactory = GuiceSagaProviderFactory.class;
         executionContext = SagaExecutionContext.class;
         strategyFinder = DefaultStrategyFinder.class;
+        invoker = ReflectionInvoker.class;
     }
 
     /**
@@ -190,6 +194,22 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * Define the class responsible to call the actual handler methods.
+     */
+    public SagaModuleBuilder useInvoker(@Nullable final Class<? extends HandlerInvoker> invokerClass) {
+        invoker = invokerClass;
+        return this;
+    }
+
+    /**
+     * Clears the default implementation of the invoker class used.
+     */
+    public SagaModuleBuilder clearInvoker() {
+        invoker = null;
+        return this;
+    }
+
+    /**
      * Defines the order of saga message handlers in case a message is associated with multiple
      * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
      * <strong>Example:</strong><br/>
@@ -247,6 +267,7 @@ public final class SagaModuleBuilder {
         module.setExecutor(executor);
         module.setInterceptorTypes(interceptorTypes);
         module.setStrategyFinder(strategyFinder);
+        module.setInvoker(invoker);
 
         return module;
     }

@@ -24,7 +24,6 @@ import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.InstanceResolver;
 import com.codebullets.sagalib.processing.KeyExtractor;
-import com.codebullets.sagalib.processing.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
 import com.codebullets.sagalib.processing.SagaInstanceFactory;
 import com.codebullets.sagalib.processing.SagaKeyReaderExtractor;
@@ -67,6 +66,7 @@ class SagaLibModule extends AbstractModule {
     private Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
     private Class<? extends CurrentExecutionContext> executionContext;
     private Executor executor;
+    private Class<? extends HandlerInvoker> invoker;
 
     /**
      * {@inheritDoc}
@@ -78,6 +78,7 @@ class SagaLibModule extends AbstractModule {
         bindIfNotNull(TypeScanner.class, scanner, Scopes.SINGLETON);
         bindIfNotNull(SagaProviderFactory.class, providerFactory, Scopes.SINGLETON);
         bindIfNotNull(StrategyFinder.class, strategyFinder, Scopes.SINGLETON);
+        bindIfNotNull(HandlerInvoker.class, invoker, Scopes.SINGLETON);
 
         bindIfNotNull(CurrentExecutionContext.class, executionContext);
         bind(ExecutionContext.class).toProvider(binder().getProvider(CurrentExecutionContext.class));
@@ -85,7 +86,6 @@ class SagaLibModule extends AbstractModule {
         bind(SagaInstanceCreator.class).in(Singleton.class);
         bind(SagaInstanceFactory.class).in(Singleton.class);
         bind(InstanceResolver.class).to(StrategyInstanceResolver.class).in(Singleton.class);
-        bind(HandlerInvoker.class).to(ReflectionInvoker.class);
         bind(MessageStream.class).to(SagaMessageStream.class).in(Singleton.class);
         bind(SagaAnalyzer.class).to(AnnotationSagaAnalyzer.class).in(Singleton.class);
         bind(KeyExtractor.class).to(SagaKeyReaderExtractor.class).in(Singleton.class);
@@ -221,5 +221,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setStrategyFinder(final Class<? extends StrategyFinder> strategyFinderType) {
         this.strategyFinder = strategyFinderType;
+    }
+
+    /**
+     * Sets the type of the invoker to use.
+     */
+    public void setInvoker(final Class<? extends HandlerInvoker> invokerType) {
+        this.invoker = invokerType;
     }
 }
