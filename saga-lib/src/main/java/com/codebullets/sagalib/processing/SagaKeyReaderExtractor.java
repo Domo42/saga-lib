@@ -18,6 +18,7 @@ package com.codebullets.sagalib.processing;
 import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
+import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SagaKeyReaderExtractor implements KeyExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(SagaKeyReaderExtractor.class);
     private final SagaProviderFactory sagaProviderFactory;
-    private final Cache<SagaMessageKey, KeyReader> knownReaders;
+    private final Cache<SagaMessageKey, Optional<KeyReader>> knownReaders;
 
     /**
      * Generates a new instance of SagaKeyReaderExtractor.
@@ -72,14 +73,16 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
         KeyReader reader;
 
         try {
-            reader = knownReaders.get(
+            Optional<KeyReader> cachedReader = knownReaders.get(
                     SagaMessageKey.forMessage(sagaClazz, message),
-                    new Callable<KeyReader>() {
+                    new Callable<Optional<KeyReader>>() {
                         @Override
-                        public KeyReader call() throws Exception {
-                            return findReader(sagaClazz, message);
+                        public Optional<KeyReader> call() throws Exception {
+                            KeyReader foundReader = findReader(sagaClazz, message);
+                            return Optional.fromNullable(foundReader);
                         }
                     });
+            reader = cachedReader.orNull();
         } catch (Exception ex) {
             LOG.error("Error searching for reader to extract saga key. sagatype = {}, message = {}", sagaClazz, message, ex);
             reader = null;
