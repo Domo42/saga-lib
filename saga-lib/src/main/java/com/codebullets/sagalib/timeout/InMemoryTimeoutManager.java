@@ -142,7 +142,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
             // however, in theory the table api allows a list, so we iterate over
             // the whole collection.
             for (String sagaId : sagaIdForRemoval) {
-                openTimeouts.remove(sagaId, id);
+                openTimeouts.remove(id, sagaId);
             }
         }
     }
