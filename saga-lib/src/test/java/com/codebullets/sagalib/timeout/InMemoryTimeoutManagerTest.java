@@ -146,6 +146,71 @@ public class InMemoryTimeoutManagerTest {
         verify(future).cancel(false);
     }
 
+    /**
+     * <pre>
+     * Given => Multiple timeouts are added
+     * When  => timeout is canceled afterwards
+     * Then  => does not throw
+     * </pre>
+     */
+    @Test
+    public void timeoutCanceled_multipleTimeoutAdded_doesNotThrowConcurrencyException() {
+        // given
+        ScheduledFuture future = mock(ScheduledFuture.class);
+        when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
+        TimeoutId timeoutId = sut.requestTimeout(null, "saga1", 1, TimeUnit.DAYS, null, null);
+        sut.requestTimeout(null, "saga2", 2, TimeUnit.DAYS, null, null);
+
+        // when
+        sut.cancelTimeout(timeoutId);
+
+        // then
+    }
+
+    /**
+     * <pre>
+     * Given => Multiple timeout are added
+     * When  => timeout is canceled by saga id
+     * Then  => timeout is removed from schedule
+     * </pre>
+     */
+    @Test
+    public void cancelTimeouts_multipleTimeoutHaveBeenAdded_timeoutRemovedFromSchedule() {
+        // given
+        String sagaId = "sagaId_" + RandomStringUtils.randomAlphanumeric(5);
+        ScheduledFuture future = mock(ScheduledFuture.class);
+        when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
+        sut.requestTimeout(null, sagaId, 1, TimeUnit.DAYS, null, null);
+
+        // when
+        sut.cancelTimeouts(sagaId);
+
+        // then
+        verify(future).cancel(false);
+    }
+
+    /**
+     * <pre>
+     * Given => Multiple timeout are added
+     * When  => timeout is canceled by saga id
+     * Then  => does not throw a concurrency exception
+     * </pre>
+     */
+    @Test
+    public void cancelTimeouts_multipleTimeoutHaveBeenAdded_noConcurrentViolationException() {
+        // given
+        String sagaId = "sagaId_" + RandomStringUtils.randomAlphanumeric(5);
+        ScheduledFuture future = mock(ScheduledFuture.class);
+        when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
+        sut.requestTimeout(null, sagaId, 1, TimeUnit.DAYS, null, null);
+        sut.requestTimeout(null, sagaId, 2, TimeUnit.DAYS, null, null);
+
+        // when
+        sut.cancelTimeouts(sagaId);
+
+        // then
+    }
+
     private void requestAndTriggerTimeout() {
         requestAndTriggerTimeout(
                 RandomStringUtils.randomAlphanumeric(10),

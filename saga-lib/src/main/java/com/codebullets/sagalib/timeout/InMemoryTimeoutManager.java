@@ -113,10 +113,16 @@ public class InMemoryTimeoutManager implements TimeoutManager {
         checkNotNull(sagaId, "SagaId parameter must not be null.");
 
         synchronized (sync) {
+            Collection<TimeoutId> timeoutsToRemove = new ArrayList<>();
             Map<TimeoutId, ScheduledFuture> sagaTimeouts = openTimeouts.column(sagaId);
+
             for (Map.Entry<TimeoutId, ScheduledFuture> timeout : sagaTimeouts.entrySet()) {
                 timeout.getValue().cancel(false);
-                openTimeouts.remove(timeout.getKey(), sagaId);
+                timeoutsToRemove.add(timeout.getKey());
+            }
+
+            for (TimeoutId idToRemove : timeoutsToRemove) {
+                openTimeouts.remove(idToRemove, sagaId);
             }
         }
     }
@@ -125,9 +131,18 @@ public class InMemoryTimeoutManager implements TimeoutManager {
     public void cancelTimeout(final TimeoutId id) {
         synchronized (sync) {
             Map<String, ScheduledFuture> timeouts = openTimeouts.row(id);
+            Collection<String> sagaIdForRemoval = new ArrayList<>(1);
+
             for (Map.Entry<String, ScheduledFuture> timeout : timeouts.entrySet()) {
                 timeout.getValue().cancel(false);
-                openTimeouts.remove(id, timeout.getKey());
+                sagaIdForRemoval.add(timeout.getKey());
+            }
+
+            // there is only one saga id associated with a single timeout id
+            // however, in theory the table api allows a list, so we iterate over
+            // the whole collection.
+            for (String sagaId : sagaIdForRemoval) {
+                openTimeouts.remove(sagaId, id);
             }
         }
     }
