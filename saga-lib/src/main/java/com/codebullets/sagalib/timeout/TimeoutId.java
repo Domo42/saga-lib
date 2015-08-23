@@ -15,13 +15,15 @@
  */
 package com.codebullets.sagalib.timeout;
 
+import java.io.Serializable;
+
 /**
  * Uniquely identifies a timeout. An implementation of timeout id
  * has to act as a value type. This means two instances have return the
  * same hash code and to compare as equal if the identify the same
  * timeout.
  */
-public interface TimeoutId {
+public interface TimeoutId extends Serializable {
     /**
      * Compares whether two timeout ids are equal. Two timeout id instances
      * representing the same timeout have to compare with equal true.
@@ -31,7 +33,7 @@ public interface TimeoutId {
     boolean equals(Object obj);
 
     /**
-     * Returns a hashcode of of the timeout id. Two timeout ID instances
+     * Returns a hashcode of of the timeout id. Two timeout id instances
      * representing the same timeout have to return the same hash code.
      * @return a hash code value for this object.
      */
