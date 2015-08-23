@@ -35,6 +35,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.InOrder;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
@@ -48,6 +50,7 @@ import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -96,10 +99,7 @@ public class SagaExecutionTaskTest {
         when(sagaInstanceInfo.getSaga()).thenReturn(saga);
         when(instanceResolver.resolve(argThat(isA(LookupContext.class)))).thenReturn(Lists.newArrayList(sagaInstanceInfo));
 
-        context = mock(CurrentExecutionContext.class);
-        Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
-        when(contextProvider.get()).thenReturn(context);
-
+        Provider<CurrentExecutionContext> contextProvider = mockExecutionContext();
         SagaEnvironment env = SagaEnvironment.create(
                 timeoutManager,
                 storage,
@@ -548,5 +548,22 @@ public class SagaExecutionTaskTest {
                     return context;
                 }
             };
+    }
+
+    private Provider<CurrentExecutionContext> mockExecutionContext() {
+        context = mock(CurrentExecutionContext.class);
+        Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
+        when(contextProvider.get()).thenReturn(context);
+
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
+                Object message = invocationOnMock.getArguments()[0];
+                when(context.message()).thenReturn(message);
+                return null;
+            }
+        }).when(context).setMessage(any());
+
+        return contextProvider;
     }
 }

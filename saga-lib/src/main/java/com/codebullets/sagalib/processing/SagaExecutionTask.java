@@ -43,7 +43,7 @@ class SagaExecutionTask implements ExecutedRunnable {
 
     private final HandlerInvoker invoker;
     private final SagaEnvironment env;
-    private final LookupContext lookupContext;
+    private final LookupContext taskLookupContext;
 
     @Nullable
     private final ExecutionContext parentContext;
@@ -58,7 +58,7 @@ class SagaExecutionTask implements ExecutedRunnable {
             final Map<String, Object> headers,
             @Nullable final ExecutionContext parentContext) {
         this.parentContext = parentContext;
-        this.lookupContext = new SagaLookupContext(message, headers, parentContext);
+        this.taskLookupContext = new SagaLookupContext(message, headers, parentContext);
         this.env = environment;
         this.invoker = invoker;
     }
@@ -70,45 +70,50 @@ class SagaExecutionTask implements ExecutedRunnable {
      * @throws IllegalAccessException Thrown when access to the handler method fails.
      */
     public void handle() throws InvocationTargetException, IllegalAccessException {
-        checkNotNull(lookupContext.message(), "Message to handle must not be null.");
-        handleSagaMessage();
+        checkNotNull(taskLookupContext.message(), "Message to handle must not be null.");
+        startExecutionChain(taskLookupContext);
     }
 
-    /**
-     * Perform handling of a single message.
-     */
-    private void handleSagaMessage() throws InvocationTargetException, IllegalAccessException {
-        Collection<SagaInstanceInfo> sagaDescriptions = env.instanceResolver().resolve(lookupContext);
-        if (!sagaDescriptions.isEmpty()) {
-            executeMessage(lookupContext, sagaDescriptions);
-        } else {
-            DeadMessage deadMessage = new DeadMessage(lookupContext.message());
-            LookupContext deadMessageContext = new SagaLookupContext(deadMessage, lookupContext, parentContext);
-            Collection<SagaInstanceInfo> deadSagaDescription = env.instanceResolver().resolve(deadMessageContext);
-            if (!deadSagaDescription.isEmpty()) {
-                executeMessage(deadMessageContext, deadSagaDescription);
-            } else {
-                LOG.warn("No saga or saga state found to handle message. (message = {})", lookupContext.message());
-            }
-        }
-    }
+    private boolean startExecutionChain(final LookupContext messageLookupContext) throws InvocationTargetException, IllegalAccessException {
+        boolean sagasExecuted = false;
 
-    private void executeMessage(final LookupContext messageLookupContext, final Iterable<SagaInstanceInfo> sagaDescriptions)
-            throws InvocationTargetException, IllegalAccessException {
-        CurrentExecutionContext context = env.contextProvider().get();
-        context.setMessage(messageLookupContext.message());
-        context.setParentContext(parentContext);
-        setHeaders(context);
+        CurrentExecutionContext executionContext = env.contextProvider().get();
+        executionContext.setMessage(messageLookupContext.message());
+        executionContext.setParentContext(parentContext);
+        setHeaders(executionContext);
 
         try {
-            moduleStarts(context);
-            invokeSagas(context, sagaDescriptions, messageLookupContext.message());
+            moduleStarts(executionContext);
+            sagasExecuted = executeHandlersForMessage(messageLookupContext, executionContext);
+            if (!sagasExecuted) {
+                LOG.warn("No saga or saga state found to handle message. (message = {})", taskLookupContext.message());
+            }
         } catch (Exception ex) {
-            moduleError(context, messageLookupContext.message(), ex);
+            moduleError(executionContext, messageLookupContext.message(), ex);
             throw ex;
         } finally {
-            moduleFinished(context);
+            moduleFinished(executionContext);
         }
+
+        return sagasExecuted;
+    }
+
+    private boolean executeHandlersForMessage(final LookupContext messageLookupContext, final CurrentExecutionContext executionContext)
+            throws InvocationTargetException, IllegalAccessException {
+        boolean sagasExecuted = false;
+        Object message = executionContext.message();
+
+        Collection<SagaInstanceInfo> sagaDescriptions = env.instanceResolver().resolve(messageLookupContext);
+        if (!sagaDescriptions.isEmpty()) {
+            invokeSagas(executionContext, sagaDescriptions, message);
+            sagasExecuted = true;
+        } else if (!(message instanceof DeadMessage)) {
+            DeadMessage deadMessage = new DeadMessage(taskLookupContext.message());
+            LookupContext deadMessageContext = new SagaLookupContext(deadMessage, taskLookupContext, parentContext);
+            sagasExecuted = startExecutionChain(deadMessageContext);
+        }
+
+        return sagasExecuted;
     }
 
     private void invokeSagas(final CurrentExecutionContext context, final Iterable<SagaInstanceInfo> sagaDescriptions, final Object invokeParam)
@@ -184,8 +189,8 @@ class SagaExecutionTask implements ExecutedRunnable {
     }
 
     private void setHeaders(final CurrentExecutionContext context) {
-        for (String key : lookupContext.getHeaders()) {
-            context.setHeaderValue(key, lookupContext.getHeaderValue(key));
+        for (String key : taskLookupContext.getHeaders()) {
+            context.setHeaderValue(key, taskLookupContext.getHeaderValue(key));
         }
     }
 
@@ -227,6 +232,6 @@ class SagaExecutionTask implements ExecutedRunnable {
 
     @Override
     public Object message() {
-        return lookupContext.message();
+        return taskLookupContext.message();
     }
 }
