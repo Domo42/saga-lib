@@ -38,7 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SagaMessageStream implements MessageStream {
     private static final Logger LOG = LoggerFactory.getLogger(SagaMessageStream.class);
-    private static final Map<String, Object> EMPTY_HEADERS = Collections.EMPTY_MAP;
+    private static final Map<String, Object> EMPTY_HEADERS = Collections.emptyMap();
 
     private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
@@ -123,7 +123,7 @@ public class SagaMessageStream implements MessageStream {
      */
     private void timeoutHasExpired(final Timeout timeout) {
         try {
-            handle(timeout);
+            add(timeout);
         } catch (Exception ex) {
             LOG.error("Error handling timeout {}", timeout, ex);
         }

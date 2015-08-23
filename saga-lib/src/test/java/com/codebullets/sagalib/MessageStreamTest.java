@@ -29,6 +29,7 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,6 +91,7 @@ public class MessageStreamTest {
                 .usingSagaProviderFactory(new TestSagaProviderFactory(timeoutManager, numbers, calledSagas))
                 .usingTimeoutManager(timeoutManager)
                 .callingInterceptor(interceptor)
+                .usingExecutor(MoreExecutors.directExecutor())
                 .defineHandlerExecutionOrder()
                     .firstExecute(NumberSaga.class).builder()
                 .build();
