@@ -21,11 +21,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Abstract state implementation already containing the basic
- * properties expected from {@link SagaState}.<p/>
- * The instance key method is intentionally missing. This one should
+ * <p>Abstract state implementation already containing the basic
+ * properties expected from {@link SagaState}.</p>
+ *
+ * <p>The instance key method is intentionally missing. This one should
  * be modelled and implemented individually for each saga.
- * @param <KEY> The type of the instance to match state and messages.
+ * @param <KEY> The type of the instance to match state and messages.</p>
  */
 public abstract class AbstractSagaState<KEY> implements SagaState<KEY>, Serializable {
     private static final long serialVersionUID = 1L;

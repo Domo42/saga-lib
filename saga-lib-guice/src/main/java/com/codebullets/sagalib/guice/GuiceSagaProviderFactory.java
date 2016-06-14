@@ -23,11 +23,12 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 
 /**
- * Creates saga provider based on Guice dependency injection container.<p/>
- * Guice has a feature called Just-in-time Bindings <strong>Just-in-time Bindings</strong>.
+ * <p>Creates saga provider based on Guice dependency injection container.</p>
+ *
+ * <p>Guice has a feature called Just-in-time Bindings <strong>Just-in-time Bindings</strong>.
  * In this context in means as long as a saga is a concrete type Guice will automatically
  * try to create an instance (or a provider) as long as there is a default constructor
- * or a constructor annotated with {@link Inject} to bring in external dependencies.
+ * or a constructor annotated with {@link Inject} to bring in external dependencies.</p>
  */
 public class GuiceSagaProviderFactory implements SagaProviderFactory {
     private final Injector guiceInjector;

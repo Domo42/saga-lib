@@ -16,10 +16,11 @@
 package com.codebullets.sagalib.timeout;
 
 /**
- * Implement this interface on your saga to request the timeout manager. The
- * timeout manager can be used to request future timeouts to be triggered.<br/>
- * The {@link com.codebullets.sagalib.AbstractSaga} already implements the
- * interface and will provides some convenient methods to request timeout handling.
+ * <p>Implement this interface on your saga to request the timeout manager. The
+ * timeout manager can be used to request future timeouts to be triggered.</p>
+ *
+ * <p>The {@link com.codebullets.sagalib.AbstractSaga} already implements the
+ * interface and will provides some convenient methods to request timeout handling.</p>
  */
 public interface NeedTimeouts {
     /**

@@ -21,10 +21,11 @@ import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Triggers timeout events after the time they have been requested.<p/>
- * A saga can handle those timeouts by declaring a message handler using
+ * <p>Triggers timeout events after the time they have been requested.</p>
+ *
+ * <p>A saga can handle those timeouts by declaring a message handler using
  * the {@link com.codebullets.sagalib.EventHandler} annotation on a
- * method with a single parameter of type {@link Timeout}.
+ * method with a single parameter of type {@link Timeout}.</p>
  */
 public interface TimeoutManager {
     /**

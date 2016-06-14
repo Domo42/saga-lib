@@ -21,11 +21,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A saga method marked with this annotation indicates the starting point for a sage.
+ * <p>A saga method marked with this annotation indicates the starting point for a sage.
  * As a saga with the given method argument type arrives a new SagaState is created
  * and attached to the saga. The created saga state will live as long as the saga
- * does not switch into the completed state.<p/>
- * The method needs to return void and have only one parameter.
+ * does not switch into the completed state.</p>
+ *
+ * <p>The method needs to return void and have only one parameter.</p>
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

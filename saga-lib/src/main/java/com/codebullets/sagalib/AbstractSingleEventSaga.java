@@ -23,12 +23,13 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Basic saga implementation handling only one event. No state is
+ * <p>Basic saga implementation handling only one event. No state is
  * saved and no timeout is expected. Only the method annotated with {@link StartsSaga}
- * is called.<p/>
- * This class is intended for events where the logic does not need to wait
+ * is called.</p>
+ *
+ * <p>This class is intended for events where the logic does not need to wait
  * for further events but can finish synchronously. As such no timeout
- * or further event handling is necessary.
+ * or further event handling is necessary.</p>
  */
 public abstract class AbstractSingleEventSaga implements Saga, NeedContext {
     private static final InvalidState INVALID_STATE = new InvalidState();

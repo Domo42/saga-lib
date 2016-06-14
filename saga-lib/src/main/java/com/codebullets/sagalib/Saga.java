@@ -30,10 +30,15 @@ public interface Saga<SAGA_STATE extends SagaState> {
 
     /**
      * Sets the current state of the sage. When {@link #createNewState()} is called the implementer
-     * should use this method to set the specific saga instance state.<br/>
+     * should use this method to set the specific saga instance state.
+     *
+     * <p>
      * When loading an already running saga this method is called by the saga-lib before
-     * any of the handler methods are called.<p/>
-     * Once set the {@link #state()} method should return the provided instance.
+     * any of the handler methods are called.</p>
+     *
+     * <p>
+     * Once set the {@link #state()} method should return the provided instance.</p>
+     *
      */
     void setState(SAGA_STATE state);
 
@@ -51,11 +56,13 @@ public interface Saga<SAGA_STATE extends SagaState> {
     boolean isFinished();
 
     /**
-     * Returns a list of readers which are used to determine the instance key of
+     * <p>Returns a list of readers which are used to determine the instance key of
      * an incoming message assigned to the saga. This key is used to load the
-     * existing state when a saga is continued.<br/> A key reader must be provided
-     * for all messages handled defined by the {@link EventHandler} annotations of the saga.
-     * A key reader is not needed for messages starting a saga.
+     * existing state when a saga is continued.</p>
+     *
+     * <p>A key reader must be provided for all messages handled defined by
+     * the {@link EventHandler} annotations of the saga.
+     * A key reader is not needed for messages starting a saga.</p>
      */
     Collection<KeyReader> keyReaders();
 }

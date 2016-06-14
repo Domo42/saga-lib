@@ -18,10 +18,11 @@ package com.codebullets.sagalib.context;
 import com.codebullets.sagalib.ExecutionContext;
 
 /**
- * When implemented by a saga the saga will the setter of the execution
- * context will be called before any of the saga handlers is executed.<p/>
- * The {@link com.codebullets.sagalib.AbstractSaga} as well as {@link com.codebullets.sagalib.AbstractSingleEventSaga}
- * class already implement this interface.
+ * <p>When implemented by a saga the saga will the setter of the execution
+ * context will be called before any of the saga handlers is executed.</p>
+ *
+ * <p>The {@link com.codebullets.sagalib.AbstractSaga} as well as {@link com.codebullets.sagalib.AbstractSingleEventSaga}
+ * class already implement this interface.</p>
  */
 public interface NeedContext {
     /**

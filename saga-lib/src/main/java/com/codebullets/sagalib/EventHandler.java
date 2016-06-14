@@ -21,11 +21,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Methods marked with this annotation on a saga indicate will be called
+ * <p>Methods marked with this annotation on a saga indicate will be called
  * as a message of the exact type is added to the {@link MessageStream}.
  * This will only work for messages where a saga has already been started. For
- * a message to start a new sage us the {@link StartsSaga} annotation.<p/>
- * The method needs to return void and have only one parameter.
+ * a message to start a new sage us the {@link StartsSaga} annotation.</p>
+ *
+ * <p>The method needs to return void and have only one parameter.</p>
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

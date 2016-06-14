@@ -40,11 +40,13 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
- * Creates a Guice module to bind all saga lib dependencies.
- * Use this module when create a Guice Injector instance.<p/>
- * This enables the caller to retrieve a new message stream instance
+ * <p>Creates a Guice module to bind all saga lib dependencies.
+ * Use this module when create a Guice Injector instance.</p>
+ *
+ * <p>This enables the caller to retrieve a new message stream instance
  * directly from Guice. If none of the 'use' methods are called
- * the saga-lib will use default implementations.<p/>
+ * the saga-lib will use default implementations.</p>
+ *
  * <strong>Example: </strong> showing lib creation using as custom state storage implementation. In a real
  * application the {@code createInjector} calls will most likely be called additional app specific
  * module parameters.
@@ -210,9 +212,10 @@ public final class SagaModuleBuilder {
     }
 
     /**
-     * Defines the order of saga message handlers in case a message is associated with multiple
-     * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
-     * <strong>Example:</strong><br/>
+     * <p>Defines the order of saga message handlers in case a message is associated with multiple
+     * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.</p>
+     *
+     * <p><strong>Example:</strong></p>
      * <pre>builder.defineHandlerExecutionOrder()
      *          .firstExecute(FirstSagaToExecute.class)
      *          .then(SecondToExecute.class)

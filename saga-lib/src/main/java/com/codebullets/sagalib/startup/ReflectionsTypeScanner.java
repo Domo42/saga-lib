@@ -29,8 +29,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Uses reflections library to scan for saga instances.<p/>
- * See <a href="https://code.google.com/p/reflections/">https://code.google.com/p/reflections/</a> for details.
+ * <p>Uses reflections library to scan for saga instances.</p>
+ *
+ * <p>See <a href="https://code.google.com/p/reflections/">https://code.google.com/p/reflections/</a> for details.</p>
  */
 public class ReflectionsTypeScanner implements TypeScanner {
     private final Reflections reflections;

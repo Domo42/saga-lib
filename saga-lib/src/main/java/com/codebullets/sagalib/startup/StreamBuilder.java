@@ -73,19 +73,21 @@ public interface StreamBuilder extends AutoCloseable {
     StreamBuilder usingContextProvider(Provider<CurrentExecutionContext> contextProvider);
 
     /**
-     * Optional: Sets the executor to use for asynchronous handling. This one is
+     * <p>Optional: Sets the executor to use for asynchronous handling. This one is
      * used when calling {@link com.codebullets.sagalib.MessageStream#add(Object)} to trigger
      * saga execution. No executor is used for synchronous {@link com.codebullets.sagalib.MessageStream#handle(Object)}
-     * message handling.
+     * message handling.</p>
+     *
      * <p>If no custom executor is provided a single background thread is used to process all
      * messages.</p>
      */
     StreamBuilder usingExecutor(final Executor executorService);
 
     /**
-     * Defines the order of saga message handlers in case a message is associated with multiple
-     * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.<p/>
-     * <strong>Example:</strong><br/>
+     * <p>Defines the order of saga message handlers in case a message is associated with multiple
+     * saga types by either {@literal @}StartsSaga or {@literal @}EventHandler.</p>
+     *
+     * <p><strong>Example:</strong></p>
      * <pre>builder.defineHandlerExecutionOrder()
      *          .firstExecute(FirstSagaToExecute.class)
      *          .then(SecondToExecute.class)
@@ -95,8 +97,9 @@ public interface StreamBuilder extends AutoCloseable {
     FirstSagaToHandle defineHandlerExecutionOrder();
 
     /**
-     * Adds a module to be called before and after a message is handled by one or
-     * more saga implementations.
+     * <p>Adds a module to be called before and after a message is handled by one or
+     * more saga implementations.</p>
+     *
      * <p>There can be multiple modules. The order in which the modules are
      * executed is not defined.</p>
      */
@@ -104,6 +107,7 @@ public interface StreamBuilder extends AutoCloseable {
 
     /**
      * Adds a lifetime interceptor that will be called every time an individual saga is started and finished.
+     *
      * <p>It is possible to add multiple interceptors.</p>
      */
     StreamBuilder callingInterceptor(final SagaLifetimeInterceptor interceptor);
