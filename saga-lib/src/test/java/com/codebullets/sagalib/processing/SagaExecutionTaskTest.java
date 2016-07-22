@@ -541,6 +541,28 @@ public class SagaExecutionTaskTest {
         inOrder.verify(interceptor).onHandlerExecuted(saga, context, theMessage);
     }
 
+    /**
+     * <pre>
+     * Given => SagaModule stops dispatching
+     * When  => saga task is executed
+     * Then  => invoke shall not be called
+     * </pre>
+     */
+    @Test
+    public void run_sagaModuleStopsDispatching_invokeShallNotBeCalled() throws InvocationTargetException, IllegalAccessException {
+        // given
+        doAnswer(invocationOnMock -> {
+            ((ExecutionContext) invocationOnMock.getArguments()[0]).stopDispatchingCurrentMessageToHandlers();
+            return null;
+        }).when(module).onStart(any());
+
+        // when
+        sut.run();
+
+        // then
+        verify(invoker, never()).invoke(saga, theMessage);
+    }
+
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {
         return new Provider<CurrentExecutionContext>() {
                 @Override
@@ -563,6 +585,14 @@ public class SagaExecutionTaskTest {
                 return null;
             }
         }).when(context).setMessage(any());
+
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                when(context.dispatchingStopped()).thenReturn(true);
+                return null;
+            }
+        }).when(context).stopDispatchingCurrentMessageToHandlers();
 
         return contextProvider;
     }
