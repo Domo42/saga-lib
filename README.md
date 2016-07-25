@@ -89,16 +89,9 @@ public class MySaga extends AbstractSaga<MySagaState> {
     public Collection<KeyReader> keyReaders() {
         // creates a reader used to map between the OtherMessage event
         // and the stored instance key of the existing saga state.
-        // Note: Much simpler with Java 8 lambda expressions.
         KeyReader reader = KeyReaders.forMessage(
                 OtherMessage.class,
-                new KeyExtractFunction<OtherMessage, String>() {
-                    @Override
-                    public String key(final OtherMessage message) {
-                        return message.getId();
-                    }
-                }
-        );
+                message -> message.getId());
 
         return Lists.newArrayList(reader);
     }
