@@ -118,26 +118,30 @@ class SagaExecutionTask implements ExecutedRunnable {
 
     private void invokeSagas(final CurrentExecutionContext context, final Iterable<SagaInstanceInfo> sagaDescriptions, final Object invokeParam)
             throws InvocationTargetException, IllegalAccessException {
-        for (SagaInstanceInfo sagaDescription : sagaDescriptions) {
-            Saga saga = sagaDescription.getSaga();
-            context.setSaga(saga);
-            setSagaExecutionContext(saga, context);
+        if (context.dispatchingStopped()) {
+            LOG.debug("Handler dispatching stopped before invoking any saga.");
+        } else {
+            for (SagaInstanceInfo sagaDescription : sagaDescriptions) {
+                Saga saga = sagaDescription.getSaga();
+                context.setSaga(saga);
+                setSagaExecutionContext(saga, context);
 
-            // call interceptor pre handling hooks
-            interceptorStart(sagaDescription, context, invokeParam);
-            interceptorHandling(saga, context, invokeParam);
+                // call interceptor pre handling hooks
+                interceptorStart(sagaDescription, context, invokeParam);
+                interceptorHandling(saga, context, invokeParam);
 
-            // perform actual saga invoke
-            invoker.invoke(saga, invokeParam);
+                // perform actual saga invoke
+                invoker.invoke(saga, invokeParam);
 
-            // call interceptor handler finished hooks
-            interceptorHandlingExecuted(saga, context, invokeParam);
-            interceptorFinished(saga, context);
-            updateStateStorage(sagaDescription);
+                // call interceptor handler finished hooks
+                interceptorHandlingExecuted(saga, context, invokeParam);
+                interceptorFinished(saga, context);
+                updateStateStorage(sagaDescription);
 
-            if (context.dispatchingStopped()) {
-                LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
-                break;
+                if (context.dispatchingStopped()) {
+                    LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
+                    break;
+                }
             }
         }
     }
