@@ -36,7 +36,7 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
     /**
      * Generates a new instance of SagaTypeCacheLoader.
      */
-    public SagaTypeCacheLoader(final Multimap<Class, SagaType> scannedTypes) {
+    SagaTypeCacheLoader(final Multimap<Class, SagaType> scannedTypes) {
         this.scannedTypes = scannedTypes;
     }
 

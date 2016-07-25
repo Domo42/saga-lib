@@ -34,7 +34,7 @@ class SagaLookupContext implements LookupContext {
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    public SagaLookupContext(final Object message, @Nullable final ExecutionContext parentContext) {
+    SagaLookupContext(final Object message, @Nullable final ExecutionContext parentContext) {
         this.message = message;
         this.headers = new HashMap<>();
         this.parentContext = parentContext;
@@ -43,7 +43,7 @@ class SagaLookupContext implements LookupContext {
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    public SagaLookupContext(final Object message, final Map<String, Object> headers, @Nullable final ExecutionContext parentContext) {
+    SagaLookupContext(final Object message, final Map<String, Object> headers, @Nullable final ExecutionContext parentContext) {
         this.message = message;
         this.parentContext = parentContext;
         this.headers = new HashMap<>(headers);
@@ -52,7 +52,7 @@ class SagaLookupContext implements LookupContext {
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    public SagaLookupContext(final Object message, final LookupContext baseContext, @Nullable final ExecutionContext parentContext) {
+    SagaLookupContext(final Object message, final LookupContext baseContext, @Nullable final ExecutionContext parentContext) {
         this (message, parentContext);
         for (String key : baseContext.getHeaders()) {
             headers.put(key, baseContext.getHeaderValue(key));

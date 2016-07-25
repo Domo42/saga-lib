@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
  * @param <MESSAGE> The type of the message to extract the key from.
  * @param <KEY> The type of the key returned after extraction.
  */
+@FunctionalInterface
 public interface KeyExtractFunction<MESSAGE, KEY> {
     /**
      * Returns the key value to identify a running saga.

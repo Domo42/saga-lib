@@ -81,13 +81,7 @@ public class TestSaga extends AbstractSaga<TestSagaState> implements Saga<TestSa
     public Collection<KeyReader> keyReaders() {
         KeyReader reader = FunctionKeyReader.create(
                 FinishMessage.class,
-                new KeyReadFunction<FinishMessage>() {
-
-                    @Override
-                    public String key(final FinishMessage message) {
-                        return message.getInstanceKey();
-                    }
-                }
+                FinishMessage::getInstanceKey
         );
 
         return Lists.newArrayList(reader);

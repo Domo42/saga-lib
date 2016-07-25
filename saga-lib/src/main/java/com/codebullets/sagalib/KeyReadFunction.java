@@ -20,5 +20,6 @@ package com.codebullets.sagalib;
  *
  * @param <MESSAGE> The type of message to read the key from.
  */
+@FunctionalInterface
 public interface KeyReadFunction<MESSAGE> extends KeyExtractFunction<MESSAGE, String> {
 }

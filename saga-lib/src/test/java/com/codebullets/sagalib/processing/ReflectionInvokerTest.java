@@ -108,7 +108,7 @@ public class ReflectionInvokerTest {
         saga.createNewState();
 
         // when
-        catchException(sut).invoke(saga, 42);
+        catchException(() -> sut.invoke(saga, 42));
 
         // then
         assertThat("Expected no exception to be thrown.", caughtException(), is(nullValue()));

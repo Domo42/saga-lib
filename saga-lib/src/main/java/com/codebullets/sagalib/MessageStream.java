@@ -32,7 +32,7 @@ import java.util.Map;
  *     the sagas right away on the current call stack.</li>
  * </ul>
  */
-public interface MessageStream {
+public interface MessageStream extends AutoCloseable {
     /**
      * Add a new message to be processed by the saga lib. The message can be of any type.
      * Message is handled in the background and not necessarily a synchronous operation

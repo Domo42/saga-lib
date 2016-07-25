@@ -16,9 +16,6 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
-import com.codebullets.sagalib.SagaLifetimeInterceptor;
-import com.codebullets.sagalib.SagaModule;
-import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
@@ -28,7 +25,6 @@ import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
@@ -60,13 +56,8 @@ public class SagaMessageStreamTest {
         executorService = mock(ExecutorService.class);
 
         SagaEnvironment environment = SagaEnvironment.create(
-                timeoutManager, storage, new Provider<CurrentExecutionContext>() {
-                    @Override
-                    public CurrentExecutionContext get() {
-                        return new SagaExecutionContext();
-                    }
-                }, new HashSet<SagaModule>(),
-                new HashSet<SagaLifetimeInterceptor>(),
+                timeoutManager, storage, SagaExecutionContext::new, new HashSet<>(),
+                new HashSet<>(),
                 instanceResolver);
 
         mockSagaCreation();
@@ -122,6 +113,15 @@ public class SagaMessageStreamTest {
 
         // then
         verify(invoker).invoke(isA(Saga.class), same(message));
+    }
+
+    @Test
+    public void close_always_executorShutdown() {
+        // when
+        sut.close();
+
+        // then
+        verify(executorService).shutdown();
     }
 
     private void mockSagaCreation() {

@@ -21,6 +21,7 @@ import javax.inject.Provider;
 /**
  * When asked returns a provider capable of create a new saga instance.
  */
+@FunctionalInterface
 public interface SagaProviderFactory {
     /**
      * Creates a new provider capable of creating a new instance of the class

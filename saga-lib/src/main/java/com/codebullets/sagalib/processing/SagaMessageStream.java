@@ -15,10 +15,10 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.timeout.Timeout;
-import com.codebullets.sagalib.timeout.TimeoutExpired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -42,7 +44,7 @@ public class SagaMessageStream implements MessageStream {
 
     private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
-    private final Executor executorService;
+    private final Executor executor;
 
     /**
      * Creates a new SagaMessageStream instance.
@@ -51,17 +53,12 @@ public class SagaMessageStream implements MessageStream {
     public SagaMessageStream(
             final HandlerInvoker invoker,
             final SagaEnvironment environment,
-            final Executor executorService) {
-        this.executorService = executorService;
+            final Executor executor) {
+        this.executor = executor;
         this.environment = environment;
         this.invoker = invoker;
 
-        environment.timeoutManager().addExpiredCallback(new TimeoutExpired() {
-            @Override
-            public void expired(final Timeout timeout) {
-                timeoutHasExpired(timeout);
-            }
-        });
+        environment.timeoutManager().addExpiredCallback(SagaMessageStream.this::timeoutHasExpired);
     }
 
     /**
@@ -81,7 +78,7 @@ public class SagaMessageStream implements MessageStream {
         checkNotNull(message, "Message to handle must not be null.");
 
         SagaExecutionTask task = createTaskToExecute(message, headers, null);
-        executorService.execute(task);
+        executor.execute(task);
     }
 
     /**
@@ -114,8 +111,8 @@ public class SagaMessageStream implements MessageStream {
         checkNotNull(message, "Message to handle must not be null.");
 
         Map<String, Object> executionHeaders = mergeHeaders(headers, parentContext);
-        SagaExecutionTask executor = createTaskToExecute(message, executionHeaders, parentContext);
-        executor.handle();
+        SagaExecutionTask executionTask = createTaskToExecute(message, executionHeaders, parentContext);
+        executionTask.handle();
     }
 
     /**
@@ -153,5 +150,25 @@ public class SagaMessageStream implements MessageStream {
         }
 
         return headers;
+    }
+
+    @Override
+    public void close() {
+        if (executor instanceof ExecutorService) {
+            shutDownExecutor((ExecutorService) executor);
+        }
+
+        AutoCloseables.closeQuietly(environment);
+        AutoCloseables.closeQuietly(invoker);
+    }
+
+    private void shutDownExecutor(final ExecutorService executorService) {
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            LOG.warn("Timeout exceeded waiting for saga lib orderly executor service shutdown, forcing shutdown.", e);
+            executorService.shutdownNow();
+        }
     }
 }

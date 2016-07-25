@@ -211,6 +211,15 @@ public class InMemoryTimeoutManagerTest {
         // then
     }
 
+    @Test
+    public void close_always_shutdownExecutorService() {
+        // when
+        sut.close();
+
+        // then
+        verify(executor).shutdown();
+    }
+
     private void requestAndTriggerTimeout() {
         requestAndTriggerTimeout(
                 RandomStringUtils.randomAlphanumeric(10),

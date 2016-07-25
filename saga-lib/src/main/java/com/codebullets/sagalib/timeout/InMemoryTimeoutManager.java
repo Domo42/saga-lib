@@ -36,12 +36,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Reports timeouts placed on in memory state and timers.
  */
-public class InMemoryTimeoutManager implements TimeoutManager {
+public class InMemoryTimeoutManager implements TimeoutManager, AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryTimeoutManager.class);
-    private static final int TIMER_THREAD_POOL_SIZE = 50;
+    private static final int TIMER_THREAD_POOL_SIZE = 2;
     private final Object sync = new Object();
 
-    private final Collection<TimeoutExpired> callbacks = Collections.synchronizedCollection(new ArrayList<TimeoutExpired>());
+    private final Collection<TimeoutExpired> callbacks = Collections.synchronizedCollection(new ArrayList<>());
     private final Table<TimeoutId, String, ScheduledFuture> openTimeouts = HashBasedTable.create();
 
     private final ScheduledExecutorService scheduledService;
@@ -51,7 +51,14 @@ public class InMemoryTimeoutManager implements TimeoutManager {
      * Generates a new instance of InMemoryTimeoutManager.
      */
     public InMemoryTimeoutManager() {
-        this.scheduledService = Executors.newScheduledThreadPool(TIMER_THREAD_POOL_SIZE);
+        this(TIMER_THREAD_POOL_SIZE);
+    }
+
+    /**
+     * Generates a new instance of InMemoryTimeoutManager.
+     */
+    public InMemoryTimeoutManager(final int timerThreadPoolSize) {
+        this.scheduledService = Executors.newScheduledThreadPool(timerThreadPoolSize);
         this.clock = new SystemClock();
     }
 
@@ -83,19 +90,7 @@ public class InMemoryTimeoutManager implements TimeoutManager {
 
         UUIDTimeoutId id = UUIDTimeoutId.generateNewId();
 
-        SagaTimeoutTask timeoutTask = new SagaTimeoutTask(
-                id,
-                sagaId,
-                name,
-                new TimeoutExpired() {
-                    @Override
-                    public void expired(final Timeout timeout) {
-                        timeoutExpired(timeout);
-                    }
-                },
-                clock,
-                data);
-
+        SagaTimeoutTask timeoutTask = new SagaTimeoutTask(id, sagaId, name, timeout -> timeoutExpired(timeout), clock, data);
         ScheduledFuture future = scheduledService.schedule(timeoutTask, delay, timeUnit);
 
         synchronized (sync) {
@@ -159,5 +154,10 @@ public class InMemoryTimeoutManager implements TimeoutManager {
             // catch all exceptions. otherwise calling timeout thread of timers thread pool will be terminated.
             LOG.error("Error handling timeout.", ex);
         }
+    }
+
+    @Override
+    public void close() {
+        scheduledService.shutdown();
     }
 }

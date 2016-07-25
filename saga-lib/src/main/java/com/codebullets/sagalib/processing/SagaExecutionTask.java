@@ -51,7 +51,7 @@ class SagaExecutionTask implements ExecutedRunnable {
     /**
      * Generates a new instance of SagaExecutionTask.
      */
-    public SagaExecutionTask(
+    SagaExecutionTask(
             final SagaEnvironment environment,
             final HandlerInvoker invoker,
             final Object message,

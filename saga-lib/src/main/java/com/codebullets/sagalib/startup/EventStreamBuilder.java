@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.startup;
 
+import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
@@ -37,8 +38,6 @@ import com.codebullets.sagalib.storage.MemoryStorage;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Provider;
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -55,8 +53,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Creates a new instance of an {@link com.codebullets.sagalib.MessageStream} to run the saga lib.
  */
 public final class EventStreamBuilder implements StreamBuilder {
-    private static final Logger LOG = LoggerFactory.getLogger(EventStreamBuilder.class);
-
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Set<SagaModule> modules = new HashSet<>();
     private final Set<SagaLifetimeInterceptor> interceptors = new HashSet<>();
@@ -68,6 +64,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     private TimeoutManager timeoutManager;
     private Provider<CurrentExecutionContext> contextProvider;
     private Executor executor;
+    private SagaMessageStream messageStream;
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -107,7 +104,8 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         SagaEnvironment environment = SagaEnvironment.create(timeoutManager, storage, contextProvider, modules, interceptors, instanceResolver);
 
-        return new SagaMessageStream(invoker, environment, executor);
+        messageStream = new SagaMessageStream(invoker, environment, executor);
+        return messageStream;
     }
 
     /**
@@ -232,50 +230,24 @@ public final class EventStreamBuilder implements StreamBuilder {
 
     private void buildContextProvider() {
         if (contextProvider == null) {
-            contextProvider = new Provider<CurrentExecutionContext>() {
-                    @Override
-                    public CurrentExecutionContext get() {
-                        return new SagaExecutionContext();
-                    }
-                };
+            contextProvider = SagaExecutionContext::new;
         }
     }
 
     private void buildExecutor() {
         if (executor == null) {
             executor = Executors.newSingleThreadExecutor(
-                    new ThreadFactory() {
-                        @Override
-                        public Thread newThread(final Runnable r) {
-                            Thread thread = new Thread(r, "saga-lib");
-                            thread.setDaemon(true);
-                            return thread;
-                        }
+                    r -> {
+                        Thread thread = new Thread(r, "saga-lib");
+                        thread.setDaemon(true);
+                        return thread;
                     }
             );
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void close() {
-        tryClose(timeoutManager);
-        tryClose(storage);
-    }
-
-    /**
-     * Calls close if object implements {@link AutoCloseable} interface.
-     */
-    private void tryClose(final Object objectToClose) {
-        try {
-            if (objectToClose instanceof AutoCloseable) {
-                AutoCloseable closeable = (AutoCloseable) objectToClose;
-                closeable.close();
-            }
-        } catch (Exception ex) {
-            LOG.error("Error closing object {}.", objectToClose, ex);
-        }
+        AutoCloseables.closeQuietly(messageStream);
     }
 }

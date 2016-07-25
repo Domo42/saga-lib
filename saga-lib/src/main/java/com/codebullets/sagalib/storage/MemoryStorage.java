@@ -129,7 +129,7 @@ public class MemoryStorage implements StateStorage {
         private final String type;
         private final Object instanceKey;
 
-        public SagaMultiKey(final String type, final Object instanceKey) {
+        SagaMultiKey(final String type, final Object instanceKey) {
             checkNotNull(type, "type must not be null");
 
             this.type = type;

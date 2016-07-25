@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib.processing;
 
+import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
@@ -28,7 +29,7 @@ import java.util.Set;
 /**
  * Collects saga environment instances used during saga execution.
  */
-public final class SagaEnvironment {
+public final class SagaEnvironment implements AutoCloseable {
     private final TimeoutManager timeoutManager;
     private final StateStorage storage;
     private final Provider<CurrentExecutionContext> contextProvider;
@@ -109,5 +110,14 @@ public final class SagaEnvironment {
             final Set<SagaLifetimeInterceptor> interceptors,
             final InstanceResolver sagaInstanceResolver) {
         return new SagaEnvironment(timeoutManager, storage, contextProvider, modules, interceptors, sagaInstanceResolver);
+    }
+
+    @Override
+    public void close() throws Exception {
+        AutoCloseables.closeQuietly(timeoutManager);
+        AutoCloseables.closeQuietly(storage);
+        AutoCloseables.closeQuietly(modules);
+        AutoCloseables.closeQuietly(interceptors);
+        AutoCloseables.closeQuietly(instanceResolver);
     }
 }

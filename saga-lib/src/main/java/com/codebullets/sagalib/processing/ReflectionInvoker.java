@@ -81,7 +81,7 @@ public class ReflectionInvoker implements HandlerInvoker {
     private static class MethodSearcher extends CacheLoader<InvokerKey, Method> {
         private final Map<Class<? extends Saga>, SagaHandlersMap> handlersMapMap;
 
-        public MethodSearcher(final Map<Class<? extends Saga>, SagaHandlersMap> handlersMapMap) {
+        MethodSearcher(final Map<Class<? extends Saga>, SagaHandlersMap> handlersMapMap) {
             this.handlersMapMap = handlersMapMap;
         }
 
@@ -109,7 +109,7 @@ public class ReflectionInvoker implements HandlerInvoker {
         private final Class sagaClazz;
         private final Class msgClazz;
 
-        public InvokerKey(final Class sagaClazz, final Class msgClazz) {
+        InvokerKey(final Class sagaClazz, final Class msgClazz) {
             this.sagaClazz = sagaClazz;
             this.msgClazz = msgClazz;
         }
