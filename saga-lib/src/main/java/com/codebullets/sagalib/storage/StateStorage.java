@@ -18,6 +18,8 @@ package com.codebullets.sagalib.storage;
 import com.codebullets.sagalib.SagaState;
 
 import java.util.Collection;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Saves and loads the state of a saga.
@@ -47,4 +49,18 @@ public interface StateStorage {
      * @return List of found saga state instances.
      */
     Collection<? extends SagaState> load(String type, Object instanceKey);
+
+    /**
+     * Load a list of saga states based on a list of parameters consisting of the
+     * saga type and instance key. This method has been introduced to enable the
+     * use of only a single operation against an external data store for all states
+     * of a message.
+     *
+     * <p>The default implementation is calling {@link #load(String, Object)} for each parameter
+     * individually and collects the results into a single stream.</p>
+     */
+    default Stream<? extends SagaState> loadAll(final Iterable<InstanceKeySearchParam> searchParams) {
+        return StreamSupport.stream(searchParams.spliterator(), false)
+                .flatMap(param -> load(param.getSagaTypeName(), param.getInstanceKey()).stream());
+    }
 }

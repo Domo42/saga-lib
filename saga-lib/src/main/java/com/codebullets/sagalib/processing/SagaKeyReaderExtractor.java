@@ -16,8 +16,8 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.KeyReader;
-import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.context.LookupContext;
 import com.google.common.base.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -28,7 +28,6 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -75,12 +74,9 @@ public class SagaKeyReaderExtractor implements KeyExtractor {
         try {
             Optional<KeyReader> cachedReader = knownReaders.get(
                     SagaMessageKey.forMessage(sagaClazz, message),
-                    new Callable<Optional<KeyReader>>() {
-                        @Override
-                        public Optional<KeyReader> call() throws Exception {
-                            KeyReader foundReader = findReader(sagaClazz, message);
-                            return Optional.fromNullable(foundReader);
-                        }
+                    () -> {
+                        KeyReader foundReader = findReader(sagaClazz, message);
+                        return Optional.fromNullable(foundReader);
                     });
             reader = cachedReader.orNull();
         } catch (Exception ex) {

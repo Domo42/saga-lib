@@ -105,7 +105,7 @@ public class DefaultStrategyFinderTest {
         Collection<ResolveStrategy> strategies = sut.find(context);
 
         // then
-        assertThat("Expected a continue saga strategy.", strategies, hasItem(isA(ContinueSagaStrategy.class)));
+        assertThat("Expected a continue all saga strategy.", strategies, hasItem(isA(ContinueAllStrategy.class)));
     }
 
     private Object mockNewSagaMessage() {

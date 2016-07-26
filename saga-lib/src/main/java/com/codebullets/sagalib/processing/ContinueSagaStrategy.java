@@ -30,7 +30,11 @@ import java.util.concurrent.ExecutionException;
 /**
  * Continues a specific saga, by resolving the instance key and searching for
  * existing saga states.
+ *
+ * @deprecated The {@link ContinueAllStrategy} allows for increased performance by
+ *             reducing the number of needed storage operations.
  */
+@Deprecated
 public class ContinueSagaStrategy implements ResolveStrategy {
     private static final Logger LOG = LoggerFactory.getLogger(ContinueSagaStrategy.class);
 

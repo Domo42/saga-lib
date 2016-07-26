@@ -67,13 +67,18 @@ public class DefaultStrategyFinder implements StrategyFinder {
     private Collection<ResolveStrategy> checkAnnotatedMethodTypes(final LookupContext context) {
         Collection<ResolveStrategy> strategies = new ArrayList<>();
         Collection<SagaType> sagasToExecute = typesForMessageMapper.getSagasForMessageType(context.message().getClass());
+        Collection<SagaType> continueSagaTypes = new ArrayList<>();
 
         for (SagaType type : sagasToExecute) {
             if (type.isStartingNewSaga()) {
                 strategies.add(new StartNewSagaStrategy(type, instanceFactory));
             } else {
-                strategies.add(new ContinueSagaStrategy(type, instanceFactory, keyExtractor, stateStorage));
+                continueSagaTypes.add(type);
             }
+        }
+
+        if (!continueSagaTypes.isEmpty()) {
+            strategies.add(new ContinueAllStrategy(continueSagaTypes, instanceFactory, keyExtractor, stateStorage));
         }
 
         return strategies;
