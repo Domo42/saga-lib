@@ -45,6 +45,7 @@ import com.google.inject.multibindings.Multibinder;
 
 import javax.annotation.Nullable;
 import javax.inject.Singleton;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -66,6 +67,8 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends CurrentExecutionContext> executionContext;
     private Executor executor;
     private Class<? extends HandlerInvoker> invoker;
+    private Collection<Class<? extends Annotation>> startSagaAnnotations = new ArrayList<>();
+    private Collection<Class<? extends Annotation>> handlerAnnotations = new ArrayList<>();
 
     /**
      * {@inheritDoc}
@@ -86,7 +89,6 @@ class SagaLibModule extends AbstractModule {
         bind(SagaInstanceFactory.class).in(Singleton.class);
         bind(InstanceResolver.class).to(StrategyInstanceResolver.class).in(Singleton.class);
         bind(MessageStream.class).to(SagaMessageStream.class).in(Singleton.class);
-        bind(SagaAnalyzer.class).to(AnnotationSagaAnalyzer.class).in(Singleton.class);
         bind(KeyExtractor.class).to(SagaKeyReaderExtractor.class).in(Singleton.class);
 
         bindModules();
@@ -120,6 +122,17 @@ class SagaLibModule extends AbstractModule {
         for (Class<? extends  SagaModule> moduleType : moduleTypes) {
             moduleBinder.addBinding().to(moduleType).in(Singleton.class);
         }
+    }
+
+    @Singleton
+    @Provides
+    private SagaAnalyzer provide(final TypeScanner typeScanner) {
+        AnnotationSagaAnalyzer analyzer = new AnnotationSagaAnalyzer(typeScanner);
+
+        startSagaAnnotations.forEach(analyzer::addStartSagaAnnotation);
+        handlerAnnotations.forEach(analyzer::addHandlerAnnotation);
+
+        return analyzer;
     }
 
     @Singleton
@@ -224,5 +237,19 @@ class SagaLibModule extends AbstractModule {
      */
     public void setInvoker(final Class<? extends HandlerInvoker> invokerType) {
         this.invoker = invokerType;
+    }
+
+    /**
+     * Sets a list of additional starting saga annotations to use.
+     */
+    public void setStartSagaAnnotations(final Collection<Class<? extends Annotation>> startSagaAnnotations) {
+        this.startSagaAnnotations = startSagaAnnotations;
+    }
+
+    /**
+     * Sets a list of additional starting handler annotations to use.
+     */
+    public void setHandlerAnnotations(final Collection<Class<? extends Annotation>> handlerAnnotations) {
+        this.handlerAnnotations = handlerAnnotations;
     }
 }

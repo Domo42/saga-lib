@@ -22,10 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Scans the provided saga types for {@link com.codebullets.sagalib.StartsSaga} and
@@ -36,6 +39,8 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
     private final Object sync = new Object();
     private final TypeScanner scanner;
     private Map<Class<? extends Saga>, SagaHandlersMap> scanResult;
+    private final Collection<Class<? extends Annotation>> startSagaAnnotations = new ArrayList<>();
+    private final Collection<Class<? extends Annotation>> handlerAnnotations = new ArrayList<>();
 
     /**
      * Constructs a new AnnotationSagaAnalyzer instance.
@@ -43,6 +48,9 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
     @Inject
     public AnnotationSagaAnalyzer(final TypeScanner typeScanner) {
         scanner = typeScanner;
+
+        startSagaAnnotations.add(StartsSaga.class);
+        handlerAnnotations.add(EventHandler.class);
     }
 
     /**
@@ -55,6 +63,27 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
         }
 
         return scanResult;
+    }
+
+
+    /**
+     * Adds a custom annotation to be used when scanning for methods
+     * starting a new saga. By default the {@link com.codebullets.sagalib.StartsSaga} annotation
+     * will be used.
+     */
+    public void addStartSagaAnnotation(final Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass, "The type of annotation is not allowed to be null");
+        startSagaAnnotations.add(annotationClass);
+    }
+
+    /**
+     * Adds a custom annotation to be used when scanning for handler methods
+     * to continue an existing saga. By default the {@link com.codebullets.sagalib.EventHandler} annotation
+     * will be used.
+     */
+    public void addHandlerAnnotation(final Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass, "The type of annotation is not allowed to be null");
+        handlerAnnotations.add(annotationClass);
     }
 
     /**
@@ -87,7 +116,7 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
 
                 // method matches expected handler signature -> add to handler map
                 Class<?> handlerType = method.getParameterTypes()[0];
-                boolean isSagaStart = method.isAnnotationPresent(StartsSaga.class);
+                boolean isSagaStart = hasStartSagaAnnotation(method);
                 handlerMap.add(new MessageHandler(handlerType, method, isSagaStart));
             }
         }
@@ -101,7 +130,7 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
     private boolean isHandlerMethod(final Method method) {
         boolean isHandler = false;
 
-        if (method.isAnnotationPresent(StartsSaga.class) || method.isAnnotationPresent(EventHandler.class)) {
+        if (hasStartSagaAnnotation(method) || hasHandlerAnnotation(method)) {
             if (method.getReturnType().equals(Void.TYPE)) {
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length == 1) {
@@ -115,5 +144,20 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
         }
 
         return isHandler;
+    }
+
+    private boolean hasHandlerAnnotation(final Method method) {
+        return hasAnnotation(handlerAnnotations, method);
+    }
+
+    private boolean hasStartSagaAnnotation(final Method method) {
+        return hasAnnotation(startSagaAnnotations, method);
+    }
+
+    private boolean hasAnnotation(final Collection<Class<? extends Annotation>> annotations, final Method method) {
+        return annotations.stream()
+                .filter(method::isAnnotationPresent)
+                .findFirst()
+                .isPresent();
     }
 }

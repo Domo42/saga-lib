@@ -24,6 +24,7 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
 import javax.inject.Provider;
+import java.lang.annotation.Annotation;
 import java.util.concurrent.Executor;
 
 /**
@@ -81,7 +82,7 @@ public interface StreamBuilder extends AutoCloseable {
      * <p>If no custom executor is provided a single background thread is used to process all
      * messages.</p>
      */
-    StreamBuilder usingExecutor(final Executor executorService);
+    StreamBuilder usingExecutor(Executor executorService);
 
     /**
      * <p>Defines the order of saga message handlers in case a message is associated with multiple
@@ -103,12 +104,26 @@ public interface StreamBuilder extends AutoCloseable {
      * <p>There can be multiple modules. The order in which the modules are
      * executed is not defined.</p>
      */
-    StreamBuilder callingModule(final SagaModule module);
+    StreamBuilder callingModule(SagaModule module);
 
     /**
      * Adds a lifetime interceptor that will be called every time an individual saga is started and finished.
      *
      * <p>It is possible to add multiple interceptors.</p>
      */
-    StreamBuilder callingInterceptor(final SagaLifetimeInterceptor interceptor);
+    StreamBuilder callingInterceptor(SagaLifetimeInterceptor interceptor);
+
+    /**
+     * Adds a custom annotation to be used when scanning for methods
+     * starting a new saga. By default the {@link com.codebullets.sagalib.StartsSaga} annotation
+     * will be used.
+     */
+    StreamBuilder addStartSagaAnnotation(Class<? extends Annotation> annotationClass);
+
+    /**
+     * Adds a custom annotation to be used when scanning for handler methods
+     * to continue an existing saga. By default the {@link com.codebullets.sagalib.EventHandler} annotation
+     * will be used.
+     */
+    StreamBuilder addHandlerAnnotation(Class<? extends Annotation> annotationClass);
 }

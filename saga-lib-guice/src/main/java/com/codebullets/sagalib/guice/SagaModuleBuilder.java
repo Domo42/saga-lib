@@ -34,9 +34,11 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.Module;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 
 /**
@@ -71,6 +73,8 @@ public final class SagaModuleBuilder {
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private final Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
+    private final Collection<Class<? extends Annotation>> startSagaAnnotations = new ArrayList<>();
+    private final Collection<Class<? extends Annotation>> handlerAnnotations = new ArrayList<>();
     private Executor executor;
 
     /**
@@ -252,6 +256,28 @@ public final class SagaModuleBuilder {
      */
     public SagaModuleBuilder usingExecutor(final Executor executorService) {
         executor = executorService;
+        return this;
+    }
+
+    /**
+     * Adds a custom annotation to be used when scanning for methods
+     * starting a new saga. By default the {@link com.codebullets.sagalib.StartsSaga} annotation
+     * will be used.
+     */
+    public SagaModuleBuilder addStartSagaAnnotation(final Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass, "The type of annotation is not allowed to be null");
+        startSagaAnnotations.add(annotationClass);
+        return this;
+    }
+
+    /**
+     * Adds a custom annotation to be used when scanning for handler methods
+     * to continue an existing saga. By default the {@link com.codebullets.sagalib.EventHandler} annotation
+     * will be used.
+     */
+    public SagaModuleBuilder addHandlerAnnotation(final Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass, "The type of annotation is not allowed to be null");
+        handlerAnnotations.add(annotationClass);
         return this;
     }
 

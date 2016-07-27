@@ -40,9 +40,12 @@ import com.codebullets.sagalib.timeout.InMemoryTimeoutManager;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
 import javax.inject.Provider;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -65,6 +68,8 @@ public final class EventStreamBuilder implements StreamBuilder {
     private Provider<CurrentExecutionContext> contextProvider;
     private Executor executor;
     private SagaMessageStream messageStream;
+    private final Collection<Class<? extends Annotation>> startSagaAnnotations = new ArrayList<>();
+    private final Collection<Class<? extends Annotation>> handlerAnnotations = new ArrayList<>();
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -198,6 +203,20 @@ public final class EventStreamBuilder implements StreamBuilder {
         return this;
     }
 
+    @Override
+    public StreamBuilder addStartSagaAnnotation(final Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass, "The type of annotation is not allowed to be null");
+        startSagaAnnotations.add(annotationClass);
+        return this;
+    }
+
+    @Override
+    public StreamBuilder addHandlerAnnotation(final Class<? extends Annotation> annotationClass) {
+        Objects.requireNonNull(annotationClass, "The type of annotation is not allowed to be null");
+        handlerAnnotations.add(annotationClass);
+        return this;
+    }
+
     private void buildTypeScanner() {
         if (scanner == null) {
             scanner = new ReflectionsTypeScanner();
@@ -212,7 +231,11 @@ public final class EventStreamBuilder implements StreamBuilder {
 
     private void buildSagaAnalyzer() {
         if (sagaAnalyzer == null) {
-            sagaAnalyzer = new AnnotationSagaAnalyzer(scanner);
+            AnnotationSagaAnalyzer analyzer = new AnnotationSagaAnalyzer(scanner);
+            startSagaAnnotations.forEach(analyzer::addStartSagaAnnotation);
+            handlerAnnotations.forEach(analyzer::addHandlerAnnotation);
+
+            sagaAnalyzer = analyzer;
         }
     }
 

@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
  */
 public class AnnotationSagaAnalyzerTest {
     private Collection<Class<? extends Saga>> sagaTypes;
-    private SagaAnalyzer sut;
+    private AnnotationSagaAnalyzer sut;
 
     @Before
     public void setUp() {
@@ -116,5 +116,20 @@ public class AnnotationSagaAnalyzerTest {
                 "Handler has entry with start saga flag set.",
                 handlers.messageHandlers(),
                 hasItem(samePropertyValuesAs(new MessageHandler(FinishMessage.class, TestSaga.handlerMethod(), false))));
+    }
+
+    @Test
+    public void scanHandledMessageTypes_sagaWithCustomAnnotation_returnsHandlerForType() {
+        // given
+        sut.addHandlerAnnotation(CustomHandlerAnnotation.class);
+        sagaTypes.add(SagaWithCustomHandlerAnnotation.class);
+
+        // when
+        Map<Class<? extends Saga>, SagaHandlersMap> scanResult = sut.scanHandledMessageTypes();
+
+        // then
+        SagaHandlersMap sagaHandlersMap = scanResult.get(SagaWithCustomHandlerAnnotation.class);
+        MessageHandler handler = sagaHandlersMap.messageHandlers().iterator().next();
+        assertThat("Expected handler method of custom annotation method.", handler.getMethodToInvoke().getName(), equalTo("handlerMethod"));
     }
 }
