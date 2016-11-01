@@ -18,11 +18,10 @@ package com.codebullets.sagalib.processing;
 import com.codebullets.sagalib.DeadMessage;
 import com.codebullets.sagalib.ExecutedRunnable;
 import com.codebullets.sagalib.ExecutionContext;
-import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
-import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,17 +81,18 @@ class SagaExecutionTask implements ExecutedRunnable {
         executionContext.setParentContext(parentContext);
         setHeaders(executionContext);
 
+        ModulesInvoker modulesInvoker = ModulesInvoker.start(executionContext, env.modules());
+
         try {
-            moduleStarts(executionContext);
             sagasExecuted = executeHandlersForMessage(messageLookupContext, executionContext);
             if (!sagasExecuted) {
                 LOG.warn("No saga or saga state found to handle message. (message = {})", taskLookupContext.message());
             }
         } catch (Exception ex) {
-            moduleError(executionContext, messageLookupContext.message(), ex);
+            modulesInvoker.error(messageLookupContext.message(), ex);
             throw ex;
         } finally {
-            moduleFinished(executionContext);
+            modulesInvoker.finish();
         }
 
         return sagasExecuted;
@@ -171,24 +171,6 @@ class SagaExecutionTask implements ExecutedRunnable {
             for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
                 interceptor.onStarting(sagaDescription.getSaga(), context, invokeParam);
             }
-        }
-    }
-
-    private void moduleError(final ExecutionContext context, final Object invokeParam, final Exception ex) {
-        for (SagaModule module : env.modules()) {
-            module.onError(context, invokeParam, ex);
-        }
-    }
-
-    private void moduleStarts(final ExecutionContext context) {
-        for (SagaModule module : env.modules()) {
-            module.onStart(context);
-        }
-    }
-
-    private void moduleFinished(final ExecutionContext context) {
-        for (SagaModule module : env.modules()) {
-            module.onFinished(context);
         }
     }
 

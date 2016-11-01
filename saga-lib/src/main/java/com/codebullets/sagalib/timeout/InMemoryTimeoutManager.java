@@ -58,7 +58,13 @@ public class InMemoryTimeoutManager implements TimeoutManager, AutoCloseable {
      * Generates a new instance of InMemoryTimeoutManager.
      */
     public InMemoryTimeoutManager(final int timerThreadPoolSize) {
-        this.scheduledService = Executors.newScheduledThreadPool(timerThreadPoolSize);
+        this.scheduledService = Executors.newScheduledThreadPool(
+                timerThreadPoolSize,
+                r -> {
+                    Thread thread = new Thread(r, "saga-lib-timeout-");
+                    thread.setDaemon(true);
+                    return thread;
+                });
         this.clock = new SystemClock();
     }
 

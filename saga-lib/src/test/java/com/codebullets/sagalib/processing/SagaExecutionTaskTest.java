@@ -106,7 +106,7 @@ public class SagaExecutionTaskTest {
                 contextProvider,
                 Sets.newHashSet(module),
                 Sets.newHashSet(interceptor), instanceResolver);
-        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<String, Object>(), null);
+        sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<>(), null);
     }
 
     /**
