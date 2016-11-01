@@ -26,4 +26,9 @@ public interface CurrentExecutionContext extends ExecutionContext {
      * Sets the parent context of the execution.
      */
     void setParentContext(ExecutionContext parentContext);
+
+    /**
+     * Sets optional error information, that occurred during handling.
+     */
+    void setError(final Exception error);
 }

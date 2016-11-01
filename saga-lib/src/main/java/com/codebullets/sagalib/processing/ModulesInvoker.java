@@ -17,6 +17,7 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.SagaModule;
+import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ final class ModulesInvoker {
      * <p>In case of an error during start, calls error and finished on already started/starting modules.</p>
      * @return Invoker in case all modules started without error
      */
-    static ModulesInvoker start(final ExecutionContext context, final Iterable<SagaModule> modules) {
+    static ModulesInvoker start(final CurrentExecutionContext context, final Iterable<SagaModule> modules) {
         List<Runnable> finishers = new ArrayList<>();
         List<BiConsumer<Object, Throwable>> errorHandlers = new ArrayList<>();
 
@@ -66,6 +67,7 @@ final class ModulesInvoker {
             }
         } catch (Exception ex) {
             // call error and finish handlers on partially started module list.
+            context.setError(ex);
             ModulesInvoker invoker = new ModulesInvoker(finishers, errorHandlers);
             invoker.error(context.message(), ex);
             invoker.finish();

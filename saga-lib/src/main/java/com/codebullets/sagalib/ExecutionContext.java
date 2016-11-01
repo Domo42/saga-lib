@@ -16,6 +16,7 @@
 package com.codebullets.sagalib;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * Holds and controls the the state when executing one ore more
@@ -66,4 +67,12 @@ public interface ExecutionContext {
      */
     @Nullable
     ExecutionContext parentContext();
+
+    /**
+     * Gets an optional execution error that occurred during saga handling.
+     * <p>This error might be of interest in modules finally bock to
+     * get an indication of successful or failed handling in the finished
+     * execution block.</p>
+     */
+    Optional<Exception> error();
 }

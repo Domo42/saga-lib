@@ -21,6 +21,7 @@ import com.codebullets.sagalib.Saga;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Execution context used in the saga lib.
@@ -30,7 +31,12 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     private Object message;
     private Saga saga;
     private Map<String, Object> headers = new HashMap<>();
+
+    @Nullable
     private ExecutionContext parentContext;
+
+    @Nullable
+    private Exception error;
 
     /**
      * {@inheritDoc}
@@ -92,5 +98,16 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     @Override
     public void setParentContext(@Nullable final ExecutionContext parentContext) {
         this.parentContext = parentContext;
+    }
+
+
+    @Override
+    public Optional<Exception> error() {
+        return Optional.ofNullable(error);
+    }
+
+    @Override
+    public void setError(@Nullable final Exception error) {
+        this.error = error;
     }
 }

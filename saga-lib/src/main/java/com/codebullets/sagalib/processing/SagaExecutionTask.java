@@ -89,6 +89,7 @@ class SagaExecutionTask implements ExecutedRunnable {
                 LOG.warn("No saga or saga state found to handle message. (message = {})", taskLookupContext.message());
             }
         } catch (Exception ex) {
+            executionContext.setError(ex);
             modulesInvoker.error(messageLookupContext.message(), ex);
             throw ex;
         } finally {

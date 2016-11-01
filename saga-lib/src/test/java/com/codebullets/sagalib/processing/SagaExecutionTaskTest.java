@@ -16,12 +16,12 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.ExecutionContext;
-import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.storage.StateStorage;
@@ -35,8 +35,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.InOrder;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
@@ -564,12 +562,7 @@ public class SagaExecutionTaskTest {
     }
 
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {
-        return new Provider<CurrentExecutionContext>() {
-                @Override
-                public CurrentExecutionContext get() {
-                    return context;
-                }
-            };
+        return () -> context;
     }
 
     private Provider<CurrentExecutionContext> mockExecutionContext() {
@@ -577,21 +570,15 @@ public class SagaExecutionTaskTest {
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                Object message = invocationOnMock.getArguments()[0];
-                when(context.message()).thenReturn(message);
-                return null;
-            }
+        doAnswer(invocationOnMock -> {
+            Object message = invocationOnMock.getArguments()[0];
+            when(context.message()).thenReturn(message);
+            return null;
         }).when(context).setMessage(any());
 
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                when(context.dispatchingStopped()).thenReturn(true);
-                return null;
-            }
+        doAnswer(invocationOnMock -> {
+            when(context.dispatchingStopped()).thenReturn(true);
+            return null;
         }).when(context).stopDispatchingCurrentMessageToHandlers();
 
         return contextProvider;
