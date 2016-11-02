@@ -130,6 +130,6 @@ public class AnnotationSagaAnalyzerTest {
         // then
         SagaHandlersMap sagaHandlersMap = scanResult.get(SagaWithCustomHandlerAnnotation.class);
         MessageHandler handler = sagaHandlersMap.messageHandlers().iterator().next();
-        assertThat("Expected handler method of custom annotation method.", handler.getMethodToInvoke().getName(), equalTo("handlerMethod"));
+        assertThat("Expected handler method of custom annotation method.", handler.getMethodToInvoke().get().getName(), equalTo("handlerMethod"));
     }
 }

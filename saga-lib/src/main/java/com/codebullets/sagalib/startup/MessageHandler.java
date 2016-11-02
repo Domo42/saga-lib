@@ -15,7 +15,11 @@
  */
 package com.codebullets.sagalib.startup;
 
+import com.codebullets.sagalib.describe.DirectDescription;
+
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * Information about method handling a message on a saga.
@@ -23,19 +27,14 @@ import java.lang.reflect.Method;
 public class MessageHandler {
     private final boolean startsSaga;
     private final Class<?> messageType;
+
+    @Nullable
     private final Method methodToInvoke;
 
     /**
      * Generates a new instance of MessageHandler.
      */
-    public MessageHandler(final Class<?> messageType, final Method methodToInvoke) {
-        this(messageType, methodToInvoke, false);
-    }
-
-    /**
-     * Generates a new instance of MessageHandler.
-     */
-    public MessageHandler(final Class<?> messageType, final Method methodToInvoke, final boolean startsSaga) {
+    public MessageHandler(final Class<?> messageType, @Nullable final Method methodToInvoke, final boolean startsSaga) {
         this.startsSaga = startsSaga;
         this.methodToInvoke = methodToInvoke;
         this.messageType = messageType;
@@ -57,9 +56,26 @@ public class MessageHandler {
     }
 
     /**
-     * Gets the method to invoke to trigger the message handler.
+     * Gets the optional method to invoke to trigger the message handler.
+     * If the method is empty, it indicates that the saga implements {@link DirectDescription}
+     * and one can use the returned consumer to execute message handling.
      */
-    public Method getMethodToInvoke() {
-        return methodToInvoke;
+    public Optional<Method> getMethodToInvoke() {
+        return Optional.ofNullable(methodToInvoke);
+    }
+
+    /**
+     * Creates new handler, with the reflection information about the method to call.
+     */
+    public static MessageHandler reflectionInvokedHandler(final Class<?> messageType, final Method methodToInvoke, final boolean startsSaga) {
+        return new MessageHandler(messageType, methodToInvoke, startsSaga);
+    }
+
+    /**
+     * Creates a new handler definition of the message, indicating that the parent saga
+     * provides its own handler through via a direct description.
+     */
+    public static MessageHandler selfDescribedHandler(final Class<?> messageType, final boolean startsSaga) {
+        return new MessageHandler(messageType, null, startsSaga);
     }
 }

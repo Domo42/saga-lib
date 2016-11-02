@@ -25,7 +25,7 @@ import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.DefaultStrategyFinder;
 import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
-import com.codebullets.sagalib.processing.ReflectionInvoker;
+import com.codebullets.sagalib.processing.invocation.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaEnvironment;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
 import com.codebullets.sagalib.processing.SagaInstanceFactory;

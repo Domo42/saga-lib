@@ -117,7 +117,7 @@ public class AnnotationSagaAnalyzer implements SagaAnalyzer {
                 // method matches expected handler signature -> add to handler map
                 Class<?> handlerType = method.getParameterTypes()[0];
                 boolean isSagaStart = hasStartSagaAnnotation(method);
-                handlerMap.add(new MessageHandler(handlerType, method, isSagaStart));
+                handlerMap.add(MessageHandler.reflectionInvokedHandler(handlerType, method, isSagaStart));
             }
         }
 

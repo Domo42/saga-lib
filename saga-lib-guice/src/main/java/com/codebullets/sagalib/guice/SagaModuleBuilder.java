@@ -22,7 +22,7 @@ import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.DefaultStrategyFinder;
 import com.codebullets.sagalib.processing.HandlerInvoker;
-import com.codebullets.sagalib.processing.ReflectionInvoker;
+import com.codebullets.sagalib.processing.invocation.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.processing.StrategyFinder;
 import com.codebullets.sagalib.startup.ReflectionsTypeScanner;

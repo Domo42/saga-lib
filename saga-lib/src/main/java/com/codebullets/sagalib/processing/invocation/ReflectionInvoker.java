@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib.processing;
+package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.describe.DirectDescription;
+import com.codebullets.sagalib.processing.HandlerInvoker;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
@@ -31,20 +33,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Invokes the target handler on the provided saga for the given handler.
  */
 public class ReflectionInvoker implements HandlerInvoker {
     private static final Logger LOG = LoggerFactory.getLogger(ReflectionInvoker.class);
-    private final LoadingCache<InvokerKey, Method> methodInvokers;
+    private final LoadingCache<InvokerKey, InvocationMethod> invocationMethods;
 
     /**
      * Generates a new instance of ReflectionInvoker.
      */
     @Inject
     public ReflectionInvoker(final SagaAnalyzer analyzer) {
-        methodInvokers = CacheBuilder.newBuilder().build(new MethodSearcher(analyzer.scanHandledMessageTypes()));
+        invocationMethods = CacheBuilder.newBuilder().build(new MethodSearcher(analyzer.scanHandledMessageTypes()));
     }
 
     /**
@@ -52,33 +55,46 @@ public class ReflectionInvoker implements HandlerInvoker {
      */
     @Override
     public void invoke(final Saga saga, final Object message) throws InvocationTargetException, IllegalAccessException {
-        InvokerKey key = InvokerKey.create(saga, message);
-        Method method = tryGetMethod(key);
-        if (method != null) {
-            method.invoke(saga, message);
+        if (saga instanceof DirectDescription) {
+            ((DirectDescription) saga).describe().handler().accept(message);
         } else {
-            LOG.warn("No method found to call. key = {}}", key);
+            invokeUsingReflection(saga, message);
+        }
+    }
+
+    private void invokeUsingReflection(final Saga saga, final Object message) throws InvocationTargetException, IllegalAccessException {
+        InvokerKey key = InvokerKey.create(saga, message);
+        InvocationMethod method = tryGetMethod(key);
+        if (method != null) {
+            Optional<Method> reflectionMethod = method.invocationMethod();
+            if (reflectionMethod.isPresent()) {
+                reflectionMethod.get().invoke(saga, message);
+            } else {
+                LOG.warn("No annotated handler method found and saga is not self describing. key = {}", key);
+            }
+        } else {
+            LOG.warn("No annotated handler method found and saga is not self describing. key = {}", key);
         }
     }
 
     /**
      * Finds the method to invoke without causing an exception.
      */
-    private Method tryGetMethod(final InvokerKey key) {
-        Method methodToInvoke = null;
+    private InvocationMethod tryGetMethod(final InvokerKey key) {
+        InvocationMethod invocationMethod = null;
         try {
-            methodToInvoke = methodInvokers.get(key);
+            invocationMethod = invocationMethods.get(key);
         } catch (Exception ex) {
             LOG.warn("Error fetching method to invoke method {}", key, ex);
         }
 
-        return methodToInvoke;
+        return invocationMethod;
     }
 
     /**
      * Searches for a specific handler method in the scanned map of handlers.
      */
-    private static class MethodSearcher extends CacheLoader<InvokerKey, Method> {
+    private static class MethodSearcher extends CacheLoader<InvokerKey, InvocationMethod> {
         private final Map<Class<? extends Saga>, SagaHandlersMap> handlersMapMap;
 
         MethodSearcher(final Map<Class<? extends Saga>, SagaHandlersMap> handlersMapMap) {
@@ -86,19 +102,21 @@ public class ReflectionInvoker implements HandlerInvoker {
         }
 
         @Override
-        public Method load(final InvokerKey key) throws Exception {
-            Method methodToInvoke = null;
+        public InvocationMethod load(final InvokerKey key) throws Exception {
+            InvocationMethod invocationMethod = null;
             SagaHandlersMap handlers = handlersMapMap.get(key.getSagaClass());
             if (handlers != null) {
                 for (MessageHandler handler : handlers.messageHandlers()) {
                     if (handler.getMessageType().isAssignableFrom(key.getMsgClass())) {
-                        methodToInvoke = handler.getMethodToInvoke();
+                        final Optional<Method> method = handler.getMethodToInvoke();
+                        invocationMethod = method.map(InvocationMethod::reflectionInvoked)
+                                .orElse(InvocationMethod.selfDescribed());
                         break;
                     }
                 }
             }
 
-            return methodToInvoke;
+            return invocationMethod;
         }
     }
 

@@ -100,7 +100,6 @@ public class SagaExecutionContext implements CurrentExecutionContext {
         this.parentContext = parentContext;
     }
 
-
     @Override
     public Optional<Exception> error() {
         return Optional.ofNullable(error);

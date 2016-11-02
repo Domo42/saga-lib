@@ -27,8 +27,8 @@ import javax.inject.Provider;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Stores and caches a list of provides based on the saga type to be created. Creates
- * a new saga instance based on provider instance of type.
+ * Caches a list of providers based on the saga type to be created. Creates
+ * a new saga instance based on provider instance of the type.
  */
 public class SagaInstanceCreator {
     private final LoadingCache<Class<? extends Saga>, Provider<? extends Saga>> providers;

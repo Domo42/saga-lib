@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.codebullets.sagalib.processing;
+package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.FinishMessage;
 import com.codebullets.sagalib.Saga;
@@ -43,14 +43,11 @@ public class ReflectionInvokerTest {
 
     @Before
     public void init() {
-        TypeScanner scanner = new TypeScanner() {
-                @Override
-                public Collection<Class<? extends Saga>> scanForSagas() {
-                    Collection<Class<? extends Saga>> list = new ArrayList<>();
-                    list.add(TestSaga.class);
-                    return list;
-                }
-            };
+        TypeScanner scanner = () -> {
+            Collection<Class<? extends Saga>> list = new ArrayList<>();
+            list.add(TestSaga.class);
+            return list;
+        };
 
         SagaAnalyzer analyzer = new AnnotationSagaAnalyzer(scanner);
         sut = new ReflectionInvoker(analyzer);
