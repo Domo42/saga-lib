@@ -29,8 +29,8 @@ import java.util.Map;
 import static com.codebullets.sagalib.describe.HandlerDescriptions.startedBy;
 
 public class DirectDescriptionSaga extends AbstractSaga<TestSagaState> implements DirectDescription {
-    static final String START_CALLED_KEY = "start.called.key";
-    static final String CONTINUE_CALLED_KEY = "continue.called.key";
+    static final String START_CALLED_KEY = "DirectDescriptionSaga.start.called.key";
+    static final String CONTINUE_CALLED_KEY = "DirectDescriptionSaga.continue.called.key";
 
     private final Map<String, String> context;
 

@@ -32,9 +32,7 @@ import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.processing.StrategyFinder;
 import com.codebullets.sagalib.processing.StrategyInstanceResolver;
 import com.codebullets.sagalib.processing.TypesForMessageMapper;
-import com.codebullets.sagalib.startup.AnnotationSagaAnalyzer;
-import com.codebullets.sagalib.startup.SagaAnalyzer;
-import com.codebullets.sagalib.startup.TypeScanner;
+import com.codebullets.sagalib.startup.*;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.inject.AbstractModule;
@@ -126,13 +124,13 @@ class SagaLibModule extends AbstractModule {
 
     @Singleton
     @Provides
-    private SagaAnalyzer provide(final TypeScanner typeScanner) {
-        AnnotationSagaAnalyzer analyzer = new AnnotationSagaAnalyzer(typeScanner);
+    private SagaAnalyzer provide(final TypeScanner typeScanner, final DirectDescriptionAnalyzer directAnalyzer) {
+        AnnotationSagaAnalyzer annotationAnalyzer = new AnnotationSagaAnalyzer(typeScanner);
 
-        startSagaAnnotations.forEach(analyzer::addStartSagaAnnotation);
-        handlerAnnotations.forEach(analyzer::addHandlerAnnotation);
+        startSagaAnnotations.forEach(annotationAnalyzer::addStartSagaAnnotation);
+        handlerAnnotations.forEach(annotationAnalyzer::addHandlerAnnotation);
 
-        return analyzer;
+        return new CombinedSagaAnalyzer(annotationAnalyzer, directAnalyzer);
     }
 
     @Singleton
