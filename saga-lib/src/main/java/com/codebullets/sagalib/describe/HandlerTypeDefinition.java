@@ -28,5 +28,5 @@ public interface HandlerTypeDefinition {
     /**
      * Finishes up the message mapping, resulting in a read only description.
      */
-    SagaDescription finishDescription();
+    HandlerDescription finishDescription();
 }

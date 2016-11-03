@@ -34,7 +34,7 @@ public class MessageHandler {
     /**
      * Generates a new instance of MessageHandler.
      */
-    public MessageHandler(final Class<?> messageType, @Nullable final Method methodToInvoke, final boolean startsSaga) {
+    MessageHandler(final Class<?> messageType, @Nullable final Method methodToInvoke, final boolean startsSaga) {
         this.startsSaga = startsSaga;
         this.methodToInvoke = methodToInvoke;
         this.messageType = messageType;

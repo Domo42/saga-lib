@@ -17,7 +17,7 @@ package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.describe.DirectDescription;
-import com.codebullets.sagalib.describe.SagaDescription;
+import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,13 +66,15 @@ public class DirectDescriptionAnalyzer implements SagaAnalyzer {
 
         directDescriptionSagas.forEach(saga -> {
             Class<? extends Saga> sagaType = (Class<? extends Saga>) saga.getClass();
-            SagaDescription sagaDescription = saga.describe();
+            HandlerDescription handlerDescription = saga.describeHandlers();
             SagaHandlersMap handlers = new SagaHandlersMap(sagaType);
-            final Class<?> startedBy = sagaDescription.startedBy();
+            final Class<?> startedBy = handlerDescription.startedBy();
 
-            sagaDescription.handlerTypes().forEach(handlerType -> {
+            handlerDescription.handlerTypes().forEach(handlerType -> {
                 handlers.add(MessageHandler.selfDescribedHandler(handlerType, handlerType.equals(startedBy)));
             });
+
+            handlersMap.put(sagaType, handlers);
         });
 
         return handlersMap;

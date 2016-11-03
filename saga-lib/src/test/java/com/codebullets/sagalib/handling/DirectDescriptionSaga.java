@@ -17,20 +17,35 @@ package com.codebullets.sagalib.handling;
 
 import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.KeyReaders;
 import com.codebullets.sagalib.TestSagaState;
 import com.codebullets.sagalib.describe.DirectDescription;
-import com.codebullets.sagalib.describe.SagaDescription;
+import com.codebullets.sagalib.describe.HandlerDescription;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Collection;
+import java.util.Map;
 
-import static com.codebullets.sagalib.describe.SagaDescriptions.startedBy;
+import static com.codebullets.sagalib.describe.HandlerDescriptions.startedBy;
 
 public class DirectDescriptionSaga extends AbstractSaga<TestSagaState> implements DirectDescription {
+    static final String START_CALLED_KEY = "start.called.key";
+    static final String CONTINUE_CALLED_KEY = "continue.called.key";
+
+    private final Map<String, String> context;
+
+    public DirectDescriptionSaga(Map<String, String> context) {
+        this.context = context;
+    }
 
     private void startingSaga(final String startingMessage) {
+        context.put(START_CALLED_KEY, "true");
+        state().addInstanceKey(startingMessage);
     }
 
     private void continueSaga(final Integer intMessage) {
+        context.put(CONTINUE_CALLED_KEY, "true");
+        setFinished();
     }
 
     @Override
@@ -40,11 +55,12 @@ public class DirectDescriptionSaga extends AbstractSaga<TestSagaState> implement
 
     @Override
     public Collection<KeyReader> keyReaders() {
-        return null;
+        return ImmutableSet.of(
+                KeyReaders.forMessage(Integer.class, Object::toString));
     }
 
     @Override
-    public SagaDescription describe() {
+    public HandlerDescription describeHandlers() {
         return startedBy(String.class).usingMethod(this::startingSaga)
             .handleMessage(Integer.class).usingMethod(this::continueSaga)
             .finishDescription();

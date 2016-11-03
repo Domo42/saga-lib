@@ -92,13 +92,14 @@ public final class EventStreamBuilder implements StreamBuilder {
 
         buildTypeScanner();
         buildTimeoutManager();
-        buildSagaAnalyzer();
+        SagaInstanceCreator instanceCreator = new SagaInstanceCreator(providerFactory, timeoutManager);
+
+        buildSagaAnalyzer(instanceCreator);
         buildInvoker();
         buildContextProvider();
         buildExecutor();
         buildStorage();
 
-        SagaInstanceCreator instanceCreator = new SagaInstanceCreator(providerFactory, timeoutManager);
         SagaInstanceFactory instanceFactory = new SagaInstanceFactory(instanceCreator);
         TypesForMessageMapper messageMapper = new TypesForMessageMapper(sagaAnalyzer);
         messageMapper.setPreferredOrder(preferredOrder);
@@ -229,13 +230,14 @@ public final class EventStreamBuilder implements StreamBuilder {
         }
     }
 
-    private void buildSagaAnalyzer() {
+    private void buildSagaAnalyzer(final SagaInstanceCreator instanceCreator) {
         if (sagaAnalyzer == null) {
-            AnnotationSagaAnalyzer analyzer = new AnnotationSagaAnalyzer(scanner);
-            startSagaAnnotations.forEach(analyzer::addStartSagaAnnotation);
-            handlerAnnotations.forEach(analyzer::addHandlerAnnotation);
+            AnnotationSagaAnalyzer annotationSagaAnalyzer = new AnnotationSagaAnalyzer(scanner);
+            startSagaAnnotations.forEach(annotationSagaAnalyzer::addStartSagaAnnotation);
+            handlerAnnotations.forEach(annotationSagaAnalyzer::addHandlerAnnotation);
 
-            sagaAnalyzer = analyzer;
+            DirectDescriptionAnalyzer directDescriptionAnalyzer = new DirectDescriptionAnalyzer(scanner, instanceCreator);
+            sagaAnalyzer = new CombinedSagaAnalyzer(annotationSagaAnalyzer, directDescriptionAnalyzer);
         }
     }
 

@@ -56,7 +56,7 @@ public class ReflectionInvoker implements HandlerInvoker {
     @Override
     public void invoke(final Saga saga, final Object message) throws InvocationTargetException, IllegalAccessException {
         if (saga instanceof DirectDescription) {
-            ((DirectDescription) saga).describe().handler().accept(message);
+            ((DirectDescription) saga).describeHandlers().handler().accept(message);
         } else {
             invokeUsingReflection(saga, message);
         }

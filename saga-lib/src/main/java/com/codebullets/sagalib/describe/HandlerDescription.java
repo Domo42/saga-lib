@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * Description containing all information about the messages handled
  * as well as a way of handling them.
  */
-public interface SagaDescription {
+public interface HandlerDescription {
     /**
      * Gets the type of the message from which the saga is started.
      */

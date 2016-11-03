@@ -18,8 +18,8 @@ package com.codebullets.sagalib.describe;
 /**
  * This is the starting point to create a new saga handling description.
  */
-public final class SagaDescriptions {
-    private SagaDescriptions() { }
+public final class HandlerDescriptions {
+    private HandlerDescriptions() { }
 
     /**
      * Starts a new description, be defining the initial message to be handled.

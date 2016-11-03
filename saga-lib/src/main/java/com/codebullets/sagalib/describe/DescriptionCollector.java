@@ -42,7 +42,7 @@ class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDef
     }
 
     @Override
-    public SagaDescription finishDescription() {
+    public HandlerDescription finishDescription() {
         List<HandlerDefinition> handlers = handlerDefinitions.stream()
                 .map(d -> new HandlerDefinition(d.messageType, d.handler))
                 .collect(Collectors.toList());

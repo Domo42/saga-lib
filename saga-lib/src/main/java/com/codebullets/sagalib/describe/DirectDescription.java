@@ -19,16 +19,31 @@ package com.codebullets.sagalib.describe;
  * Indicates that the saga describes the messages handled and
  * handlers by itself without relying on the annotation scanning
  * of the saga-lib.
+ *
+ * <p>Inherit from this interface to provide a custom description of handlers
+ * without using annotations and reflective method invocations.</p>
  */
 public interface DirectDescription {
     /**
      * Describe one self about the messages handled and executed.
      *
+     * <p>There is a helper class {@link HandlerDescriptions} to simplify the process.</p>
+     *
+     * <pre>
+     * {@literal @}Override
+     * public HandlerDescription describeHandlers() {
+     *     return HandlerDescriptions
+     *         .startedBy(StartingMessage.class).usingMethod(this::startingSagaMethod)
+     *         .handleMessage(OtherMessage.class).usingMethod(this::otherSagaMethod)
+     *         .finishDescription();
+     * }
+     * </pre>
+     *
      * <p>ATTENTION: Do not cache the description, when referencing instance methods.
      * The saga-lib creates new instances of sagas all the time to prevent concurrent
-     * access from possible multiple threads. When cached methods might be called on
+     * access from possible multiple threads. When cached, methods might be called on
      * a different saga instance originally intended.
      * </p>
      */
-    SagaDescription describe();
+    HandlerDescription describeHandlers();
 }
