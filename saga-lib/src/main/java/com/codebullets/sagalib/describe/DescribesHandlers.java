@@ -23,7 +23,7 @@ package com.codebullets.sagalib.describe;
  * <p>Inherit from this interface to provide a custom description of handlers
  * without using annotations and reflective method invocations.</p>
  */
-public interface DirectDescription {
+public interface DescribesHandlers {
     /**
      * Describe one self about the messages handled and executed.
      *

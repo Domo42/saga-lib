@@ -18,6 +18,7 @@ package com.codebullets.sagalib.processing;
 import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.timeout.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

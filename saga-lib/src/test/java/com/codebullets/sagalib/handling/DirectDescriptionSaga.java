@@ -19,7 +19,7 @@ import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.KeyReaders;
 import com.codebullets.sagalib.TestSagaState;
-import com.codebullets.sagalib.describe.DirectDescription;
+import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.describe.HandlerDescription;
 import com.google.common.collect.ImmutableSet;
 
@@ -28,7 +28,7 @@ import java.util.Map;
 
 import static com.codebullets.sagalib.describe.HandlerDescriptions.startedBy;
 
-public class DirectDescriptionSaga extends AbstractSaga<TestSagaState> implements DirectDescription {
+public class DirectDescriptionSaga extends AbstractSaga<TestSagaState> implements DescribesHandlers {
     static final String START_CALLED_KEY = "DirectDescriptionSaga.start.called.key";
     static final String CONTINUE_CALLED_KEY = "DirectDescriptionSaga.continue.called.key";
 

@@ -23,7 +23,7 @@ import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.DefaultStrategyFinder;
-import com.codebullets.sagalib.processing.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.invocation.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaEnvironment;
@@ -236,8 +236,8 @@ public final class EventStreamBuilder implements StreamBuilder {
             startSagaAnnotations.forEach(annotationSagaAnalyzer::addStartSagaAnnotation);
             handlerAnnotations.forEach(annotationSagaAnalyzer::addHandlerAnnotation);
 
-            DirectDescriptionAnalyzer directDescriptionAnalyzer = new DirectDescriptionAnalyzer(scanner, instanceCreator);
-            sagaAnalyzer = new CombinedSagaAnalyzer(annotationSagaAnalyzer, directDescriptionAnalyzer);
+            HandlerDescriptionAnalyzer handlerDescriptionAnalyzer = new HandlerDescriptionAnalyzer(scanner, instanceCreator);
+            sagaAnalyzer = new CombinedSagaAnalyzer(annotationSagaAnalyzer, handlerDescriptionAnalyzer);
         }
     }
 

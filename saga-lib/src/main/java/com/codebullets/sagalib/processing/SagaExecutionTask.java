@@ -23,10 +23,13 @@ import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
+import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.ModulesInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Map;
@@ -50,6 +53,7 @@ class SagaExecutionTask implements ExecutedRunnable {
     /**
      * Generates a new instance of SagaExecutionTask.
      */
+    @Inject
     SagaExecutionTask(
             final SagaEnvironment environment,
             final HandlerInvoker invoker,

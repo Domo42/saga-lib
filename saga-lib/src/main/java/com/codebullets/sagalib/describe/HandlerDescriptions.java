@@ -23,6 +23,20 @@ public final class HandlerDescriptions {
 
     /**
      * Starts a new description, be defining the initial message to be handled.
+     *
+     * <p>The complete description is created by chaining a definition of handled
+     * messages and methods together.</p>
+     *
+     * <pre>
+     * {@literal @}Override
+     * public HandlerDescription describeHandlers() {
+     *     return HandlerDescriptions
+     *         .startedBy(StartingMessage.class).usingMethod(this::startingSagaMethod)
+     *         .handleMessage(OtherMessage.class).usingMethod(this::otherSagaMethod)
+     *         .finishDescription();
+     * }
+     * </pre>
+     *
      * @param <T> The type of the starting saga message.
      */
     public static <T> HandlerMethodDefinition<T> startedBy(final Class<T> startingType) {

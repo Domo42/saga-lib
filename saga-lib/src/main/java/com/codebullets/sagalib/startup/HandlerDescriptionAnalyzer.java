@@ -16,7 +16,7 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.Saga;
-import com.codebullets.sagalib.describe.DirectDescription;
+import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
 import org.slf4j.Logger;
@@ -32,19 +32,19 @@ import java.util.stream.Stream;
 
 /**
  * Analyzes saga types based on the fact whether they implement the
- * {@link com.codebullets.sagalib.describe.DirectDescription} interface.
+ * {@link DescribesHandlers} interface.
  */
-public class DirectDescriptionAnalyzer implements SagaAnalyzer {
+public class HandlerDescriptionAnalyzer implements SagaAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(AnnotationSagaAnalyzer.class);
 
     private final TypeScanner typeScanner;
     private final SagaInstanceCreator instanceCreator;
 
     /**
-     * Creates a new DirectDescriptionAnalyzer instance.
+     * Creates a new HandlerDescriptionAnalyzer instance.
      */
     @Inject
-    public DirectDescriptionAnalyzer(final TypeScanner typeScanner, final SagaInstanceCreator instanceCreator) {
+    public HandlerDescriptionAnalyzer(final TypeScanner typeScanner, final SagaInstanceCreator instanceCreator) {
         this.typeScanner = typeScanner;
         this.instanceCreator = instanceCreator;
     }
@@ -53,15 +53,15 @@ public class DirectDescriptionAnalyzer implements SagaAnalyzer {
     public Map<Class<? extends Saga>, SagaHandlersMap> scanHandledMessageTypes() {
 
         Collection<Class<? extends Saga>> sagaClasses = typeScanner.scanForSagas();
-        Stream<DirectDescription> directDescriptionSagas = sagaClasses.stream()
-                .filter(DirectDescription.class::isAssignableFrom)
+        Stream<DescribesHandlers> directDescriptionSagas = sagaClasses.stream()
+                .filter(DescribesHandlers.class::isAssignableFrom)
                 .filter(c -> !Modifier.isAbstract(c.getModifiers()))
                 .flatMap(this::createDirectDescriptionInstance);
 
         return createHandlersMap(directDescriptionSagas);
     }
 
-    private Map<Class<? extends Saga>, SagaHandlersMap> createHandlersMap(final Stream<DirectDescription> directDescriptionSagas) {
+    private Map<Class<? extends Saga>, SagaHandlersMap> createHandlersMap(final Stream<DescribesHandlers> directDescriptionSagas) {
         Map<Class<? extends Saga>, SagaHandlersMap> handlersMap = new HashMap<>();
 
         directDescriptionSagas.forEach(saga -> {
@@ -80,10 +80,10 @@ public class DirectDescriptionAnalyzer implements SagaAnalyzer {
         return handlersMap;
     }
 
-    private Stream<DirectDescription> createDirectDescriptionInstance(final Class<? extends Saga> clazz) {
-        DirectDescription newInstance = null;
+    private Stream<DescribesHandlers> createDirectDescriptionInstance(final Class<? extends Saga> clazz) {
+        DescribesHandlers newInstance = null;
         try {
-            newInstance = (DirectDescription) instanceCreator.createNew(clazz);
+            newInstance = (DescribesHandlers) instanceCreator.createNew(clazz);
         } catch (ExecutionException e) {
             LOG.error("Error creating saga instance of type {} to read description.", clazz, e.getCause());
         } catch (Exception e) {

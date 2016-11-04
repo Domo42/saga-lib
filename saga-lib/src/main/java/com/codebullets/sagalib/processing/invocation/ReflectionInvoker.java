@@ -16,8 +16,7 @@
 package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.Saga;
-import com.codebullets.sagalib.describe.DirectDescription;
-import com.codebullets.sagalib.processing.HandlerInvoker;
+import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.startup.MessageHandler;
 import com.codebullets.sagalib.startup.SagaAnalyzer;
 import com.codebullets.sagalib.startup.SagaHandlersMap;
@@ -55,8 +54,8 @@ public class ReflectionInvoker implements HandlerInvoker {
      */
     @Override
     public void invoke(final Saga saga, final Object message) throws InvocationTargetException, IllegalAccessException {
-        if (saga instanceof DirectDescription) {
-            ((DirectDescription) saga).describeHandlers().handler().accept(message);
+        if (saga instanceof DescribesHandlers) {
+            ((DescribesHandlers) saga).describeHandlers().handler().accept(message);
         } else {
             invokeUsingReflection(saga, message);
         }

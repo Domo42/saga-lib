@@ -21,18 +21,18 @@ import java.util.function.Consumer;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * This is a complete definition of saga handler, including message type
+ * This is an unchecked definition of saga handler, holding the message type
  * and method to call.
  */
 @Immutable
-public final class HandlerDefinition {
+final class HandlerDefinition {
     private final Class<?> handlerType;
     private final Consumer<?> handlerMethod;
 
     /**
-     *
+     * Creates an immutable, handler definition of a handled type and handler method.
      */
-    public HandlerDefinition(final Class<?> handlerType, final Consumer<?> handlerMethod) {
+    HandlerDefinition(final Class<?> handlerType, final Consumer<?> handlerMethod) {
         this.handlerType = checkNotNull(handlerType, "The handler type must not be null.");
         this.handlerMethod = checkNotNull(handlerMethod, "The method handling " + handlerType + "must not be null.");
     }
@@ -40,14 +40,14 @@ public final class HandlerDefinition {
     /**
      * Gets the type being handled by the handler.
      */
-    public Class<?> handlerType() {
+    Class<?> handlerType() {
         return handlerType;
     }
 
     /**
-     * Gets the method performing the hanlding of  {@link #handlerType()}.
+     * Gets the method performing the handling of  {@link #handlerType()}.
      */
-    public Consumer<?> handlerMethod() {
+    Consumer<?> handlerMethod() {
         return handlerMethod;
     }
 }

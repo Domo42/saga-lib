@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 /**
  * This description is the finalized concrete result of a call to
- * {@link DirectDescription#describeHandlers()}.
+ * {@link DescribesHandlers#describeHandlers()}.
  */
 @Immutable
 class CollectedSagaDescription implements HandlerDescription {

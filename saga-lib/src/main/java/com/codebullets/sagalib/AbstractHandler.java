@@ -17,7 +17,7 @@
 package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.NeedContext;
-import com.codebullets.sagalib.describe.DirectDescription;
+import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.describe.HandlerDescriptions;
 import com.google.common.collect.Sets;
@@ -37,7 +37,7 @@ import java.util.Set;
  *
  * @param <T> The type of event to handle.
  */
-public abstract class AbstractHandler<T> implements Saga, NeedContext, DirectDescription {
+public abstract class AbstractHandler<T> implements Saga, NeedContext, DescribesHandlers {
     private static final InvalidState INVALID_STATE = new InvalidState();
     private final TypeToken<T> typeToken = new TypeToken<T>(getClass()) { };
     private ExecutionContext context;

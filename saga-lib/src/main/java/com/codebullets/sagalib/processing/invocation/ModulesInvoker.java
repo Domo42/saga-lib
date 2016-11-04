@@ -1,19 +1,19 @@
 /*
  * Copyright 2016 Stefan Domnanovits
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
-package com.codebullets.sagalib.processing;
+package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.SagaModule;
@@ -38,8 +38,8 @@ import java.util.function.BiConsumer;
  * </ul>
  */
 @Immutable
-final class ModulesInvoker {
-    private static final Logger LOG = LoggerFactory.getLogger(SagaExecutionTask.class);
+public final class ModulesInvoker {
+    private static final Logger LOG = LoggerFactory.getLogger(ModulesInvoker.class);
 
     private final List<Runnable> finishers;
     private final List<BiConsumer<Object, Throwable>> errorHandlers;
@@ -54,7 +54,7 @@ final class ModulesInvoker {
      * <p>In case of an error during start, calls error and finished on already started/starting modules.</p>
      * @return Invoker in case all modules started without error
      */
-    static ModulesInvoker start(final CurrentExecutionContext context, final Iterable<SagaModule> modules) {
+    public static ModulesInvoker start(final CurrentExecutionContext context, final Iterable<SagaModule> modules) {
         List<Runnable> finishers = new ArrayList<>();
         List<BiConsumer<Object, Throwable>> errorHandlers = new ArrayList<>();
 
@@ -80,14 +80,14 @@ final class ModulesInvoker {
     /**
      * Call finishers on all started modules.
      */
-    void finish() {
+    public void finish() {
         Lists.reverse(finishers).forEach(Runnable::run);
     }
 
     /**
      * Execute error method on started modules.
      */
-    void error(final Object message, final Throwable error) {
+    public void error(final Object message, final Throwable error) {
         Lists.reverse(errorHandlers).forEach(f -> f.accept(message, error));
     }
 

@@ -21,7 +21,7 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.processing.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.processing.InstanceResolver;
 import com.codebullets.sagalib.processing.KeyExtractor;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
@@ -124,7 +124,7 @@ class SagaLibModule extends AbstractModule {
 
     @Singleton
     @Provides
-    private SagaAnalyzer provide(final TypeScanner typeScanner, final DirectDescriptionAnalyzer directAnalyzer) {
+    private SagaAnalyzer provide(final TypeScanner typeScanner, final HandlerDescriptionAnalyzer directAnalyzer) {
         AnnotationSagaAnalyzer annotationAnalyzer = new AnnotationSagaAnalyzer(typeScanner);
 
         startSagaAnnotations.forEach(annotationAnalyzer::addStartSagaAnnotation);

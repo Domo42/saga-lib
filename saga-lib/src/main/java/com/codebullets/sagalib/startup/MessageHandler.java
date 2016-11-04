@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib.startup;
 
-import com.codebullets.sagalib.describe.DirectDescription;
+import com.codebullets.sagalib.describe.DescribesHandlers;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -57,7 +57,7 @@ public class MessageHandler {
 
     /**
      * Gets the optional method to invoke to trigger the message handler.
-     * If the method is empty, it indicates that the saga implements {@link DirectDescription}
+     * If the method is empty, it indicates that the saga implements {@link DescribesHandlers}
      * and one can use the returned consumer to execute message handling.
      */
     public Optional<Method> getMethodToInvoke() {

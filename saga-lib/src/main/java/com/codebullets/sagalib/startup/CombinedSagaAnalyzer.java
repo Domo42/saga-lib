@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class CombinedSagaAnalyzer implements SagaAnalyzer {
     private final AnnotationSagaAnalyzer annotationAnalyzer;
-    private final DirectDescriptionAnalyzer directAnalyzer;
+    private final HandlerDescriptionAnalyzer directAnalyzer;
 
     private Map<Class<? extends Saga>, SagaHandlersMap> scanResult;
 
@@ -35,7 +35,7 @@ public class CombinedSagaAnalyzer implements SagaAnalyzer {
      * Creates a new instance of CombinedSagaAnalyzer.
      */
     @Inject
-    public CombinedSagaAnalyzer(final AnnotationSagaAnalyzer annotationAnalyzer, final DirectDescriptionAnalyzer directAnalyzer) {
+    public CombinedSagaAnalyzer(final AnnotationSagaAnalyzer annotationAnalyzer, final HandlerDescriptionAnalyzer directAnalyzer) {
         this.annotationAnalyzer = annotationAnalyzer;
         this.directAnalyzer = directAnalyzer;
     }
