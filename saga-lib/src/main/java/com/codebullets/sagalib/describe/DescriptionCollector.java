@@ -53,7 +53,7 @@ class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDef
     @Override
     public HandlerTypeDefinition usingMethod(final Consumer<T> handlerMethod) {
         requireNonNull(handlerMethod, "Handler method for type " + startingType + " must not be null.");
-        handlerDefinitions.add(new CollectingHandlerDefinition<T>(this, startingType, handlerMethod));
+        handlerDefinitions.add(new CollectingHandlerDefinition<>(this, startingType, handlerMethod));
 
         return this;
     }

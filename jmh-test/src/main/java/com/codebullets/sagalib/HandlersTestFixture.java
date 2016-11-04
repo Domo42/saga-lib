@@ -33,24 +33,52 @@ public class HandlersTestFixture {
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureAnnotationHandler() {
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void measureAnnotationHandlerAverage() {
         annotationHandler();
     }
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureDescriptionHandler() {
+    public void measureAnnotationHandlerThroughput() {
+        annotationHandler();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void measureDescriptionHandlerAverage() {
         descriptionHandler();
     }
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureAnnotationSaga() {
+    public void measureDescriptionHandlerThroughput() {
+        descriptionHandler();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void measureAnnotationSagaAverage() {
         annotationSaga();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    public void measureAnnotationSagaThroughput() {
+        annotationSaga();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void measureDescriptionSagaAverage() {
+        descriptionSaga();
     }
 
     @Benchmark
@@ -91,7 +119,7 @@ public class HandlersTestFixture {
                 .include(HandlersTestFixture.class.getSimpleName())
                 .measurementTime(TimeValue.seconds(10))
                 .warmupIterations(10)
-                .measurementIterations(2)
+                .measurementIterations(1)
                 .forks(1)
                 .build();
 
