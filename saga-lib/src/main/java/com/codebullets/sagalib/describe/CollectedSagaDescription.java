@@ -17,9 +17,7 @@ package com.codebullets.sagalib.describe;
 
 import javax.annotation.concurrent.Immutable;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 /**
  * This description is the finalized concrete result of a call to
@@ -28,11 +26,16 @@ import java.util.stream.Stream;
 @Immutable
 class CollectedSagaDescription implements HandlerDescription {
     private final Class<?> startedBy;
-    private final Collection<HandlerDefinition> handlers;
+    private final Collection<Class<?>> handlerTypes;
+    private final Consumer<Object> executionHandler;
 
-    CollectedSagaDescription(final Class<?> startedBy, final Collection<HandlerDefinition> handlers) {
+    CollectedSagaDescription(
+            final Class<?> startedBy,
+            final Collection<Class<?>> handlerTypes,
+            final Consumer<Object> executionHandler) {
         this.startedBy = startedBy;
-        this.handlers = handlers;
+        this.handlerTypes = handlerTypes;
+        this.executionHandler = executionHandler;
     }
 
     @Override
@@ -42,22 +45,11 @@ class CollectedSagaDescription implements HandlerDescription {
 
     @Override
     public Iterable<Class<?>> handlerTypes() {
-        Stream<Class<?>> types = handlers.stream().map(HandlerDefinition::handlerType);
-        return types::iterator;
+        return handlerTypes;
     }
 
     @Override
     public Consumer<Object> handler() {
-        return this::invokeTargetHandler;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void invokeTargetHandler(final Object message) {
-        final Optional<HandlerDefinition> targetHandler = handlers.stream()
-                .filter(h -> h.handlerType().isAssignableFrom(message.getClass()))
-                .findFirst();
-
-        targetHandler.map(h -> (Consumer<Object>) h.handlerMethod())
-                .ifPresent(m -> m.accept(message));
+        return executionHandler;
     }
 }

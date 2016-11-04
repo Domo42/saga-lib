@@ -17,21 +17,27 @@ package com.codebullets.sagalib.describe;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Collects all description data provided.
+ *
+ * <p>This class looks quite a bit rough. That's because some tweaking went into it
+ * to improve performance. Have a look at 'measurements.txt' of jmh-tests for some
+ * of steps and measurements taken.
+ * m</p>
+ *
  * @param <T> The starting message type of the saga described.
  */
 class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDefinition<T> {
-    private final Class<T> startingType;
-    private final Collection<CollectingHandlerDefinition<?>> handlerDefinitions = new ArrayList<>();
+    private final Class<? super T> startingType;
+    private Collection<Class<?>> handlerTypes;
+    private Consumer<Object> collectedHandler;
 
-    DescriptionCollector(final Class<T> startingType) {
+    DescriptionCollector(final Class<? super T> startingType) {
         this.startingType = startingType;
     }
 
@@ -43,52 +49,65 @@ class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDef
 
     @Override
     public HandlerDescription finishDescription() {
-        List<HandlerDefinition> handlers = handlerDefinitions.stream()
-                .map(d -> new HandlerDefinition(d.messageType, d.handler))
-                .collect(Collectors.toList());
+        CollectedSagaDescription description;
 
-        return new CollectedSagaDescription(startingType, handlers);
+        if (handlerTypes != null) {
+            description = new CollectedSagaDescription(startingType, handlerTypes, collectedHandler);
+        } else {
+            description = new CollectedSagaDescription(startingType, Collections.singleton(startingType), collectedHandler);
+        }
+
+        return description;
     }
 
     @Override
     public HandlerTypeDefinition usingMethod(final Consumer<T> handlerMethod) {
         requireNonNull(handlerMethod, "Handler method for type " + startingType + " must not be null.");
-        handlerDefinitions.add(new CollectingHandlerDefinition<>(this, startingType, handlerMethod));
+
+        collectedHandler = (Consumer<Object>) handlerMethod;
 
         return this;
+    }
+
+    private void addHandlerType(final Class<?> handlerType) {
+        if (handlerTypes == null) {
+            handlerTypes = new ArrayList<>();
+            handlerTypes.add(startingType);
+        }
+
+        handlerTypes.add(handlerType);
     }
 
     /**
      * Collects all the handling definition data over time. This is done
      * by calling {@code usingMethod}.
-     * @param <T> The type of message handled.
+     * @param <MSG> The type of message handled.
      */
-    private final static class CollectingHandlerDefinition<T> implements HandlerMethodDefinition<T> {
-        private final DescriptionCollector descriptionCollector;
-        private final Class<T> messageType;
-        private Consumer<T> handler;
+    private static final class CollectingHandlerDefinition<MSG> implements HandlerMethodDefinition<MSG> {
+        private final Class<?> messageType;
+        private DescriptionCollector collector;
 
         private CollectingHandlerDefinition(
-                final DescriptionCollector descriptionCollector,
-                final Class<T> messageType) {
-            this.descriptionCollector = descriptionCollector;
+                final DescriptionCollector collector,
+                final Class<MSG> messageType) {
+            this.collector = collector;
             this.messageType = messageType;
-        }
-
-        private CollectingHandlerDefinition(
-                final DescriptionCollector descriptionCollector,
-                final Class<T> messageType,
-                final Consumer<T> handlerMethod) {
-            this.descriptionCollector = descriptionCollector;
-            this.messageType = messageType;
-            this.handler = handlerMethod;
         }
 
         @Override
-        public HandlerTypeDefinition usingMethod(final Consumer<T> handlerMethod) {
-            this.handler = requireNonNull(handlerMethod, "Handler method for type " + messageType + " must not be null.");
-            this.descriptionCollector.handlerDefinitions.add(this);
-            return descriptionCollector;
+        public HandlerTypeDefinition usingMethod(final Consumer<MSG> handlerMethod) {
+            collector.addHandlerType(messageType);
+
+            Consumer<Object> originalHandler = collector.collectedHandler;
+            collector.collectedHandler = (msg) -> {
+                if (msg.getClass().isAssignableFrom(messageType)) {
+                    ((Consumer<Object>) handlerMethod).accept(msg);
+                } else {
+                    originalHandler.accept(msg);
+                }
+            };
+
+            return collector;
         }
     }
 }

@@ -25,6 +25,7 @@ public class DirectHandler<T> extends AbstractHandler<String> {
     private final Map<String, String> context;
 
     public DirectHandler(final Map<String, String> context) {
+        super(String.class);
         this.context = context;
     }
 

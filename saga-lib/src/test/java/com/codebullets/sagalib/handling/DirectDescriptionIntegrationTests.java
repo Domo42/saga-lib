@@ -106,8 +106,24 @@ public class DirectDescriptionIntegrationTests {
         assertThat("Expected handler to be called.", context.get(NumberHandler.CALLED_KEY), equalTo("true"));
     }
 
+    @Test
+    public void handle_autoTypedHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
+        // given
+        final Double theMessage = 42.0;
+
+        // when
+        messageStream.handle(theMessage);
+
+        // then
+        assertThat("Expected handler to be called.", context.get(AutoTypedHandler.CALLED_KEY), equalTo("true"));
+    }
+
     private TypeScanner provideTypes() {
-        return () -> ImmutableList.of(DirectDescriptionSaga.class, DirectHandler.class, NumberHandler.class);
+        return () -> ImmutableList.of(
+                DirectDescriptionSaga.class,
+                DirectHandler.class,
+                NumberHandler.class,
+                AutoTypedHandler.class);
     }
 
     private SagaProviderFactory providerFactory() {
@@ -121,6 +137,8 @@ public class DirectDescriptionIntegrationTests {
                     provider = (Provider) () -> new DirectHandler(context);
                 } else if (sagaClass.equals(NumberHandler.class)) {
                     provider = (Provider) () -> new NumberHandler(context);
+                } else if (sagaClass.equals(AutoTypedHandler.class)) {
+                    provider = (Provider) () -> new AutoTypedHandler(context);
                 }
 
                 return provider;

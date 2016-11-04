@@ -16,25 +16,22 @@
 package com.codebullets.sagalib.describe;
 
 import javax.annotation.concurrent.Immutable;
-import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This is an unchecked definition of saga handler, holding the message type
- * and method to call.
+ * of the target handler.
  */
 @Immutable
 final class HandlerDefinition {
     private final Class<?> handlerType;
-    private final Consumer<?> handlerMethod;
 
     /**
      * Creates an immutable, handler definition of a handled type and handler method.
      */
-    HandlerDefinition(final Class<?> handlerType, final Consumer<?> handlerMethod) {
+    HandlerDefinition(final Class<?> handlerType) {
         this.handlerType = checkNotNull(handlerType, "The handler type must not be null.");
-        this.handlerMethod = checkNotNull(handlerMethod, "The method handling " + handlerType + "must not be null.");
     }
 
     /**
@@ -42,12 +39,5 @@ final class HandlerDefinition {
      */
     Class<?> handlerType() {
         return handlerType;
-    }
-
-    /**
-     * Gets the method performing the handling of  {@link #handlerType()}.
-     */
-    Consumer<?> handlerMethod() {
-        return handlerMethod;
     }
 }

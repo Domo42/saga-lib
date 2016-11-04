@@ -3,6 +3,7 @@ package com.codebullets.sagalib;
 import com.codebullets.sagalib.annotations.AnnotationFinishMessage;
 import com.codebullets.sagalib.annotations.AnnotationHandlerMessage;
 import com.codebullets.sagalib.annotations.AnnotationStartingMessage;
+import com.codebullets.sagalib.description.AutoTypedMessage;
 import com.codebullets.sagalib.description.DescriptionFinishMessage;
 import com.codebullets.sagalib.description.DescriptionHandlerMessage;
 import com.codebullets.sagalib.description.DescriptionStartingMessage;
@@ -30,6 +31,7 @@ public class HandlersTestFixture {
         annotationSaga();
         descriptionHandler();
         descriptionSaga();
+        autoTypedDescriptionHandler();
     }
 
     @Benchmark
@@ -84,8 +86,22 @@ public class HandlersTestFixture {
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void measureDescriptionSaga() {
+    public void measureDescriptionSagaThroughput() {
         descriptionSaga();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    public void measureAutoTypedHandlerThroughput() {
+        autoTypedDescriptionHandler();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    public void measureAutoTypedHandlerAverage() {
+        autoTypedDescriptionHandler();
     }
 
     private void annotationSaga() {
@@ -106,6 +122,10 @@ public class HandlersTestFixture {
 
     private void descriptionHandler() {
         sagaLibStream.handle(new DescriptionHandlerMessage());
+    }
+
+    private void autoTypedDescriptionHandler() {
+        sagaLibStream.handle(new AutoTypedMessage());
     }
 
     private long nextKey() {

@@ -20,33 +20,25 @@ import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.describe.HandlerDescriptions;
+import com.google.common.reflect.TypeToken;
 
 import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Inherit from this class to quickly handle any event put on the
- * message stream. This class implements a simplified saga that does
- * not have state and is automatically finished.
+ * Helper class to implement a saga handling a single message that is automatically
+ * finished. No state will be saved.
  *
- * <p>Compared to {@link AbstractSingleEventSaga} this class is using
- * the direct handler description feature and does not rely on annotations.</p>
+ * <p>This class is similar to {@link AbstractHandler} but tries to infer the actual
+ * generic type via reflection. As such this handler is slower in comparison. On
+ * average it took one additional micro second to determine the type. This halved
+ * the number of possible ops/s on my test machine.</p>
  *
- * @param <T> The type of event to handle.
+ * @param <T> The type of event being handled.
  */
-public abstract class AbstractHandler<T> implements Saga, NeedContext, DescribesHandlers {
-    private final Class<T> handlerType;
+public abstract class AbstractAutoTypedHandler<T> implements Saga, DescribesHandlers, NeedContext {
+    private final TypeToken<T> typeToken = new TypeToken<T>(getClass()) { };
     private ExecutionContext context;
-
-    /**
-     * Construct instance using the actual handler type.
-     *
-     * <p>This is necessary as it is slow (and error prone) to detect the generic argument
-     * type at runtime.</p>
-     */
-    protected AbstractHandler(final Class<T> handlerType) {
-        this.handlerType = handlerType;
-    }
 
     /**
      * Override this method in your custom handler class to
@@ -57,7 +49,7 @@ public abstract class AbstractHandler<T> implements Saga, NeedContext, Describes
     @Override
     public HandlerDescription describeHandlers() {
         return HandlerDescriptions.
-                startedBy(handlerType).usingMethod(this::handle)
+                startedBy(typeToken.getRawType()).usingMethod((e) -> handle((T) e))
                 .finishDescription();
     }
 

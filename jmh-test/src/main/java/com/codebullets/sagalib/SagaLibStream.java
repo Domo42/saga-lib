@@ -18,6 +18,7 @@ package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.annotations.AnnotationHandler;
 import com.codebullets.sagalib.annotations.AnnotationSaga;
+import com.codebullets.sagalib.description.AutoTypedHandler;
 import com.codebullets.sagalib.description.DescriptionHandler;
 import com.codebullets.sagalib.description.DescriptionSaga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
@@ -67,6 +68,8 @@ public class SagaLibStream implements AutoCloseable {
                     provider = (Provider) () -> new DescriptionSaga();
                 } else if (sagaClass.equals(AnnotationSaga.class)) {
                     provider = (Provider) () -> new AnnotationSaga();
+                } else if (sagaClass.equals(AutoTypedHandler.class)) {
+                    provider = (Provider) () -> new AutoTypedHandler();
                 }
 
                 return provider;
@@ -79,6 +82,7 @@ public class SagaLibStream implements AutoCloseable {
                 AnnotationHandler.class,
                 DescriptionHandler.class,
                 AnnotationSaga.class,
-                DescriptionSaga.class);
+                DescriptionSaga.class,
+                AutoTypedHandler.class);
     }
 }

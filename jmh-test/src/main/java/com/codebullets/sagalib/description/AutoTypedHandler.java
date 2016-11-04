@@ -14,26 +14,12 @@
  *  limitations under the License.
  */
 
-package com.codebullets.sagalib.handling;
+package com.codebullets.sagalib.description;
 
-import com.codebullets.sagalib.AbstractHandler;
+import com.codebullets.sagalib.AbstractAutoTypedHandler;
 
-import java.util.Map;
-
-/**
- * Handles a base type of the actual message instead of the same type.
- */
-public class NumberHandler extends AbstractHandler<Number> {
-    static final String CALLED_KEY = "NumberHandler.called.key";
-    private final Map<String, String> context;
-
-    public NumberHandler(final Map<String, String> context) {
-        super(Number.class);
-        this.context = context;
-    }
-
+public class AutoTypedHandler extends AbstractAutoTypedHandler<AutoTypedMessage> {
     @Override
-    public void handle(final Number event) {
-        context.put(CALLED_KEY, "true");
+    public void handle(final AutoTypedMessage event) {
     }
 }

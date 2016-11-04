@@ -1,0 +1,91 @@
+Using CollectedSagaDescriptionWith Handler Map
+----------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1222621,943          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        355300,422          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        419141,198          ops/s
+HandlersTestFixture.measureDescriptionSaga               thrpt        235646,736          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,844          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,792          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             2,338          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             4,443          us/op
+
+
+Implementing handler directly in saga test (not very practicable)
+-----------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1181579,533          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        358278,489          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        414961,036          ops/s
+HandlersTestFixture.measureDescriptionSaga               thrpt        350530,847          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,848          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,815          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             2,468          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             2,745          us/op
+
+
+Constructing a combined handler function instead of iterating list of handlers
+------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1182159,481          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        345450,431          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        485220,954          ops/s
+HandlersTestFixture.measureDescriptionSaga               thrpt        308349,984          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,849          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,797          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             2,039          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,244          us/op
+
+
+Create Handler Collection only when multiple handlers are present
+------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1189924,741          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        358283,351          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        494707,419          ops/s
+HandlersTestFixture.measureDescriptionSaga               thrpt        327202,493          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,842          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,791          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             2,037          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,198          us/op
+
+
+Don't use reflective TypeToken to determine generic handling message type at runtime
+------------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1193854,093          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        357804,396          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt       1011930,068          ops/s
+HandlersTestFixture.measureDescriptionSaga               thrpt        316449,784          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,852          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,760          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             0,939          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,197          us/op
+
+
+Without "clazz.isAssignableFrom(msg)" check for starting handler
+------------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1195171,730          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        351556,311          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt       1016230,613          ops/s
+HandlersTestFixture.measureDescriptionSaga               thrpt        320587,598          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,847          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,820          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             0,972          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,163          us/op
+
+
+Additional separate auto typed handler using TypeToken
+------------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1174543,931          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        356302,817          ops/s
+HandlersTestFixture.measureAutoTypedHandlerThroughput    thrpt        509851,764          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt       1026873,819          ops/s
+HandlersTestFixture.measureDescriptionSagaThroughput     thrpt        314293,714          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,848          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,799          us/op
+HandlersTestFixture.measureAutoTypedHandlerAverage        avgt             1,940          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             0,972          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,293          us/op

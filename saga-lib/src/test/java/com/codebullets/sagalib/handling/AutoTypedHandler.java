@@ -16,24 +16,23 @@
 
 package com.codebullets.sagalib.handling;
 
-import com.codebullets.sagalib.AbstractHandler;
+import com.codebullets.sagalib.AbstractAutoTypedHandler;
 
 import java.util.Map;
 
 /**
- * Handles a base type of the actual message instead of the same type.
+ * Handles a message using the auto resolve type capabilities of the saga-lib.
  */
-public class NumberHandler extends AbstractHandler<Number> {
-    static final String CALLED_KEY = "NumberHandler.called.key";
+public class AutoTypedHandler extends AbstractAutoTypedHandler<Double> {
+    static final String CALLED_KEY = "AutoTypedHandler.called.key";
     private final Map<String, String> context;
 
-    public NumberHandler(final Map<String, String> context) {
-        super(Number.class);
+    public AutoTypedHandler(final Map<String, String> context) {
         this.context = context;
     }
 
     @Override
-    public void handle(final Number event) {
+    public void handle(final Double event) {
         context.put(CALLED_KEY, "true");
     }
 }

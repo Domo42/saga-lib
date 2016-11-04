@@ -23,6 +23,10 @@ import com.codebullets.sagalib.AbstractHandler;
  */
 public class DescriptionHandler extends AbstractHandler<DescriptionHandlerMessage> {
 
+    public DescriptionHandler() {
+        super(DescriptionHandlerMessage.class);
+    }
+
     @Override
     public void handle(final DescriptionHandlerMessage event) {
     }

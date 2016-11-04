@@ -16,7 +16,9 @@
 
 package com.codebullets.sagalib.description;
 
-import com.codebullets.sagalib.*;
+import com.codebullets.sagalib.AbstractSaga;
+import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.KeyReaders;
 import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.describe.HandlerDescriptions;

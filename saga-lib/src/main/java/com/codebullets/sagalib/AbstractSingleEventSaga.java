@@ -16,11 +16,9 @@
 package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.NeedContext;
-import com.google.common.collect.Sets;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 /**
  * <p>Basic saga implementation handling only one event. No state is
@@ -32,7 +30,6 @@ import java.util.Set;
  * or further event handling is necessary.</p>
  */
 public abstract class AbstractSingleEventSaga implements Saga, NeedContext {
-    private static final InvalidState INVALID_STATE = new InvalidState();
     private ExecutionContext context;
 
     /**
@@ -40,7 +37,7 @@ public abstract class AbstractSingleEventSaga implements Saga, NeedContext {
      */
     @Override
     public SagaState state() {
-        return INVALID_STATE;
+        return InvalidState.INSTANCE;
     }
 
     /**
@@ -86,28 +83,5 @@ public abstract class AbstractSingleEventSaga implements Saga, NeedContext {
     @Override
     public void setExecutionContext(final ExecutionContext executionContext) {
         this.context = executionContext;
-    }
-
-    /**
-     * Always returns the same state values, representing an
-     * invalid saga state.
-     */
-    private static final class InvalidState extends AbstractSagaState {
-        private static final Set<String> INSTANCE_KEYS = Collections.unmodifiableSet(Sets.newHashSet("AbstractSingleEventSaga"));
-
-        @Override
-        public String getSagaId() {
-            return "AbstractSingleEventSaga";
-        }
-
-        @Override
-        public String getType() {
-            return "AbstractSingleEventSaga";
-        }
-
-        @Override
-        public Set<String> instanceKeys() {
-            return INSTANCE_KEYS;
-        }
     }
 }
