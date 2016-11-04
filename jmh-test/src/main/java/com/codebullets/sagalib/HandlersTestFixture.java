@@ -139,6 +139,7 @@ public class HandlersTestFixture {
                 .include(HandlersTestFixture.class.getSimpleName())
                 .measurementTime(TimeValue.seconds(10))
                 .warmupIterations(10)
+                .jvmArgsAppend("-XX:+UseG1GC", "-Xmx2048m")
                 .measurementIterations(1)
                 .forks(1)
                 .build();

@@ -89,3 +89,18 @@ HandlersTestFixture.measureAnnotationSagaAverage          avgt             2,799
 HandlersTestFixture.measureAutoTypedHandlerAverage        avgt             1,940          us/op
 HandlersTestFixture.measureDescriptionHandlerAverage      avgt             0,972          us/op
 HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,293          us/op
+
+
+Add -XX:+UseG1GC -Xmx2048m to JVM options
+------------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1069339,852          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        319184,170          ops/s
+HandlersTestFixture.measureAutoTypedHandlerThroughput    thrpt        459972,525          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        954623,846          ops/s
+HandlersTestFixture.measureDescriptionSagaThroughput     thrpt        280500,460          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,898          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             3,082          us/op
+HandlersTestFixture.measureAutoTypedHandlerAverage        avgt             2,166          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             1,052          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,514          us/op
