@@ -6,7 +6,7 @@
     <parent>
         <artifactId>saga-lib-root</artifactId>
         <groupId>com.codebullets.saga-lib</groupId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0</version>
     </parent>
 
     <artifactId>jmh-test</artifactId>
