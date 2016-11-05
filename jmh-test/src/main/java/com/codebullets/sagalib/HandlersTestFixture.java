@@ -8,6 +8,7 @@ import com.codebullets.sagalib.description.DescriptionFinishMessage;
 import com.codebullets.sagalib.description.DescriptionHandlerMessage;
 import com.codebullets.sagalib.description.DescriptionStartingMessage;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
@@ -19,12 +20,14 @@ import java.util.concurrent.TimeUnit;
 
 @State(Scope.Thread)
 public class HandlersTestFixture {
-    private final static SagaLibStream sagaLibStream = new SagaLibStream();
+    private SagaLibStream sagaLibStream;
 
     private long key = 0;
 
     @Setup
-    public void setup() {
+    public void setup(final Blackhole bh) {
+        sagaLibStream = new SagaLibStream(bh);
+
         // prevent certain possible optimization, in case
         // there's only a single saga type
         annotationHandler();
@@ -139,8 +142,8 @@ public class HandlersTestFixture {
                 .include(HandlersTestFixture.class.getSimpleName())
                 .measurementTime(TimeValue.seconds(10))
                 .warmupIterations(10)
-                .jvmArgsAppend("-XX:+UseG1GC", "-Xmx2048m")
-                .measurementIterations(1)
+                .jvmArgsAppend("-XX:+UseG1GC", "-Xmx2048m", "-Xms1024m")
+                .measurementIterations(2)
                 .forks(1)
                 .build();
 

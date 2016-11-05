@@ -17,17 +17,23 @@
 package com.codebullets.sagalib.description;
 
 import com.codebullets.sagalib.AbstractHandler;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Handler using the DescribesHandler interface.
  */
 public class DescriptionHandler extends AbstractHandler<DescriptionHandlerMessage> {
+    private static int COUNT = 0;
+    private final Blackhole bh;
 
-    public DescriptionHandler() {
+    public DescriptionHandler(final Blackhole bh) {
         super(DescriptionHandlerMessage.class);
+        this.bh = bh;
     }
 
     @Override
     public void handle(final DescriptionHandlerMessage event) {
+        COUNT++;
+        bh.consume(COUNT);
     }
 }

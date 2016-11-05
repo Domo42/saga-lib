@@ -17,9 +17,19 @@
 package com.codebullets.sagalib.description;
 
 import com.codebullets.sagalib.AbstractAutoTypedHandler;
+import org.openjdk.jmh.infra.Blackhole;
 
 public class AutoTypedHandler extends AbstractAutoTypedHandler<AutoTypedMessage> {
+    private static int COUNT = 0;
+    private final Blackhole bh;
+
+    public AutoTypedHandler(final Blackhole bh) {
+        this.bh = bh;
+    }
+
     @Override
     public void handle(final AutoTypedMessage event) {
+        COUNT++;
+        bh.consume(COUNT);
     }
 }

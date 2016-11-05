@@ -18,12 +18,23 @@ package com.codebullets.sagalib.annotations;
 
 import com.codebullets.sagalib.AbstractSingleEventSaga;
 import com.codebullets.sagalib.StartsSaga;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Simple handler using annotations for message handling
  */
 public class AnnotationHandler extends AbstractSingleEventSaga {
+    private static int COUNT = 0;
+    private final Blackhole bh;
+
+    public AnnotationHandler(final Blackhole bh) {
+        super();
+        this.bh = bh;
+    }
+
     @StartsSaga
     public void handlerMethod(final AnnotationHandlerMessage message) {
+        COUNT++;
+        bh.consume(COUNT);
     }
 }

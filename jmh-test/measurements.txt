@@ -1,3 +1,33 @@
+Test environment
+================
+
+# JMH 1.15 (released 36 days ago)
+# VM version: JDK 1.8.0_111, VM 25.111-b14
+# VM invoker: C:\Program Files\Java\jre1.8.0_111\bin\java.exe
+# VM options: -XX:+UseG1GC -Xmx2048m -Xms1024m
+# Warmup: 20 iterations, 1 s each
+# Measurement: 3 iterations, 1 s each
+# Timeout: 10 min per iteration
+# Threads: 1 thread, will synchronize iterations
+
+CPU: Intel Core i7 6700K 4GHz
+
+FINAL BENCHMARK
+===============
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt    3  1091600,356 ± 123104,210  ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt    3   324767,703 ±  16953,142  ops/s
+HandlersTestFixture.measureAutoTypedHandlerThroughput    thrpt    3   450079,517 ±  40062,280  ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt    3   951658,926 ±  36290,942  ops/s
+HandlersTestFixture.measureDescriptionSagaThroughput     thrpt    3   257942,477 ± 577715,603  ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt    3        0,928 ±      0,023  us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt    3        3,108 ±      0,158  us/op
+HandlersTestFixture.measureAutoTypedHandlerAverage        avgt    3        2,166 ±      0,097  us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt    3        1,049 ±      0,070  us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt    3        3,504 ±      0,109  us/op
+
+
+-> Benchmarks steps done to reach above values are below
+
 Using CollectedSagaDescriptionWith Handler Map
 ----------------------------------------------
 Benchmark                                                 Mode  Cnt        Score   Error  Units
@@ -104,3 +134,33 @@ HandlersTestFixture.measureAnnotationSagaAverage          avgt             3,082
 HandlersTestFixture.measureAutoTypedHandlerAverage        avgt             2,166          us/op
 HandlersTestFixture.measureDescriptionHandlerAverage      avgt             1,052          us/op
 HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,514          us/op
+
+
+Introduce blackhole consumption to prevent handler code elimination
+-----------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1086221,937          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        308988,914          ops/s
+HandlersTestFixture.measureAutoTypedHandlerThroughput    thrpt        451729,891          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        943446,732          ops/s
+HandlersTestFixture.measureDescriptionSagaThroughput     thrpt        285003,442          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,931          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             3,127          us/op
+HandlersTestFixture.measureAutoTypedHandlerAverage        avgt             2,184          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             1,055          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,663          us/op
+
+
+Remove collected description instantiation
+-----------------------------------------------------------------------------------
+Benchmark                                                 Mode  Cnt        Score   Error  Units
+HandlersTestFixture.measureAnnotationHandlerThroughput   thrpt       1069725,575          ops/s
+HandlersTestFixture.measureAnnotationSagaThroughput      thrpt        328334,044          ops/s
+HandlersTestFixture.measureAutoTypedHandlerThroughput    thrpt        459040,800          ops/s
+HandlersTestFixture.measureDescriptionHandlerThroughput  thrpt        920189,797          ops/s
+HandlersTestFixture.measureDescriptionSagaThroughput     thrpt        277420,140          ops/s
+HandlersTestFixture.measureAnnotationHandlerAverage       avgt             0,932          us/op
+HandlersTestFixture.measureAnnotationSagaAverage          avgt             3,043          us/op
+HandlersTestFixture.measureAutoTypedHandlerAverage        avgt             2,203          us/op
+HandlersTestFixture.measureDescriptionHandlerAverage      avgt             1,058          us/op
+HandlersTestFixture.measureDescriptionSagaAverage         avgt             3,602          us/op

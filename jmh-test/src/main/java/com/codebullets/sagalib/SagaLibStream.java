@@ -26,6 +26,7 @@ import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import org.openjdk.jmh.infra.Blackhole;
 
 import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
@@ -33,10 +34,10 @@ import java.lang.reflect.InvocationTargetException;
 public class SagaLibStream implements AutoCloseable {
     private final MessageStream messageStream;
 
-    public SagaLibStream() {
+    public SagaLibStream(final Blackhole bh) {
         messageStream = EventStreamBuilder.configure()
                 .usingScanner(createConstantTypeScanner())
-                .usingSagaProviderFactory(providerFactory())
+                .usingSagaProviderFactory(providerFactory(bh))
                 .build();
     }
 
@@ -54,22 +55,22 @@ public class SagaLibStream implements AutoCloseable {
         }
     }
 
-    private SagaProviderFactory providerFactory() {
+    private SagaProviderFactory providerFactory(final Blackhole bh) {
         return new SagaProviderFactory() {
             @Override
             public <T extends Saga> Provider<T> createProvider(final Class<T> sagaClass) {
                 Provider<T> provider = null;
 
                 if (sagaClass.equals(DescriptionHandler.class)) {
-                    provider = (Provider) () -> new DescriptionHandler();
+                    provider = (Provider) () -> new DescriptionHandler(bh);
                 } else if (sagaClass.equals(AnnotationHandler.class)) {
-                    provider = (Provider) () -> new AnnotationHandler();
+                    provider = (Provider) () -> new AnnotationHandler(bh);
                 } else if (sagaClass.equals(DescriptionSaga.class)) {
                     provider = (Provider) () -> new DescriptionSaga();
                 } else if (sagaClass.equals(AnnotationSaga.class)) {
                     provider = (Provider) () -> new AnnotationSaga();
                 } else if (sagaClass.equals(AutoTypedHandler.class)) {
-                    provider = (Provider) () -> new AutoTypedHandler();
+                    provider = (Provider) () -> new AutoTypedHandler(bh);
                 }
 
                 return provider;

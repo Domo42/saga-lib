@@ -26,13 +26,13 @@ import static java.util.Objects.requireNonNull;
  * Collects all description data provided.
  *
  * <p>This class looks quite a bit rough. That's because some tweaking went into it
- * to improve performance. Have a look at 'measurements.txt' of jmh-tests for some
- * of steps and measurements taken.
- * m</p>
+ * to improve performance. Have a look at 'measurements.txt' with jmh reports for some
+ * of the improvement steps and measurements taken.
+ * </p>
  *
  * @param <T> The starting message type of the saga described.
  */
-class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDefinition<T> {
+class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDefinition<T>, HandlerDescription {
     private final Class<? super T> startingType;
     private Collection<Class<?>> handlerTypes;
     private Consumer<Object> collectedHandler;
@@ -49,15 +49,11 @@ class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDef
 
     @Override
     public HandlerDescription finishDescription() {
-        CollectedSagaDescription description;
-
-        if (handlerTypes != null) {
-            description = new CollectedSagaDescription(startingType, handlerTypes, collectedHandler);
-        } else {
-            description = new CollectedSagaDescription(startingType, Collections.singleton(startingType), collectedHandler);
+        if (handlerTypes == null) {
+            handlerTypes = Collections.singleton(startingType);
         }
 
-        return description;
+        return this;
     }
 
     @Override
@@ -67,6 +63,21 @@ class DescriptionCollector<T> implements HandlerTypeDefinition, HandlerMethodDef
         collectedHandler = (Consumer<Object>) handlerMethod;
 
         return this;
+    }
+
+    @Override
+    public Class<?> startedBy() {
+        return startingType;
+    }
+
+    @Override
+    public Iterable<Class<?>> handlerTypes() {
+        return handlerTypes;
+    }
+
+    @Override
+    public Consumer<Object> handler() {
+        return collectedHandler;
     }
 
     private void addHandlerType(final Class<?> handlerType) {
