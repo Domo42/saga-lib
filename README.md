@@ -56,6 +56,9 @@ further handlers need to be annotated with *@EventHandler*. There can only be
 one message starting a saga. There is no limit to the number of further
 event handlers.
 
+This saga is using annoations to define the handlers, but there is also an
+option to use a direct [Fluent API] api.
+
 ```java
 public class MySaga extends AbstractSaga<MySagaState> {
 
@@ -103,3 +106,4 @@ public class MySaga extends AbstractSaga<MySagaState> {
 [JSR-330]: http://jcp.org/en/jsr/detail?id=330
 [Guice]: https://github.com/google/guice
 [Spring]: http://www.springsource.org/spring-framework
+[Fluent API]: https://github.com/Domo42/saga-lib/wiki/HandlerDescription
