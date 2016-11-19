@@ -24,9 +24,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.Immutable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Executes the methods on the list of available modules. This has the following rules:
@@ -41,10 +46,12 @@ import java.util.function.BiConsumer;
 public final class ModulesInvoker {
     private static final Logger LOG = LoggerFactory.getLogger(ModulesInvoker.class);
 
-    private final List<Runnable> finishers;
-    private final List<BiConsumer<Object, Throwable>> errorHandlers;
+    private final List<Supplier<Optional<Exception>>> finishers;
+    private final List<BiFunction<Object, Throwable, Optional<Exception>>> errorHandlers;
 
-    private ModulesInvoker(final List<Runnable> finishers, final List<BiConsumer<Object, Throwable>> errorHandlers) {
+    private ModulesInvoker(
+            final List<Supplier<Optional<Exception>>> finishers,
+            final List<BiFunction<Object, Throwable, Optional<Exception>>> errorHandlers) {
         this.finishers = Collections.unmodifiableList(finishers);
         this.errorHandlers = Collections.unmodifiableList(errorHandlers);
     }
@@ -55,8 +62,8 @@ public final class ModulesInvoker {
      * @return Invoker in case all modules started without error
      */
     public static ModulesInvoker start(final CurrentExecutionContext context, final Iterable<SagaModule> modules) {
-        List<Runnable> finishers = new ArrayList<>();
-        List<BiConsumer<Object, Throwable>> errorHandlers = new ArrayList<>();
+        List<Supplier<Optional<Exception>>> finishers = new ArrayList<>();
+        List<BiFunction<Object, Throwable, Optional<Exception>>> errorHandlers = new ArrayList<>();
 
         try {
             for (final SagaModule module : modules) {
@@ -80,33 +87,45 @@ public final class ModulesInvoker {
     /**
      * Call finishers on all started modules.
      */
-    public void finish() {
-        Lists.reverse(finishers).forEach(Runnable::run);
+    public Collection<Exception> finish() {
+        return Lists.reverse(finishers).stream()
+                .flatMap(f -> f.get().map(Stream::of).orElse(Stream.empty()))
+                .collect(Collectors.toList());
     }
 
     /**
      * Execute error method on started modules.
+     * @return Returns possible errors triggered during error handing itself
      */
-    public void error(final Object message, final Throwable error) {
-        Lists.reverse(errorHandlers).forEach(f -> f.accept(message, error));
+    public Collection<Exception> error(final Object message, final Throwable error) {
+        return Lists.reverse(errorHandlers).stream()
+                .flatMap(f -> f.apply(message, error).map(Stream::of).orElse(Stream.empty()))
+                .collect(Collectors.toList());
     }
 
-    private static Runnable createFinisher(final SagaModule module, final ExecutionContext context) {
+    private static Supplier<Optional<Exception>> createFinisher(final SagaModule module, final ExecutionContext context) {
         return () -> tryExecute(() -> module.onFinished(context), module);
     }
 
-    private static BiConsumer<Object, Throwable> createErrorHandler(final SagaModule module, final ExecutionContext context) {
+    private static BiFunction<Object, Throwable, Optional<Exception>> createErrorHandler(final SagaModule module, final ExecutionContext context) {
         return (message, throwable) -> tryExecute(() -> module.onError(context, message, throwable), module);
     }
 
     /**
      * Executes the provided runnable without throwing possible exceptions.
+     * @return Returns the exception encountered during execution.
      */
-    private static void tryExecute(final Runnable runnable, final SagaModule module) {
+    private static Optional<Exception> tryExecute(final Runnable runnable, final SagaModule module) {
+        Exception executionException;
+
         try {
             runnable.run();
+            executionException = null;
         } catch (Exception ex) {
+            executionException = ex;
             LOG.error("Error executing function on module {}", module, ex);
         }
+
+        return Optional.ofNullable(executionException);
     }
 }

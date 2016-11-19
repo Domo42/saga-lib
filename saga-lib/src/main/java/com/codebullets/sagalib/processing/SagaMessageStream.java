@@ -20,6 +20,7 @@ import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.timeout.Timeout;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +114,13 @@ public class SagaMessageStream implements MessageStream {
 
         Map<String, Object> executionHeaders = mergeHeaders(headers, parentContext);
         SagaExecutionTask executionTask = createTaskToExecute(message, executionHeaders, parentContext);
-        executionTask.handle();
+        try {
+            executionTask.handle();
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw e;
+        } catch (Exception e) {
+            Throwables.propagate(e);
+        }
     }
 
     /**

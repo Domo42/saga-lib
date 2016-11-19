@@ -17,14 +17,16 @@ package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.processing.invocation.ModulesInvoker;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -205,5 +207,54 @@ public class ModulesInvokerTest {
         verify(modules.get(0)).onError(context, message, ex);
         verify(modules.get(1)).onError(context, message, ex);
         verify(modules.get(2)).onError(context, message, ex);
+    }
+
+    @Test
+    public void error_moduleThrowsDuringError_returnsEncounteredException() {
+        // given
+        CurrentExecutionContext context = mock(CurrentExecutionContext.class);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        NullPointerException ex = new NullPointerException();
+        Object message = new Object();
+        doThrow(ex).when(modules.get(1)).onError(context, message, ex);
+
+        // when
+        Collection<Exception> errors = sut.error(message, ex);
+
+        // then
+        assertThat("Expected thrown exception in returned collection", errors, hasItem(ex));
+    }
+
+    @Test
+    public void finish_moduleThrowsDuringFinish_returnsEncounteredException() {
+        // given
+        CurrentExecutionContext context = mock(CurrentExecutionContext.class);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        NullPointerException ex = new NullPointerException();
+        doThrow(ex).when(modules.get(2)).onFinished(context);
+
+        // when
+        Collection<Exception> errors = sut.finish();
+
+        // then
+        assertThat("Expected thrown exception in returned collection", errors, hasItem(ex));
+    }
+
+    @Test
+    public void finish_multipleModulesThrowsDuringFinish_returnsAllEncounteredException() {
+        // given
+        CurrentExecutionContext context = mock(CurrentExecutionContext.class);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        NullPointerException ex1 = new NullPointerException();
+        NullPointerException ex2 = new NullPointerException();
+        doThrow(ex1).when(modules.get(1)).onFinished(context);
+        doThrow(ex2).when(modules.get(2)).onFinished(context);
+
+        // when
+        Collection<Exception> errors = sut.finish();
+
+        // then
+        assertThat("Expected thrown exception 1 in returned collection.", errors, hasItem(ex1));
+        assertThat("Expected thrown exception 2 in returned collection.", errors, hasItem(ex2));
     }
 }

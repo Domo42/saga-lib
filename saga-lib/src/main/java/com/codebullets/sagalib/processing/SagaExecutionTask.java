@@ -25,12 +25,14 @@ import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.processing.invocation.ModulesInvoker;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -72,12 +74,12 @@ class SagaExecutionTask implements ExecutedRunnable {
      * @throws InvocationTargetException Thrown when invocation of the handler method fails.
      * @throws IllegalAccessException Thrown when access to the handler method fails.
      */
-    public void handle() throws InvocationTargetException, IllegalAccessException {
+    public void handle() throws Exception {
         checkNotNull(taskLookupContext.message(), "Message to handle must not be null.");
         startExecutionChain(taskLookupContext);
     }
 
-    private boolean startExecutionChain(final LookupContext messageLookupContext) throws InvocationTargetException, IllegalAccessException {
+    private boolean startExecutionChain(final LookupContext messageLookupContext) throws Exception {
         boolean sagasExecuted = false;
 
         CurrentExecutionContext executionContext = env.contextProvider().get();
@@ -86,6 +88,7 @@ class SagaExecutionTask implements ExecutedRunnable {
         setHeaders(executionContext);
 
         ModulesInvoker modulesInvoker = ModulesInvoker.start(executionContext, env.modules());
+        Collection<Exception> encounteredExceptions = new ArrayList<>();
 
         try {
             sagasExecuted = executeHandlersForMessage(messageLookupContext, executionContext);
@@ -93,18 +96,34 @@ class SagaExecutionTask implements ExecutedRunnable {
                 LOG.warn("No saga or saga state found to handle message. (message = {})", taskLookupContext.message());
             }
         } catch (Exception ex) {
+            encounteredExceptions.add(ex);
             executionContext.setError(ex);
-            modulesInvoker.error(messageLookupContext.message(), ex);
-            throw ex;
+            encounteredExceptions.addAll(modulesInvoker.error(messageLookupContext.message(), ex));
         } finally {
-            modulesInvoker.finish();
+            encounteredExceptions.addAll(modulesInvoker.finish());
         }
+
+        throwOnErrors(encounteredExceptions,  executionContext.message());
 
         return sagasExecuted;
     }
 
+    private void throwOnErrors(final Collection<Exception> encounteredExceptions, final Object message) throws Exception {
+        int exceptionsCount = encounteredExceptions.size();
+        switch (exceptionsCount) {
+            case 0:
+                // no error -> do nothing
+                break;
+            case 1:
+                // single error -> rethrow original exception
+                throw  encounteredExceptions.iterator().next();
+            default:
+                throw new SagaExecutionErrorsException("Multiple error encountered handling message " + message, encounteredExceptions);
+        }
+    }
+
     private boolean executeHandlersForMessage(final LookupContext messageLookupContext, final CurrentExecutionContext executionContext)
-            throws InvocationTargetException, IllegalAccessException {
+            throws Exception {
         boolean sagasExecuted = false;
         Object message = executionContext.message();
 
@@ -216,8 +235,8 @@ class SagaExecutionTask implements ExecutedRunnable {
     public void run() {
         try {
             handle();
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            Throwables.propagate(e);
         }
     }
 

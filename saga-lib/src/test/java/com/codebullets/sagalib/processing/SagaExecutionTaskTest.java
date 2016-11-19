@@ -43,8 +43,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.googlecode.catchexception.CatchException.catchException;
+import static com.googlecode.catchexception.CatchException.caughtException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Matchers.any;
@@ -560,6 +565,22 @@ public class SagaExecutionTaskTest {
 
         // then
         verify(invoker, never()).invoke(saga, theMessage);
+    }
+
+    @Test
+    public void run_invokerAndModuleFinishThrow_throwsSagaExecutionExceptions() throws InvocationTargetException, IllegalAccessException {
+        // given
+        doThrow(ArithmeticException.class).when(invoker).invoke(saga, theMessage);
+        doThrow(NullPointerException.class).when(module).onFinished(any(ExecutionContext.class));
+
+        // when
+        catchException(() -> sut.run());
+
+        // then
+        SagaExecutionErrorsException exception = caughtException();
+        assertThat("Expected two exceptions in resulting one.", exception.getExecutionErrors(), hasSize(2));
+        assertThat("Expected two exceptions in resulting one.", exception.getExecutionErrors(), hasItem(instanceOf(NullPointerException.class)));
+        assertThat("Expected two exceptions in resulting one.", exception.getExecutionErrors(), hasItem(instanceOf(ArithmeticException.class)));
     }
 
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {
