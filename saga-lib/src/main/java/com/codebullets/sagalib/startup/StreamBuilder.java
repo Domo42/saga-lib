@@ -20,6 +20,7 @@ import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinatorFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
@@ -126,4 +127,13 @@ public interface StreamBuilder extends AutoCloseable {
      * will be used.
      */
     StreamBuilder addHandlerAnnotation(Class<? extends Annotation> annotationClass);
+
+    /**
+     * This method allows the specification of a factory creating custom {@link com.codebullets.sagalib.processing.invocation.ModuleCoordinator}
+     * instances.
+     *
+     * <p>This is a very low level hook, allowing custom execution and error handling of
+     * saga modules. Be very cautious when overwriting the default behavior with this.</p>
+     */
+    StreamBuilder usingModuleCoordinator(final ModuleCoordinatorFactory coordinatorFactory);
 }

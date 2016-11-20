@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -63,7 +64,7 @@ public class ModulesInvokerTest {
     public void finish_allModulesStarted_callsFinishedOnAllModulesInReverseOrder() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
 
         // when
         sut.finish();
@@ -71,26 +72,6 @@ public class ModulesInvokerTest {
         // then
         InOrder inOrder = inOrder(modules.get(0), modules.get(1), modules.get(2));
         inOrder.verify(modules.get(2)).onFinished(context);
-        inOrder.verify(modules.get(1)).onFinished(context);
-        inOrder.verify(modules.get(0)).onFinished(context);
-    }
-
-    @Test
-    public void start_startErrorOnSecondModule_callsFinishedForSecondThenFirst() {
-        // given
-        CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        NullPointerException ex = new NullPointerException();
-        doThrow(ex).when(modules.get(1)).onStart(context);
-
-        // given
-        try {
-            ModulesInvoker.start(context, modules);
-        } catch (Exception e) {
-            // is expected, module start is exception neutral
-        }
-
-        // then
-        InOrder inOrder = inOrder(modules.get(0), modules.get(1));
         inOrder.verify(modules.get(1)).onFinished(context);
         inOrder.verify(modules.get(0)).onFinished(context);
     }
@@ -118,7 +99,7 @@ public class ModulesInvokerTest {
     public void error_allModulesStarted_callsErrorOnAllModulesInReverseOrder() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
 
         Object message = new Object();
         NullPointerException ex = new NullPointerException();
@@ -134,7 +115,7 @@ public class ModulesInvokerTest {
     }
 
     @Test
-    public void start_exceptionOnSecond_callsErrorOnSecondThenFirst() {
+    public void start_exceptionOnSecond_returnsExceptionInResult() {
         // given
         Object message = new Object();
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
@@ -144,16 +125,10 @@ public class ModulesInvokerTest {
         doThrow(ex).when(modules.get(1)).onStart(context);
 
         // when
-        try {
-            ModulesInvoker.start(context, modules);
-        } catch (Exception e) {
-            // expected
-        }
+        ModulesInvoker.StartResult result = ModulesInvoker.start(context, modules);
 
         // then
-        InOrder inOrder = inOrder(modules.get(0), modules.get(1));
-        inOrder.verify(modules.get(1)).onError(context, message, ex);
-        inOrder.verify(modules.get(0)).onError(context, message, ex);
+        assertThat("Expected exception in returned result.", result.error().get(), equalTo(ex));
     }
 
     @Test
@@ -179,7 +154,7 @@ public class ModulesInvokerTest {
     public void finish_moduleThrowsDuringFinish_callOtherModules() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
         doThrow(NullPointerException.class).when(modules.get(1)).onFinished(context);
 
         // when
@@ -195,7 +170,7 @@ public class ModulesInvokerTest {
     public void error_moduleThrowsDuringError_callOtherModules() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
         NullPointerException ex = new NullPointerException();
         Object message = new Object();
         doThrow(ex).when(modules.get(1)).onError(context, message, ex);
@@ -213,7 +188,7 @@ public class ModulesInvokerTest {
     public void error_moduleThrowsDuringError_returnsEncounteredException() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
         NullPointerException ex = new NullPointerException();
         Object message = new Object();
         doThrow(ex).when(modules.get(1)).onError(context, message, ex);
@@ -229,7 +204,7 @@ public class ModulesInvokerTest {
     public void finish_moduleThrowsDuringFinish_returnsEncounteredException() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
         NullPointerException ex = new NullPointerException();
         doThrow(ex).when(modules.get(2)).onFinished(context);
 
@@ -244,7 +219,7 @@ public class ModulesInvokerTest {
     public void finish_multipleModulesThrowsDuringFinish_returnsAllEncounteredException() {
         // given
         CurrentExecutionContext context = mock(CurrentExecutionContext.class);
-        ModulesInvoker sut = ModulesInvoker.start(context, modules);
+        ModulesInvoker sut = ModulesInvoker.start(context, modules).getInvoker();
         NullPointerException ex1 = new NullPointerException();
         NullPointerException ex2 = new NullPointerException();
         doThrow(ex1).when(modules.get(1)).onFinished(context);

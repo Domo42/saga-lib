@@ -17,11 +17,11 @@ package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.SagaModule;
-import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * </ul>
  */
 @Immutable
-public final class ModulesInvoker {
+final class ModulesInvoker {
     private static final Logger LOG = LoggerFactory.getLogger(ModulesInvoker.class);
 
     private final List<Supplier<Optional<Exception>>> finishers;
@@ -61,7 +61,8 @@ public final class ModulesInvoker {
      * <p>In case of an error during start, calls error and finished on already started/starting modules.</p>
      * @return Invoker in case all modules started without error
      */
-    public static ModulesInvoker start(final CurrentExecutionContext context, final Iterable<SagaModule> modules) {
+    static StartResult start(final ExecutionContext context, final Iterable<SagaModule> modules) {
+        Exception possibleStartException = null;
         List<Supplier<Optional<Exception>>> finishers = new ArrayList<>();
         List<BiFunction<Object, Throwable, Optional<Exception>>> errorHandlers = new ArrayList<>();
 
@@ -73,21 +74,16 @@ public final class ModulesInvoker {
                 module.onStart(context);
             }
         } catch (Exception ex) {
-            // call error and finish handlers on partially started module list.
-            context.setError(ex);
-            ModulesInvoker invoker = new ModulesInvoker(finishers, errorHandlers);
-            invoker.error(context.message(), ex);
-            invoker.finish();
-            throw ex;
+            possibleStartException = ex;
         }
 
-        return new ModulesInvoker(finishers, errorHandlers);
+        return new StartResult(possibleStartException, new ModulesInvoker(finishers, errorHandlers));
     }
 
     /**
      * Call finishers on all started modules.
      */
-    public Collection<Exception> finish() {
+    Collection<Exception> finish() {
         return Lists.reverse(finishers).stream()
                 .flatMap(f -> f.get().map(Stream::of).orElse(Stream.empty()))
                 .collect(Collectors.toList());
@@ -127,5 +123,29 @@ public final class ModulesInvoker {
         }
 
         return Optional.ofNullable(executionException);
+    }
+
+    /**
+     * Holds the modules invoker as well as the possible exception
+     * starting other modules.
+     */
+    static class StartResult {
+        @Nullable
+        private final Exception startError;
+        private final ModulesInvoker invoker;
+
+        StartResult(@Nullable final Exception startError, final ModulesInvoker modulesInvoker) {
+            this.startError = startError;
+            this.invoker = modulesInvoker;
+        }
+
+        @Nullable
+        Optional<Exception> error() {
+            return Optional.ofNullable(startError);
+        }
+
+        ModulesInvoker getInvoker() {
+            return invoker;
+        }
     }
 }

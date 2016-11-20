@@ -24,7 +24,9 @@ import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
+import com.codebullets.sagalib.processing.invocation.DefaultModuleCoordinator;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.SagaExecutionErrorsException;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
@@ -42,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
@@ -109,7 +112,9 @@ public class SagaExecutionTaskTest {
                 storage,
                 contextProvider,
                 Sets.newHashSet(module),
-                Sets.newHashSet(interceptor), instanceResolver);
+                Sets.newHashSet(interceptor),
+                instanceResolver,
+                DefaultModuleCoordinator::new);
         sut = new SagaExecutionTask(env, invoker, theMessage, new HashMap<>(), null);
     }
 
@@ -285,8 +290,14 @@ public class SagaExecutionTaskTest {
         Object headerValue = "headerValue";
         Map<String, Object> headers = Maps.newHashMap();
         headers.put("headerKey", headerValue);
-        SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, createContextProvider(context), Sets.newHashSet(module),
-                Sets.newHashSet(interceptor), instanceResolver);
+        SagaEnvironment env = SagaEnvironment.create(
+                timeoutManager,
+                storage,
+                createContextProvider(context),
+                Sets.newHashSet(module),
+                Sets.newHashSet(interceptor),
+                instanceResolver,
+                DefaultModuleCoordinator::new);
         sut = new SagaExecutionTask(env, invoker, theMessage, headers, null);
 
         // when
@@ -310,7 +321,7 @@ public class SagaExecutionTaskTest {
         ExecutionContext parentContext = mock(ExecutionContext.class);
 
         SagaEnvironment env = SagaEnvironment.create(timeoutManager, storage, createContextProvider(context), Sets.newHashSet(module),
-                Sets.newHashSet(interceptor), instanceResolver);
+                Sets.newHashSet(interceptor), instanceResolver, DefaultModuleCoordinator::new);
         sut = new SagaExecutionTask(env, invoker, theMessage, Collections.EMPTY_MAP, parentContext);
 
         // when
@@ -377,6 +388,39 @@ public class SagaExecutionTaskTest {
 
         // then
         verify(module).onFinished(context);
+    }
+
+    @Test
+    public void run_moduleStartThrows_moduleFinishedGetsCalled() throws Exception {
+        // given
+        doThrow(NullPointerException.class).when(module).onStart(context);
+
+        try {
+            // when
+            sut.run();
+        } catch (NullPointerException ex) {
+            // got you
+        }
+
+        // then
+        verify(module).onFinished(context);
+    }
+
+    @Test
+    public void run_moduleStartThrows_moduleErrorGetsCalled() throws Exception {
+        // given
+        NullPointerException expected = new NullPointerException();
+        doThrow(expected).when(module).onStart(context);
+
+        try {
+            // when
+            sut.run();
+        } catch (NullPointerException ex) {
+            // got you
+        }
+
+        // then
+        verify(module).onError(context, theMessage, expected);
     }
 
     /**
@@ -592,6 +636,8 @@ public class SagaExecutionTaskTest {
         Provider<CurrentExecutionContext> contextProvider = mock(Provider.class);
         when(contextProvider.get()).thenReturn(context);
 
+        when(context.error()).thenReturn(Optional.empty());
+
         doAnswer(invocationOnMock -> {
             Object message = invocationOnMock.getArguments()[0];
             when(context.message()).thenReturn(message);
@@ -602,6 +648,12 @@ public class SagaExecutionTaskTest {
             when(context.dispatchingStopped()).thenReturn(true);
             return null;
         }).when(context).stopDispatchingCurrentMessageToHandlers();
+
+        doAnswer(invocationOnMock -> {
+            Exception error = invocationOnMock.getArgumentAt(0, Exception.class);
+            when(context.error()).thenReturn(Optional.of(error));
+            return null;
+        }).when(context).setError(any(Exception.class));
 
         return contextProvider;
     }

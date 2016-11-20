@@ -24,7 +24,7 @@ import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
-import com.codebullets.sagalib.processing.invocation.ModulesInvoker;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinator;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -87,39 +86,22 @@ class SagaExecutionTask implements ExecutedRunnable {
         executionContext.setParentContext(parentContext);
         setHeaders(executionContext);
 
-        ModulesInvoker modulesInvoker = ModulesInvoker.start(executionContext, env.modules());
-        Collection<Exception> encounteredExceptions = new ArrayList<>();
+        ModuleCoordinator moduleCoordinator = env.coordinatorFactory().create(env.modules());
 
         try {
+            moduleCoordinator.start(executionContext);
             sagasExecuted = executeHandlersForMessage(messageLookupContext, executionContext);
             if (!sagasExecuted) {
                 LOG.warn("No saga or saga state found to handle message. (message = {})", taskLookupContext.message());
             }
         } catch (Exception ex) {
-            encounteredExceptions.add(ex);
             executionContext.setError(ex);
-            encounteredExceptions.addAll(modulesInvoker.error(messageLookupContext.message(), ex));
+            moduleCoordinator.onError(executionContext, executionContext.message(), ex);
         } finally {
-            encounteredExceptions.addAll(modulesInvoker.finish());
+            moduleCoordinator.finish(executionContext);
         }
-
-        throwOnErrors(encounteredExceptions,  executionContext.message());
 
         return sagasExecuted;
-    }
-
-    private void throwOnErrors(final Collection<Exception> encounteredExceptions, final Object message) throws Exception {
-        int exceptionsCount = encounteredExceptions.size();
-        switch (exceptionsCount) {
-            case 0:
-                // no error -> do nothing
-                break;
-            case 1:
-                // single error -> rethrow original exception
-                throw  encounteredExceptions.iterator().next();
-            default:
-                throw new SagaExecutionErrorsException("Multiple error encountered handling message " + message, encounteredExceptions);
-        }
     }
 
     private boolean executeHandlersForMessage(final LookupContext messageLookupContext, final CurrentExecutionContext executionContext)

@@ -32,6 +32,7 @@ import com.codebullets.sagalib.processing.StrategyFinder;
 import com.codebullets.sagalib.processing.StrategyInstanceResolver;
 import com.codebullets.sagalib.processing.TypesForMessageMapper;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinatorFactory;
 import com.codebullets.sagalib.startup.AnnotationSagaAnalyzer;
 import com.codebullets.sagalib.startup.CombinedSagaAnalyzer;
 import com.codebullets.sagalib.startup.HandlerDescriptionAnalyzer;
@@ -63,6 +64,7 @@ class SagaLibModule extends AbstractModule {
     private Class<? extends TypeScanner> scanner;
     private Class<? extends SagaProviderFactory> providerFactory;
     private Class<? extends StrategyFinder> strategyFinder;
+    private Class<? extends ModuleCoordinatorFactory> coordinatorFactory;
     private List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
@@ -83,6 +85,7 @@ class SagaLibModule extends AbstractModule {
         bindIfNotNull(SagaProviderFactory.class, providerFactory, Scopes.SINGLETON);
         bindIfNotNull(StrategyFinder.class, strategyFinder, Scopes.SINGLETON);
         bindIfNotNull(HandlerInvoker.class, invoker, Scopes.SINGLETON);
+        bindIfNotNull(ModuleCoordinatorFactory.class, coordinatorFactory, Scopes.SINGLETON);
 
         bindIfNotNull(CurrentExecutionContext.class, executionContext);
         bind(ExecutionContext.class).toProvider(binder().getProvider(CurrentExecutionContext.class));
@@ -253,5 +256,12 @@ class SagaLibModule extends AbstractModule {
      */
     public void setHandlerAnnotations(final Collection<Class<? extends Annotation>> handlerAnnotations) {
         this.handlerAnnotations = handlerAnnotations;
+    }
+
+    /**
+     * Sets the coordinator factory providing instances for executing module callbacks.
+     */
+    public void setCoordinatorFactory(final Class<? extends ModuleCoordinatorFactory> coordinatorFactory) {
+        this.coordinatorFactory = coordinatorFactory;
     }
 }

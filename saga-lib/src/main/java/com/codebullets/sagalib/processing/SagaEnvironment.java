@@ -19,6 +19,7 @@ import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinatorFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 
@@ -36,6 +37,7 @@ public final class SagaEnvironment implements AutoCloseable {
     private final Iterable<SagaModule> modules;
     private final Iterable<SagaLifetimeInterceptor> interceptors;
     private final InstanceResolver instanceResolver;
+    private final ModuleCoordinatorFactory coordinatorFactory;
 
     /**
      * Generates a new instance of SagaEnvironment.
@@ -47,13 +49,15 @@ public final class SagaEnvironment implements AutoCloseable {
             final Provider<CurrentExecutionContext> contextProvider,
             final Set<SagaModule> modules,
             final Set<SagaLifetimeInterceptor> interceptors,
-            final InstanceResolver sagaInstanceResolver) {
+            final InstanceResolver sagaInstanceResolver,
+            final ModuleCoordinatorFactory coordinatorFactory) {
         this.timeoutManager = timeoutManager;
         this.storage = storage;
         this.instanceResolver = sagaInstanceResolver;
         this.contextProvider = contextProvider;
         this.modules = modules;
         this.interceptors = interceptors;
+        this.coordinatorFactory = coordinatorFactory;
     }
 
     /**
@@ -100,6 +104,13 @@ public final class SagaEnvironment implements AutoCloseable {
     }
 
     /**
+     * Gets the coordinator factor to create new instances for module callback coordination.
+     */
+    public ModuleCoordinatorFactory coordinatorFactory() {
+        return coordinatorFactory;
+    }
+
+    /**
      * Creates a new SagaEnvironment instance.
      */
     public static SagaEnvironment create(
@@ -108,8 +119,9 @@ public final class SagaEnvironment implements AutoCloseable {
             final Provider<CurrentExecutionContext> contextProvider,
             final Set<SagaModule> modules,
             final Set<SagaLifetimeInterceptor> interceptors,
-            final InstanceResolver sagaInstanceResolver) {
-        return new SagaEnvironment(timeoutManager, storage, contextProvider, modules, interceptors, sagaInstanceResolver);
+            final InstanceResolver sagaInstanceResolver,
+            final ModuleCoordinatorFactory coordinatorFactory) {
+        return new SagaEnvironment(timeoutManager, storage, contextProvider, modules, interceptors, sagaInstanceResolver, coordinatorFactory);
     }
 
     @Override

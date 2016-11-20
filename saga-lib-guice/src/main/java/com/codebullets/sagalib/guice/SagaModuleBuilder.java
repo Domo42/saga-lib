@@ -21,7 +21,10 @@ import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.DefaultStrategyFinder;
+import com.codebullets.sagalib.processing.invocation.DefaultModuleCoordinator;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinator;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinatorFactory;
 import com.codebullets.sagalib.processing.invocation.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.processing.StrategyFinder;
@@ -70,6 +73,7 @@ public final class SagaModuleBuilder {
     private Class<? extends CurrentExecutionContext> executionContext;
     private Class<? extends StrategyFinder> strategyFinder;
     private Class<? extends HandlerInvoker> invoker;
+    private Class<? extends ModuleCoordinatorFactory> coordinatorFactory;
     private final List<Class<? extends Saga>> preferredOrder = new ArrayList<>();
     private final Collection<Class<? extends SagaModule>> moduleTypes = new ArrayList<>();
     private final Collection<Class<? extends SagaLifetimeInterceptor>> interceptorTypes = new ArrayList<>();
@@ -89,6 +93,7 @@ public final class SagaModuleBuilder {
         executionContext = SagaExecutionContext.class;
         strategyFinder = DefaultStrategyFinder.class;
         invoker = ReflectionInvoker.class;
+        coordinatorFactory = DefaultCoordinatorFactory.class;
     }
 
     /**
@@ -282,6 +287,18 @@ public final class SagaModuleBuilder {
     }
 
     /**
+     * This method allows the specification of a factory creating custom {@link com.codebullets.sagalib.processing.invocation.ModuleCoordinator}
+     * instances.
+     *
+     * <p>This is a very low level hook, allowing custom execution and error handling of
+     * saga modules. Be very cautious when overwriting the default behavior with this.</p>
+     */
+    public SagaModuleBuilder usingModuleCoordinatorFactory(final Class<? extends ModuleCoordinatorFactory> factory) {
+        coordinatorFactory = factory;
+        return this;
+    }
+
+    /**
      * Creates the module containing all saga lib bindings.
      */
     public Module build() {
@@ -297,7 +314,18 @@ public final class SagaModuleBuilder {
         module.setInterceptorTypes(interceptorTypes);
         module.setStrategyFinder(strategyFinder);
         module.setInvoker(invoker);
+        module.setCoordinatorFactory(coordinatorFactory);
 
         return module;
+    }
+
+    /**
+     * A factory always returning a new {@link DefaultModuleCoordinator}.
+     */
+    private static class DefaultCoordinatorFactory implements ModuleCoordinatorFactory {
+        @Override
+        public ModuleCoordinator create(final Iterable<SagaModule> modules) {
+            return new DefaultModuleCoordinator(modules);
+        }
     }
 }

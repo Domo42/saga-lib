@@ -23,8 +23,10 @@ import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.DefaultStrategyFinder;
+import com.codebullets.sagalib.processing.invocation.DefaultModuleCoordinator;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.processing.KeyExtractor;
+import com.codebullets.sagalib.processing.invocation.ModuleCoordinatorFactory;
 import com.codebullets.sagalib.processing.invocation.ReflectionInvoker;
 import com.codebullets.sagalib.processing.SagaEnvironment;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
@@ -70,6 +72,7 @@ public final class EventStreamBuilder implements StreamBuilder {
     private SagaMessageStream messageStream;
     private final Collection<Class<? extends Annotation>> startSagaAnnotations = new ArrayList<>();
     private final Collection<Class<? extends Annotation>> handlerAnnotations = new ArrayList<>();
+    private ModuleCoordinatorFactory moduleCoordinatorFactory;
 
     /**
      * Prevent instantiation from outside. Use {@link #configure()} instead.
@@ -99,6 +102,7 @@ public final class EventStreamBuilder implements StreamBuilder {
         buildContextProvider();
         buildExecutor();
         buildStorage();
+        buildModuleCoordinatorFactory();
 
         SagaInstanceFactory instanceFactory = new SagaInstanceFactory(instanceCreator);
         TypesForMessageMapper messageMapper = new TypesForMessageMapper(sagaAnalyzer);
@@ -108,7 +112,14 @@ public final class EventStreamBuilder implements StreamBuilder {
         DefaultStrategyFinder strategyFinder = new DefaultStrategyFinder(messageMapper, instanceFactory, extractor, storage);
         StrategyInstanceResolver instanceResolver = new StrategyInstanceResolver(strategyFinder);
 
-        SagaEnvironment environment = SagaEnvironment.create(timeoutManager, storage, contextProvider, modules, interceptors, instanceResolver);
+        SagaEnvironment environment = SagaEnvironment.create(
+                timeoutManager,
+                storage,
+                contextProvider,
+                modules,
+                interceptors,
+                instanceResolver,
+                moduleCoordinatorFactory);
 
         messageStream = new SagaMessageStream(invoker, environment, executor);
         return messageStream;
@@ -218,6 +229,12 @@ public final class EventStreamBuilder implements StreamBuilder {
         return this;
     }
 
+    @Override
+    public StreamBuilder usingModuleCoordinator(final ModuleCoordinatorFactory coordinatorFactory) {
+        moduleCoordinatorFactory = coordinatorFactory;
+        return this;
+    }
+
     private void buildTypeScanner() {
         if (scanner == null) {
             scanner = new ReflectionsTypeScanner();
@@ -227,6 +244,12 @@ public final class EventStreamBuilder implements StreamBuilder {
     private void buildStorage() {
         if (storage == null) {
             storage = new MemoryStorage();
+        }
+    }
+
+    private void buildModuleCoordinatorFactory() {
+        if (moduleCoordinatorFactory == null) {
+            moduleCoordinatorFactory = DefaultModuleCoordinator::new;
         }
     }
 
