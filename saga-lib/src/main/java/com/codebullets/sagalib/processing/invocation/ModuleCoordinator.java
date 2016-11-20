@@ -17,7 +17,6 @@
 package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.ExecutionContext;
-import com.codebullets.sagalib.context.CurrentExecutionContext;
 
 /**
  * The implementer of this interface is responsible to call start error and finished
@@ -52,8 +51,8 @@ public interface ModuleCoordinator {
 
     /**
      * This method is called in case there has been an exception during
-     * the execution of saga handlers or if the modules corrdinator itself threw an
-     * error during start. It is executed before {@link #finish(CurrentExecutionContext)}}.
+     * the execution of saga handlers or if the modules coordinator itself threw an
+     * error during start. It is executed before {@link #finish(ExecutionContext)}}.
      *
      * <p>If there is no error this method will not be called.</p>
      *
