@@ -139,8 +139,8 @@ public class InMemoryTimeoutManager implements TimeoutManager, AutoCloseable {
                 sagaIdForRemoval.add(timeout.getKey());
             }
 
-            // there is only one saga id associated with a single timeout id
-            // however, in theory the table api allows a list, so we iterate over
+            // There is only one saga id associated with a single timeout id.
+            // However, in theory the table api allows a list, so we iterate over
             // the whole collection.
             for (String sagaId : sagaIdForRemoval) {
                 openTimeouts.remove(id, sagaId);
@@ -153,12 +153,20 @@ public class InMemoryTimeoutManager implements TimeoutManager, AutoCloseable {
      */
     private void timeoutExpired(final Timeout timeout) {
         try {
+            removeExpiredTimeout(timeout);
+
             for (TimeoutExpired callback : callbacks) {
                 callback.expired(timeout);
             }
         } catch (Exception ex) {
             // catch all exceptions. otherwise calling timeout thread of timers thread pool will be terminated.
             LOG.error("Error handling timeout.", ex);
+        }
+    }
+
+    private void removeExpiredTimeout(final Timeout timeout) {
+        synchronized (sync) {
+            openTimeouts.remove(timeout.getId(), timeout.getSagaId());
         }
     }
 

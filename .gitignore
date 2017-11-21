@@ -2,3 +2,4 @@ target/
 *.asc
 .idea
 *.iml
+.DS_Store

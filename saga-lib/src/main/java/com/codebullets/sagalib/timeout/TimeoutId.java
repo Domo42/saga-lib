@@ -20,7 +20,7 @@ import java.io.Serializable;
 /**
  * Uniquely identifies a timeout. An implementation of timeout id
  * has to act as a value type. This means two instances have return the
- * same hash code and to compare as equal if the identify the same
+ * same hash code and to compare as equal in case they identify the same
  * timeout.
  */
 public interface TimeoutId extends Serializable {
