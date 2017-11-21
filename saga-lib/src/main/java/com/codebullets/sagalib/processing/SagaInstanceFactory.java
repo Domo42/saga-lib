@@ -17,7 +17,6 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +99,7 @@ public class SagaInstanceFactory {
             Class clazz = Class.forName(sagaToContinue);
             saga = continueExisting(clazz, existingState);
         } catch (ClassNotFoundException | ExecutionException e) {
-            Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
 
         return saga;
