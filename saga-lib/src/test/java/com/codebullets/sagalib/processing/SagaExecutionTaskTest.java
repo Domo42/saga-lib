@@ -53,10 +53,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -104,7 +103,7 @@ public class SagaExecutionTaskTest {
 
         when(saga.state()).thenReturn(state);
         when(sagaInstanceInfo.getSaga()).thenReturn(saga);
-        when(instanceResolver.resolve(argThat(isA(LookupContext.class)))).thenReturn(Lists.newArrayList(sagaInstanceInfo));
+        when(instanceResolver.resolve(isA(LookupContext.class))).thenReturn(Lists.newArrayList(sagaInstanceInfo));
 
         Provider<CurrentExecutionContext> contextProvider = mockExecutionContext();
         SagaEnvironment env = SagaEnvironment.create(
@@ -650,7 +649,7 @@ public class SagaExecutionTaskTest {
         }).when(context).stopDispatchingCurrentMessageToHandlers();
 
         doAnswer(invocationOnMock -> {
-            Exception error = invocationOnMock.getArgumentAt(0, Exception.class);
+            Exception error = invocationOnMock.getArgument(0);
             when(context.error()).thenReturn(Optional.of(error));
             return null;
         }).when(context).setError(any(Exception.class));

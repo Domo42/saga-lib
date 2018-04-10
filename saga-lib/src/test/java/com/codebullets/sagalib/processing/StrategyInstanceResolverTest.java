@@ -26,7 +26,7 @@ import java.util.Collections;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,10 +77,10 @@ public class StrategyInstanceResolverTest {
         // given
         ResolveStrategy strategy = mockStrategy();
         SagaInstanceInfo instanceInfo = new SagaInstanceInfo(null, true);
-        when(strategy.resolve(any(LookupContext.class))).thenReturn(Lists.newArrayList(instanceInfo));
+        when(strategy.resolve(any())).thenReturn(Lists.newArrayList(instanceInfo));
 
         // when
-        Collection<SagaInstanceInfo> instances = sut.resolve(null);
+        Collection<SagaInstanceInfo> instances = sut.resolve(mock(LookupContext.class));
 
         // then
         assertThat("Expected instance in result set.", instances, hasItem(instanceInfo));
