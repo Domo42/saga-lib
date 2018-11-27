@@ -174,7 +174,7 @@ public final class EventStreamBuilder implements StreamBuilder {
      */
     @Override
     public StreamBuilder usingContextProvider(final Provider<CurrentExecutionContext> provider) {
-        checkNotNull(contextProvider, "Context provider must be set.");
+        checkNotNull(provider, "Context provider must be set.");
 
         contextProvider = provider;
         return this;
