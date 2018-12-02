@@ -93,10 +93,10 @@ public class InMemoryTimeoutManager implements TimeoutManager, AutoCloseable {
     public TimeoutId requestTimeout(final ExecutionContext context, final String sagaId, final long delay, final TimeUnit timeUnit, @Nullable final String name,
                                @Nullable final Object data) {
         checkNotNull(sagaId, "SagaId not allowed to be null.");
-
         UUIDTimeoutId id = UUIDTimeoutId.generateNewId();
+        TimeoutContext timeoutContext = new TimeoutContext(context.getAllHeaders());
 
-        SagaTimeoutTask timeoutTask = new SagaTimeoutTask(id, sagaId, name, timeout -> timeoutExpired(timeout), clock, data);
+        SagaTimeoutTask timeoutTask = new SagaTimeoutTask(id, sagaId, name, timeout -> timeoutExpired(timeout, timeoutContext), clock, data);
         ScheduledFuture future = scheduledService.schedule(timeoutTask, delay, timeUnit);
 
         synchronized (sync) {
@@ -151,12 +151,16 @@ public class InMemoryTimeoutManager implements TimeoutManager, AutoCloseable {
     /**
      * Called by timeout task once timeout has expired.
      */
-    private void timeoutExpired(final Timeout timeout) {
+    private void timeoutExpired(final Timeout timeout, final TimeoutContext context) {
         try {
             removeExpiredTimeout(timeout);
 
             for (TimeoutExpired callback : callbacks) {
-                callback.expired(timeout);
+                if (callback instanceof TimeoutExpirationCallback) {
+                    ((TimeoutExpirationCallback) callback).expired(timeout, context);
+                } else {
+                    callback.expired(timeout);
+                }
             }
         } catch (Exception ex) {
             // catch all exceptions. otherwise calling timeout thread of timers thread pool will be terminated.

@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib.timeout;
 
+import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +69,7 @@ public class InMemoryTimeoutManagerTest {
         long timeoutInSec = 5;
 
         // when
-        sut.requestTimeout(null, "anySagaId", timeoutInSec, TimeUnit.SECONDS, "anyName", null);
+        sut.requestTimeout(mockContext(), "anySagaId", timeoutInSec, TimeUnit.SECONDS, "anyName", null);
 
         // then
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
@@ -137,7 +139,7 @@ public class InMemoryTimeoutManagerTest {
         // given
         ScheduledFuture future = mock(ScheduledFuture.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
-        TimeoutId timeoutId = sut.requestTimeout(null, "", 1, TimeUnit.DAYS, null, null);
+        TimeoutId timeoutId = sut.requestTimeout(mockContext(), "", 1, TimeUnit.DAYS, null, null);
 
         // when
         sut.cancelTimeout(timeoutId);
@@ -158,8 +160,8 @@ public class InMemoryTimeoutManagerTest {
         // given
         ScheduledFuture future = mock(ScheduledFuture.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
-        TimeoutId timeoutId = sut.requestTimeout(null, "saga1", 1, TimeUnit.DAYS, null, null);
-        sut.requestTimeout(null, "saga2", 2, TimeUnit.DAYS, null, null);
+        TimeoutId timeoutId = sut.requestTimeout(mockContext(), "saga1", 1, TimeUnit.DAYS, null, null);
+        sut.requestTimeout(mockContext(), "saga2", 2, TimeUnit.DAYS, null, null);
 
         // when
         sut.cancelTimeout(timeoutId);
@@ -180,7 +182,7 @@ public class InMemoryTimeoutManagerTest {
         String sagaId = "sagaId_" + RandomStringUtils.randomAlphanumeric(5);
         ScheduledFuture future = mock(ScheduledFuture.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
-        sut.requestTimeout(null, sagaId, 1, TimeUnit.DAYS, null, null);
+        sut.requestTimeout(mockContext(), sagaId, 1, TimeUnit.DAYS, null, null);
 
         // when
         sut.cancelTimeouts(sagaId);
@@ -202,8 +204,8 @@ public class InMemoryTimeoutManagerTest {
         String sagaId = "sagaId_" + RandomStringUtils.randomAlphanumeric(5);
         ScheduledFuture future = mock(ScheduledFuture.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
-        sut.requestTimeout(null, sagaId, 1, TimeUnit.DAYS, null, null);
-        sut.requestTimeout(null, sagaId, 2, TimeUnit.DAYS, null, null);
+        sut.requestTimeout(mockContext(), sagaId, 1, TimeUnit.DAYS, null, null);
+        sut.requestTimeout(mockContext(), sagaId, 2, TimeUnit.DAYS, null, null);
 
         // when
         sut.cancelTimeouts(sagaId);
@@ -220,6 +222,10 @@ public class InMemoryTimeoutManagerTest {
         verify(executor).shutdown();
     }
 
+    private ExecutionContext mockContext() {
+        return new SagaExecutionContext();
+    }
+
     private void requestAndTriggerTimeout() {
         requestAndTriggerTimeout(
                 RandomStringUtils.randomAlphanumeric(10),
@@ -231,7 +237,7 @@ public class InMemoryTimeoutManagerTest {
 
     private void requestAndTriggerTimeout(
             final String sagaId, final String name, final long delay, final TimeUnit unit, final Object data) {
-        sut.requestTimeout(null, sagaId, delay, unit, name, data);
+        sut.requestTimeout(mockContext(), sagaId, delay, unit, name, data);
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
         verify(executor).schedule(captor.capture(), eq(delay), eq(unit));
 

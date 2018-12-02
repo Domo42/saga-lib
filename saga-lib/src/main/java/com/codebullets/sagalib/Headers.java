@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Stefan Domnanovits
+ * Copyright 2018 Stefan Domnanovits
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,17 +16,31 @@
 
 package com.codebullets.sagalib;
 
+import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Utility class when working with headers
+ * Utility class when working with headers.
  */
 public final class Headers {
     private Headers() { }
 
-    public static Map<HeaderName<?>, Object> copyFromStream(final Stream<Map.Entry<HeaderName<?>, Object>> stream) {
-        return stream.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    /**
+     * Creates a new map, by picking all header entries from the
+     * provided stream.
+     */
+    public static Map<HeaderName<?>, Object> copyFromStream(@Nullable final Stream<Map.Entry<HeaderName<?>, Object>> stream) {
+        Map<HeaderName<?>, Object> headerMap;
+
+        if (stream == null) {
+            headerMap = new HashMap<>();
+        } else {
+            headerMap = stream.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+        return headerMap;
     }
 }

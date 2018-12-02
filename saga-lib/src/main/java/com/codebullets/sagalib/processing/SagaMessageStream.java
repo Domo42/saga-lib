@@ -22,6 +22,8 @@ import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.timeout.Timeout;
+import com.codebullets.sagalib.timeout.TimeoutExpirationCallback;
+import com.codebullets.sagalib.timeout.TimeoutExpirationContext;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +65,20 @@ public class SagaMessageStream implements MessageStream {
         this.environment = environment;
         this.invoker = invoker;
 
-        environment.timeoutManager().addExpiredCallback(SagaMessageStream.this::timeoutHasExpired);
+        TimeoutExpirationCallback callback = new TimeoutExpirationCallback() {
+            @Override
+            public void expired(final Timeout timeout) {
+                // not used, leftover to keep compatibility with
+                // older saga-lib versions
+            }
+
+            @Override
+            public void expired(final Timeout timeout, final TimeoutExpirationContext context) {
+                SagaMessageStream.this.timeoutHasExpired(timeout, context);
+            }
+        };
+
+        environment.timeoutManager().addExpiredCallback(callback);
     }
 
     /**
@@ -117,7 +132,8 @@ public class SagaMessageStream implements MessageStream {
     }
 
     @Override
-    public void handleMessage(@Nonnull final Object message, @Nullable final Map<HeaderName<?>, Object> headers) throws InvocationTargetException, IllegalAccessException {
+    public void handleMessage(@Nonnull final Object message, @Nullable final Map<HeaderName<?>, Object> headers)
+            throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");
         handleMessage(message, headers, null);
     }
@@ -150,9 +166,9 @@ public class SagaMessageStream implements MessageStream {
     /**
      * Called whenever the timeout manager reports an expired timeout.
      */
-    private void timeoutHasExpired(final Timeout timeout) {
+    private void timeoutHasExpired(final Timeout timeout, final TimeoutExpirationContext context) {
         try {
-            add(timeout);
+            addMessage(timeout, context.getOriginalHeaders());
         } catch (Exception ex) {
             LOG.error("Error handling timeout {}", timeout, ex);
         }
