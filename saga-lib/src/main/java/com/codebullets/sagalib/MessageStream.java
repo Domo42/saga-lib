@@ -45,11 +45,23 @@ public interface MessageStream extends AutoCloseable {
      * Add a new message to be processed by the saga lib. The message can be of any type.
      * Message is handled in the background and not necessarily a synchronous operation
      * depending on the execution strategy.
+     * @deprecated Use {@link #addMessage(Object, Map)} instead.
+     *
      * @param message The message to be handled.
      * @param headers A list of header values not part of the messages. These value
      *                can be accessed within the sagas from the {@code ExecutionContext}.
      */
     void add(@Nonnull Object message, @Nullable Map<String, Object> headers);
+
+    /**
+     * Add a new message to be processed by the saga lib. The message can be of any type.
+     * Message is handled in the background and not necessarily a synchronous operation
+     * depending on the execution strategy.
+     * @param message The message to be handled.
+     * @param headers A list of header values not part of the messages. These value
+     *                can be accessed within the sagas from the {@code ExecutionContext}.
+     */
+    void addMessage(@Nonnull Object message, @Nullable Map<HeaderName<?>, Object> headers);
 
     /**
      * Handles the given message on synchronously on the the calling thread.
@@ -82,8 +94,44 @@ public interface MessageStream extends AutoCloseable {
      *
      * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
      * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
+     *
+     * @deprecated Use {@link #handleMessage(Object, Map)} instead.
      */
+    @Deprecated
     void handle(@Nonnull Object message, @Nullable Map<String, Object> headers) throws InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Handles the given message on synchronously on the the calling thread.
+     * @param message The message to be handled.
+     * @param headers A list of header values not part of the messages. These value
+     *                can be accessed within the sagas from the {@code ExecutionContext}.
+     *
+     * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
+     * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
+     */
+    void handleMessage(@Nonnull Object message, @Nullable Map<HeaderName<?>, Object> headers) throws InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Handles the given message on synchronously on the the calling thread. The parent context
+     * might provides information for handles when saga are executed in a nested fashion.
+     *
+     * <p>Header values are copied over from the parent context on to the new execution context.
+     * Header values provided with the {@code headers} parameter will added to the
+     * the currents context header as well and override possible existing values.</p>
+     *
+     * @param message The message to be handled.
+     * @param headers A list of header values not part of the messages. These value
+     *                can be accessed within the sagas from the {@code ExecutionContext}.
+     * @param parentContext The parent context from which the new saga handling is triggered.
+     *
+     * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
+     * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
+     *
+     * @deprecated Use {@link #handleMessage(Object, Map, ExecutionContext)} instead.
+     */
+    @Deprecated
+    void handle(@Nonnull Object message, @Nullable Map<String, Object> headers, @Nullable ExecutionContext parentContext)
+            throws InvocationTargetException, IllegalAccessException;
 
     /**
      * Handles the given message on synchronously on the the calling thread. The parent context
@@ -101,6 +149,6 @@ public interface MessageStream extends AutoCloseable {
      * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
      * @throws IllegalAccessException    Thrown when access to the method to invoke is denied.
      */
-    void handle(@Nonnull Object message, @Nullable Map<String, Object> headers, @Nullable ExecutionContext parentContext)
+    void handleMessage(@Nonnull Object message, @Nullable Map<HeaderName<?>, Object> headers, @Nullable ExecutionContext parentContext)
             throws InvocationTargetException, IllegalAccessException;
 }

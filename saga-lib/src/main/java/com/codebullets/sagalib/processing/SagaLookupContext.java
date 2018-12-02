@@ -16,11 +16,15 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.context.LookupContext;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Holds the context information provided during saga lookup.
@@ -29,7 +33,7 @@ class SagaLookupContext implements LookupContext {
     private final ExecutionContext parentContext;
 
     private Object message;
-    private Map<String, Object> headers = new HashMap<>();
+    private Map<HeaderName<?>, Object> headers;
 
     /**
      * Generates a new instance of SagaLookupContext.
@@ -43,7 +47,7 @@ class SagaLookupContext implements LookupContext {
     /**
      * Generates a new instance of SagaLookupContext.
      */
-    SagaLookupContext(final Object message, final Map<String, Object> headers, @Nullable final ExecutionContext parentContext) {
+    SagaLookupContext(final Object message, final Map<HeaderName<?>, Object> headers, @Nullable final ExecutionContext parentContext) {
         this.message = message;
         this.parentContext = parentContext;
         this.headers = new HashMap<>(headers);
@@ -54,9 +58,7 @@ class SagaLookupContext implements LookupContext {
      */
     SagaLookupContext(final Object message, final LookupContext baseContext, @Nullable final ExecutionContext parentContext) {
         this (message, parentContext);
-        for (String key : baseContext.getHeaders()) {
-            headers.put(key, baseContext.getHeaderValue(key));
-        }
+        headers = baseContext.getAllHeaders().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
@@ -66,16 +68,37 @@ class SagaLookupContext implements LookupContext {
 
     @Override
     public Iterable<String> getHeaders() {
-        return headers.keySet();
+        // Iterable contract requires the ability to
+        // scan over the items multiple times, which is something
+        // Stream does not support
+        return headers.keySet().stream()
+                .map(HeaderName::toString)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<Map.Entry<HeaderName<?>, Object>> getAllHeaders() {
+        return headers.entrySet().stream();
     }
 
     @Override
     public Object getHeaderValue(final String header) {
-        return headers.get(header);
+        return headers.get(HeaderName.forName(header));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getHeaderValue(final HeaderName<T> header) {
+        return Optional.ofNullable((T) headers.get(header));
     }
 
     @Override
     public void setHeaderValue(final String header, final Object value) {
+        headers.put(HeaderName.forName(header), value);
+    }
+
+    @Override
+    public <T> void setHeaderValue(final HeaderName<T> header, final T value) {
         headers.put(header, value);
     }
 

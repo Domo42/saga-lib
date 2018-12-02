@@ -18,6 +18,7 @@ package com.codebullets.sagalib.processing;
 import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.MessageStream;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.google.common.base.Throwables;
@@ -29,11 +30,12 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -42,7 +44,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SagaMessageStream implements MessageStream {
     private static final Logger LOG = LoggerFactory.getLogger(SagaMessageStream.class);
-    private static final Map<String, Object> EMPTY_HEADERS = Collections.emptyMap();
+    private static final Map<HeaderName<?>, Object> EMPTY_HEADERS = Collections.emptyMap();
 
     private final SagaEnvironment environment;
     private final HandlerInvoker invoker;
@@ -69,14 +71,20 @@ public class SagaMessageStream implements MessageStream {
     @Override
     public void add(@Nonnull final Object message) {
         checkNotNull(message, "Message to handle must not be null.");
-        add(message, EMPTY_HEADERS);
+        addMessage(message, EMPTY_HEADERS);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void add(@Nonnull final Object message, final Map<String, Object> headers) {
+    public void add(@Nonnull final Object message, @Nullable final Map<String, Object> headers) {
+        checkNotNull(message, "Message to handle must not be null.");
+        addMessage(message, toTypedHeaders(headers));
+    }
+
+    @Override
+    public void addMessage(@Nonnull final Object message, @Nullable final Map<HeaderName<?>, Object> headers) {
         checkNotNull(message, "Message to handle must not be null.");
 
         SagaExecutionTask task = createTaskToExecute(message, headers, null);
@@ -108,11 +116,26 @@ public class SagaMessageStream implements MessageStream {
     }
 
     @Override
+    public void handleMessage(@Nonnull final Object message, @Nullable final Map<HeaderName<?>, Object> headers) throws InvocationTargetException, IllegalAccessException {
+        checkNotNull(message, "Message to handle must not be null.");
+        handleMessage(message, headers, null);
+    }
+
+    @Override
     public void handle(@Nonnull final Object message, @Nullable final Map<String, Object> headers, @Nullable final ExecutionContext parentContext)
             throws InvocationTargetException, IllegalAccessException {
         checkNotNull(message, "Message to handle must not be null.");
+        handleMessage(message, toTypedHeaders(headers), parentContext);
+    }
 
-        Map<String, Object> executionHeaders = mergeHeaders(headers, parentContext);
+    @Override
+    public void handleMessage(
+            @Nonnull final Object message,
+            @Nullable final Map<HeaderName<?>, Object> headers,
+            @Nullable final ExecutionContext parentContext) throws InvocationTargetException, IllegalAccessException {
+        checkNotNull(message, "Message to handle must not be null.");
+
+        Map<HeaderName<?>, Object> executionHeaders = mergeHeaders(headers, parentContext);
         SagaExecutionTask executionTask = createTaskToExecute(message, executionHeaders, parentContext);
         try {
             executionTask.handle();
@@ -134,27 +157,46 @@ public class SagaMessageStream implements MessageStream {
         }
     }
 
-    private SagaExecutionTask createTaskToExecute(final Object message, final Map<String, Object> headers, final ExecutionContext parentContext) {
-        return new SagaExecutionTask(environment, invoker, message, headers, parentContext);
+    private SagaExecutionTask createTaskToExecute(
+            final Object message,
+            @Nullable final Map<HeaderName<?>, Object> headers,
+            @Nullable final ExecutionContext parentContext) {
+
+        Map<HeaderName<?>, Object> testedHeaders = headers != null ? headers : EMPTY_HEADERS;
+        return new SagaExecutionTask(environment, invoker, message, testedHeaders, parentContext);
     }
 
-    private Map<String, Object> mergeHeaders(final @Nullable Map<String, Object> headers, final @Nullable ExecutionContext parentContext) {
-        Map<String, Object> executionHeaders = createHeaderMap(parentContext);
-        if (headers != null) {
-            for (Map.Entry<String, Object> headerEntry : headers.entrySet()) {
-                executionHeaders.put(headerEntry.getKey(), headerEntry.getValue());
-            }
+    private Map<HeaderName<?>, Object> mergeHeaders(
+            final @Nullable Map<HeaderName<?>, Object> headers,
+            final @Nullable ExecutionContext parentContext) {
+
+        Map<HeaderName<?>, Object> mergedHeaders;
+        if (headers == null && parentContext == null) {
+            mergedHeaders = EMPTY_HEADERS;
+        } else if (headers == null) {
+            mergedHeaders = parentContext.getAllHeaders()
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        } else if (parentContext == null) {
+            mergedHeaders = headers;
+        } else {
+            mergedHeaders = Stream.concat(headers.entrySet().stream(), parentContext.getAllHeaders())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
-        return executionHeaders;
+        return mergedHeaders;
     }
 
-    private Map<String, Object> createHeaderMap(@Nullable final ExecutionContext context) {
-        Map<String, Object> headers = new HashMap<>();
-        if (context != null) {
-            for (String headerKey : context.getHeaders()) {
-                headers.put(headerKey, context.getHeaderValue(headerKey));
-            }
+    private Map<HeaderName<?>, Object> toTypedHeaders(@Nullable final Map<String, Object> untypedHeaders) {
+        Map<HeaderName<?>, Object> headers;
+
+        if (untypedHeaders == null) {
+            headers = EMPTY_HEADERS;
+        } else {
+            headers = untypedHeaders.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            e -> HeaderName.forName(e.getKey()),
+                            Map.Entry::getValue));
         }
 
         return headers;

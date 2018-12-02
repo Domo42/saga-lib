@@ -28,6 +28,7 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.codebullets.sagalib.timeout.UUIDTimeoutId;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -40,12 +41,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -72,6 +76,7 @@ public class MessageStreamTest {
     ScheduledExecutorService scheduler;
     ScheduledFuture timeout;
     private SagaInterceptor interceptor = new SagaInterceptor();
+    private Map<HeaderName<?>, Object> foundContextHeaders = new HashMap<>();
 
     @Before
     @SuppressWarnings("unchecked")
@@ -269,6 +274,21 @@ public class MessageStreamTest {
         assertThat("Expected this line to be reached.", true);
     }
 
+    @Test
+    public void handleMessage_customHeaders_contextContainsHeaders() throws InvocationTargetException, IllegalAccessException {
+        // given
+        HeaderName<String> headerName = HeaderName.forName("customHeader");
+        String expectedHeaderValue = "expectedHeaderValue";
+        Map<HeaderName<?>, Object> headers = ImmutableMap.of(headerName, expectedHeaderValue);
+
+        // given
+        sut.handleMessage("anyMessage", headers);
+
+        // then
+        Object actualHeaderValue = interceptor.getFoundExecutionHeaders().get(headerName);
+        assertThat("Expected the supplied header value to be part of context.", actualHeaderValue, equalTo(expectedHeaderValue));
+    }
+
     private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
         Collection<T> newCollection = new ArrayList<>(source.size());
         for (T entry : source) {
@@ -354,9 +374,14 @@ public class MessageStreamTest {
 
     private static class SagaInterceptor implements SagaLifetimeInterceptor {
         private Collection<Saga> startedSagas = new ArrayList<>();
+        private Map<HeaderName<?>, Object> foundExecutionHeaders;
 
-        public Collection<Saga> getStartedSagas() {
+        Collection<Saga> getStartedSagas() {
             return startedSagas;
+        }
+
+        Map<HeaderName<?>, Object> getFoundExecutionHeaders() {
+            return foundExecutionHeaders;
         }
 
         @Override
@@ -366,6 +391,7 @@ public class MessageStreamTest {
 
         @Override
         public void onHandlerExecuting(final Saga<?> saga, final ExecutionContext context, final Object message) {
+            foundExecutionHeaders = context.getAllHeaders().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
         @Override

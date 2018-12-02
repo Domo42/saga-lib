@@ -21,6 +21,7 @@ import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
@@ -59,7 +60,7 @@ class SagaExecutionTask implements ExecutedRunnable {
             final SagaEnvironment environment,
             final HandlerInvoker invoker,
             final Object message,
-            final Map<String, Object> headers,
+            final Map<HeaderName<?>, Object> headers,
             @Nullable final ExecutionContext parentContext) {
         this.parentContext = parentContext;
         this.taskLookupContext = new SagaLookupContext(message, headers, parentContext);
@@ -180,10 +181,11 @@ class SagaExecutionTask implements ExecutedRunnable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void setHeaders(final CurrentExecutionContext context) {
-        for (String key : taskLookupContext.getHeaders()) {
-            context.setHeaderValue(key, taskLookupContext.getHeaderValue(key));
-        }
+        taskLookupContext.getAllHeaders().forEach(
+                e -> context.setHeaderValue((HeaderName<Object>) e.getKey(), e.getValue())
+        );
     }
 
     private void setSagaExecutionContext(final Saga saga, final ExecutionContext context) {

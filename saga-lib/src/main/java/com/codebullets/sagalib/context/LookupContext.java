@@ -16,8 +16,12 @@
 package com.codebullets.sagalib.context;
 
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 
 import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Provides context information when looking for and building sagas
@@ -31,18 +35,40 @@ public interface LookupContext {
 
     /**
      * Gets the list of available header values.
+     * @deprecated Use {@link #getAllHeaders()} instead.
      */
+    @Deprecated
     Iterable<String> getHeaders();
 
     /**
-     * Gets the value of a specific header. If the header is not defined <em>null</em> is returned.
+     * Gets a stream of all headers stored in the current context.
      */
+    Stream<Map.Entry<HeaderName<?>, Object>> getAllHeaders();
+
+    /**
+     * Gets the value of a specific header. If the header is not defined <em>null</em> is returned.
+     *
+     * @deprecated Use {@link #getHeaderValue(HeaderName)} instead.
+     */
+    @Deprecated
     Object getHeaderValue(String header);
+
+    /**
+     * Gets the typed value of a specific header. If the header is not defined
+     * {@code empty} is returned.
+     */
+    <T> Optional<T> getHeaderValue(HeaderName<T> header);
+
+    /**
+     * Sets a specific header value.
+     * @deprecated Use {@link #setHeaderValue(HeaderName, Object)} instead.
+     */
+    void setHeaderValue(String header, Object value);
 
     /**
      * Sets a specific header value.
      */
-    void setHeaderValue(String header, Object value);
+    <T> void setHeaderValue(HeaderName<T> header, T value);
 
     /**
      * Gets the optional parent execution context. A parent context might exist if

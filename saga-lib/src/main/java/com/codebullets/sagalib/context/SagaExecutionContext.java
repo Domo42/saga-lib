@@ -16,12 +16,15 @@
 package com.codebullets.sagalib.context;
 
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.Saga;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Execution context used in the saga lib.
@@ -30,7 +33,7 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     private boolean dispatchingStopped;
     private Object message;
     private Saga saga;
-    private Map<String, Object> headers = new HashMap<>();
+    private Map<HeaderName<?>, Object> headers = new HashMap<>();
 
     @Nullable
     private ExecutionContext parentContext;
@@ -66,16 +69,37 @@ public class SagaExecutionContext implements CurrentExecutionContext {
 
     @Override
     public Iterable<String> getHeaders() {
-        return headers.keySet();
+        // Iterable contract requires the ability to
+        // scan over the items multiple times, which is something
+        // Stream does not support
+        return headers.keySet().stream()
+                .map(HeaderName::toString)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<Map.Entry<HeaderName<?>, Object>> getAllHeaders() {
+        return headers.entrySet().stream();
     }
 
     @Override
     public Object getHeaderValue(final String header) {
-        return headers.get(header);
+        return headers.get(HeaderName.forName(header));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getHeaderValue(final HeaderName<T> header) {
+        return Optional.ofNullable((T) headers.get(header));
     }
 
     @Override
     public void setHeaderValue(final String header, final Object value) {
+        headers.put(HeaderName.forName(header), value);
+    }
+
+    @Override
+    public <T> void setHeaderValue(final HeaderName<T> header, final T value) {
         headers.put(header, value);
     }
 
