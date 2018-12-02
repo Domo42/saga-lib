@@ -17,6 +17,7 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.HeaderName;
+import com.codebullets.sagalib.Headers;
 import com.codebullets.sagalib.context.LookupContext;
 
 import javax.annotation.Nullable;
@@ -58,7 +59,7 @@ class SagaLookupContext implements LookupContext {
      */
     SagaLookupContext(final Object message, final LookupContext baseContext, @Nullable final ExecutionContext parentContext) {
         this (message, parentContext);
-        headers = baseContext.getAllHeaders().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        headers = Headers.copyFromStream(baseContext.getAllHeaders());
     }
 
     @Override

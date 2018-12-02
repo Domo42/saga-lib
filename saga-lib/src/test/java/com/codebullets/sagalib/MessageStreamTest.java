@@ -15,6 +15,7 @@
  */
 package com.codebullets.sagalib;
 
+import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
@@ -49,7 +50,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -289,6 +289,33 @@ public class MessageStreamTest {
         assertThat("Expected the supplied header value to be part of context.", actualHeaderValue, equalTo(expectedHeaderValue));
     }
 
+    @Test
+    public void handleMessage_parentContextWithHeaders_contextContainsMergedHeaders() throws InvocationTargetException, IllegalAccessException {
+        // given
+        HeaderName<String> header1 = HeaderName.forName("header1");
+        HeaderName<String> header2 = HeaderName.forName("header2");
+        String headerVal1 = "expectedHeaderValue";
+        String headerVal2 = "parentContextVal";
+        Map<HeaderName<?>, Object> headers = ImmutableMap.of(header1, headerVal1);
+        ExecutionContext parentContext = stubContext(header2, headerVal2);
+
+        // given
+        sut.handleMessage("anyMessage", headers, parentContext);
+
+        // then
+        Object actualVal1 = interceptor.getFoundExecutionHeaders().get(header1);
+        Object actualVal2 = interceptor.getFoundExecutionHeaders().get(header2);
+        assertThat("Expected the supplied header value to be part of context.", actualVal1, equalTo(headerVal1));
+        assertThat("Expected the supplied header value to be part of context.", actualVal2, equalTo(headerVal2));
+    }
+
+    private <T> ExecutionContext stubContext(final HeaderName<T> headerName, final T headerValue) {
+        SagaExecutionContext newContext = new SagaExecutionContext();
+        newContext.setHeaderValue(headerName, headerValue);
+
+        return newContext;
+    }
+
     private <T> Collection<T> convertToCollection(Collection <? extends T> source) {
         Collection<T> newCollection = new ArrayList<>(source.size());
         for (T entry : source) {
@@ -391,7 +418,7 @@ public class MessageStreamTest {
 
         @Override
         public void onHandlerExecuting(final Saga<?> saga, final ExecutionContext context, final Object message) {
-            foundExecutionHeaders = context.getAllHeaders().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            foundExecutionHeaders = Headers.copyFromStream(context.getAllHeaders());
         }
 
         @Override

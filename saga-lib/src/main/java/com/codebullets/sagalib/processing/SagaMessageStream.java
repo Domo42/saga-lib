@@ -17,6 +17,7 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.Headers;
 import com.codebullets.sagalib.MessageStream;
 import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
@@ -174,13 +175,14 @@ public class SagaMessageStream implements MessageStream {
         if (headers == null && parentContext == null) {
             mergedHeaders = EMPTY_HEADERS;
         } else if (headers == null) {
-            mergedHeaders = parentContext.getAllHeaders()
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergedHeaders = Headers.copyFromStream(parentContext.getAllHeaders());
         } else if (parentContext == null) {
             mergedHeaders = headers;
         } else {
-            mergedHeaders = Stream.concat(headers.entrySet().stream(), parentContext.getAllHeaders())
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            mergedHeaders = Headers.copyFromStream(
+                    Stream.concat(
+                            headers.entrySet().stream(),
+                            parentContext.getAllHeaders()));
         }
 
         return mergedHeaders;
