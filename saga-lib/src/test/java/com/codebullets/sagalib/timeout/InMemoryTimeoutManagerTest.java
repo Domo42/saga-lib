@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.timeout;
 
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
@@ -23,6 +24,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +45,8 @@ import static org.mockito.Mockito.when;
  * Tests for {@link InMemoryTimeoutManager} class.
  */
 public class InMemoryTimeoutManagerTest {
+    private static final HeaderName<String> DEFAULT_HEADER = HeaderName.forName("defaultHeaderName");
+    private static final String DEFAULT_HEADER_VALUE = "ContextHeaderValue";
     private InMemoryTimeoutManager sut;
     private ScheduledExecutorService executor;
     private Clock clock;
@@ -104,6 +108,50 @@ public class InMemoryTimeoutManagerTest {
         assertThat("Timeout name does not match.", captor.getValue().getName(), equalTo(expected.getName()));
         assertThat("Expiration time stamp does not match.", captor.getValue().getExpiredAt(), equalTo(expected.getExpiredAt()));
         assertThat("Data object does not match.", captor.getValue().getData(), sameInstance(expectedData));
+    }
+
+    /**
+     * Given => Callback handler has been added.
+     * When  => Scheduled timer is triggered.
+     * Then  => callback handler method is triggered.
+     */
+    @Test
+    public void timeoutTriggered_contextCallbackAdded_callbackTriggered() {
+        // given
+        int delayInSec = 5;
+        Object expectedData = new Object();
+        Date expectedTimeoutIn = new Date(clock.now().getTime() + TimeUnit.SECONDS.toMillis(delayInSec));
+        TimeoutExpirationCallback expiredCallback = mock(TimeoutExpirationCallback.class);
+        sut.addExpiredCallback(expiredCallback);
+        Timeout expected = Timeout.create(UUIDTimeoutId.generateNewId(), "theSagaId", "theTimeoutName", expectedTimeoutIn, expectedData);
+
+        // when
+        requestAndTriggerTimeout(expected.getSagaId(), expected.getName(), delayInSec, TimeUnit.SECONDS, expectedData);
+
+        // then
+        verify(expiredCallback).expired(isA(Timeout.class), isA(TimeoutExpirationContext.class));
+    }
+
+    /**
+     * Given => Callback handler has been added.
+     * When  => Scheduled timer is triggered.
+     * Then  => callback handler method is triggered.
+     */
+    @Test
+    public void timeoutTriggered_headerValue_headerValuePartOfCallback() {
+        // given
+        TimeoutExpirationCallback expiredCallback = mock(TimeoutExpirationCallback.class);
+        sut.addExpiredCallback(expiredCallback);
+
+        // when
+        requestAndTriggerTimeout();
+
+        // then
+        ArgumentCaptor<TimeoutExpirationContext> captor = ArgumentCaptor.forClass(TimeoutExpirationContext.class);
+        verify(expiredCallback).expired(isA(Timeout.class), captor.capture());
+
+        Map<HeaderName<?>, Object> headers = captor.getValue().getOriginalHeaders();
+        assertThat("Expected header value in callback param.", headers.get(DEFAULT_HEADER), equalTo(DEFAULT_HEADER_VALUE));
     }
 
     /**
@@ -223,7 +271,9 @@ public class InMemoryTimeoutManagerTest {
     }
 
     private ExecutionContext mockContext() {
-        return new SagaExecutionContext();
+        SagaExecutionContext context = new SagaExecutionContext();
+        context.setHeaderValue(DEFAULT_HEADER, DEFAULT_HEADER_VALUE);
+        return context;
     }
 
     private void requestAndTriggerTimeout() {
@@ -236,7 +286,11 @@ public class InMemoryTimeoutManagerTest {
     }
 
     private void requestAndTriggerTimeout(
-            final String sagaId, final String name, final long delay, final TimeUnit unit, final Object data) {
+            final String sagaId,
+            final String name,
+            final long delay,
+            final TimeUnit unit,
+            final Object data) {
         sut.requestTimeout(mockContext(), sagaId, delay, unit, name, data);
         ArgumentCaptor<SagaTimeoutTask> captor = ArgumentCaptor.forClass(SagaTimeoutTask.class);
         verify(executor).schedule(captor.capture(), eq(delay), eq(unit));
