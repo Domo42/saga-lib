@@ -26,7 +26,6 @@ class HeaderNameTest {
 
     @BeforeEach
     void setUp() {
-
     }
 
     @Test
@@ -34,7 +33,7 @@ class HeaderNameTest {
         // given
         final String headerName = "theHeaderName";
         HeaderName<Integer> header1 = HeaderName.forName(headerName);
-        HeaderName<Integer> header2 = HeaderName.forName(headerName);
+        HeaderName<Integer> header2 = HeaderName.forType(Integer.class, headerName);
 
         // when
         boolean isEqual = header1.equals(header2);
@@ -47,7 +46,7 @@ class HeaderNameTest {
     void equals_twoHeadersDifferentName_areNotEqual() {
         // given
         HeaderName<Integer> header1 = HeaderName.forName("header1");
-        HeaderName<Integer> header2 = HeaderName.forName("header2");
+        HeaderName<Integer> header2 = HeaderName.forType(Integer.class,"header2");
 
         // when
         boolean isEqual = header1.equals(header2);

@@ -45,6 +45,18 @@ public final class HeaderName<T> {
         return new HeaderName<>(name);
     }
 
+    /**
+     * Creates a new {@code HeaderName} instance with the provided name
+     * used as key.
+     *
+     * <p>Under some circumstances the type can not be directly inferred from the
+     * return value as using in {@link #forName(String)}. Use this overload to make
+     * the header value type explicit.</p>
+     */
+    public static <T> HeaderName<T> forType(final Class<T> headerType, final String name) {
+        return new HeaderName<>(name);
+    }
+
     @Override
     public int hashCode() {
         return name.hashCode();

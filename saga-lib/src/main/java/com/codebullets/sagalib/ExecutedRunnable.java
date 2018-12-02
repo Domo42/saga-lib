@@ -15,6 +15,8 @@
  */
 package com.codebullets.sagalib;
 
+import java.util.Optional;
+
 /**
  * This is the runnable executed by the saga lib. The provided executor
  * is responsible to call the {@code run()} method to trigger the individual
@@ -27,4 +29,11 @@ public interface ExecutedRunnable extends Runnable {
      * Returns the message that triggered the saga execution handling.
      */
     Object message();
+
+    /**
+     * Gets the typed value of a header to be used
+     * when handling the message. If the header is not defined
+     * {@code empty} is returned.
+     */
+    <T> Optional<T> getHeaderValue(HeaderName<T> header);
 }

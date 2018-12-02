@@ -30,6 +30,7 @@ import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.processing.invocation.SagaExecutionErrorsException;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -625,6 +626,20 @@ public class SagaExecutionTaskTest {
         assertThat("Expected two exceptions in resulting one.", exception.getExecutionErrors(), hasSize(2));
         assertThat("Expected two exceptions in resulting one.", exception.getExecutionErrors(), hasItem(instanceOf(NullPointerException.class)));
         assertThat("Expected two exceptions in resulting one.", exception.getExecutionErrors(), hasItem(instanceOf(ArithmeticException.class)));
+    }
+
+    @Test
+    public void getHeaderValue_headerValueSet_returnValue() {
+        // given
+        HeaderName<Integer> contextHeader = HeaderName.forType(Integer.class, "contextId");
+        Map<HeaderName<?>, Object> headers = ImmutableMap.of(contextHeader, 42);
+        SagaExecutionTask task = new SagaExecutionTask(null, invoker, theMessage, headers, null);
+
+        // when
+        Optional<Integer> headerValue = task.getHeaderValue(contextHeader);
+
+        // then
+        assertThat("Expected provided header value to be available.", headerValue.get(), equalTo(42));
     }
 
     private Provider<CurrentExecutionContext> createContextProvider(final CurrentExecutionContext context) {

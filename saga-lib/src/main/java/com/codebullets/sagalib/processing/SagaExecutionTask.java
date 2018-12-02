@@ -35,6 +35,7 @@ import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -228,5 +229,10 @@ class SagaExecutionTask implements ExecutedRunnable {
     @Override
     public Object message() {
         return taskLookupContext.message();
+    }
+
+    @Override
+    public <T> Optional<T> getHeaderValue(final HeaderName<T> header) {
+        return taskLookupContext.getHeaderValue(header);
     }
 }
