@@ -590,6 +590,51 @@ public class SagaExecutionTaskTest {
         inOrder.verify(interceptor).onHandlerExecuted(saga, context, theMessage);
     }
 
+	/**
+	 * <pre>
+	 * Given => Interceptor is available
+	 * When  => invoker throws exception
+	 * Then  => exception is propagated
+	 * </pre>
+	 */
+	@Test(expected = RuntimeException.class)
+	public void run_invokerThrowsException_exceptionIsThrown() throws InvocationTargetException, IllegalAccessException {
+		// given
+		InvocationTargetException error = new InvocationTargetException(new Exception());
+		doThrow(error).when(invoker).invoke(saga, theMessage);
+
+		// when
+
+		sut.run();
+
+		// then
+		// Exception is thrown
+	}
+
+	/**
+	 * <pre>
+	 * Given => Interceptor is available
+	 * When  => invoker throws exception
+	 * Then  => interceptor#onHandleError is invoked
+	 * </pre>
+	 */
+	@Test
+	public void run_invokerThrowsException_interceptorOnErrorCalled() throws InvocationTargetException, IllegalAccessException {
+		// given
+		InvocationTargetException error = new InvocationTargetException(new Exception());
+		doThrow(error).when(invoker).invoke(saga, theMessage);
+
+		// when
+		try {
+			sut.run();
+		} catch (RuntimeException e) {
+			// nothing to do
+		}
+
+		// then
+		verify(interceptor).onHandlerError(saga, context, theMessage, error);
+	}
+
     /**
      * <pre>
      * Given => SagaModule stops dispatching
