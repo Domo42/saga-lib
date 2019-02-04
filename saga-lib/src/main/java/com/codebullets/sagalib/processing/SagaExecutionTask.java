@@ -138,8 +138,13 @@ class SagaExecutionTask implements ExecutedRunnable {
                 interceptorStart(sagaDescription, context, invokeParam);
                 interceptorHandling(saga, context, invokeParam);
 
-                // perform actual saga invoke
-                invoker.invoke(saga, invokeParam);
+                try {
+                    // perform actual saga invoke
+                    invoker.invoke(saga, invokeParam);
+                } catch (Throwable t) {
+                    interceptorError(saga, context, invokeParam, t);
+                    throw t;
+                }
 
                 // call interceptor handler finished hooks
                 interceptorHandlingExecuted(saga, context, invokeParam);
@@ -157,6 +162,12 @@ class SagaExecutionTask implements ExecutedRunnable {
     private void interceptorHandling(final Saga saga, final ExecutionContext context, final Object invokeParam) {
         for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
             interceptor.onHandlerExecuting(saga, context, invokeParam);
+        }
+    }
+
+    private void interceptorError(final Saga saga, final ExecutionContext context, final Object invokeParam, final Throwable error) {
+        for (SagaLifetimeInterceptor interceptor : env.interceptors()) {
+            interceptor.onHandlerError(saga, context, invokeParam, error);
         }
     }
 

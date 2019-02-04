@@ -35,6 +35,14 @@ public interface SagaLifetimeInterceptor {
     void onHandlerExecuting(Saga<?> saga, ExecutionContext context, Object message);
 
     /**
+     * This method is called in case an exception during execution of a handler occurs.
+     * This includes the start handler as well as all other handlers called as long as
+     * the saga is not finished.
+     */
+    default void onHandlerError(Saga<?> saga, ExecutionContext context, Object message, Throwable error) {
+    }
+
+    /**
      * This method is called after any handler of a saga has been called. This
      * includes the start handler as well as all other handlers
      */
