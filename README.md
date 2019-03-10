@@ -17,7 +17,7 @@ It is recommended to use Maven to reference the saga-lib binaries.
 <dependency>
    <groupId>com.codebullets.saga-lib</groupId>
    <artifactId>saga-lib</artifactId>
-   <version>3.2.0</version>
+   <version>3.3.0</version>
 </dependency>
 ```
 
@@ -102,7 +102,7 @@ public class MySaga extends AbstractSaga<MySagaState> {
 ```
 
 [wiki]: https://github.com/Domo42/saga-lib/wiki/Sagas
-[Maven Central]: http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.codebullets.saga-lib%22
+[Maven Central]: https://search.maven.org/search?q=g:com.codebullets.saga-lib
 [JSR-330]: http://jcp.org/en/jsr/detail?id=330
 [Guice]: https://github.com/google/guice
 [Spring]: http://www.springsource.org/spring-framework
