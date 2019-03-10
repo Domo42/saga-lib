@@ -16,6 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
+import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.invocation.DefaultModuleCoordinator;
@@ -130,7 +131,11 @@ public class SagaMessageStreamTest {
     }
 
     private void mockSagaCreation() {
-        SagaInstanceInfo saga = new SagaInstanceInfo(mock(Saga.class), true);
-        when(instanceResolver.resolve(any(LookupContext.class))).thenReturn(Lists.newArrayList(saga));
+        Saga saga = mock(Saga.class);
+        SagaState sagaState = mock(SagaState.class);
+        when(saga.state()).thenReturn(sagaState);
+
+        SagaInstanceInfo sagaInfo = new SagaInstanceInfo(saga, true);
+        when(instanceResolver.resolve(any(LookupContext.class))).thenReturn(Lists.newArrayList(sagaInfo));
     }
 }

@@ -135,6 +135,20 @@ public class SagaExecutionTaskTest {
         verify(storage).save(state);
     }
 
+    @Test
+    public void run_sagaNotCompleted_rememberStoredIdInContext() {
+        // given
+        final String sagaId = RandomStringUtils.randomAlphanumeric(10);
+        when(state.getSagaId()).thenReturn(sagaId);
+        when(saga.isFinished()).thenReturn(false);
+
+        // when
+        sut.run();
+
+        // then
+        verify(context).recordSagaStateStored(sagaId);
+    }
+
     /**
      * Given => Handled saga is started and finished after invocation.
      * When  => Task is executed.
@@ -236,6 +250,38 @@ public class SagaExecutionTaskTest {
 
         // then
         verify(timeoutManager, never()).cancelTimeouts(any(String.class));
+    }
+
+    @Test
+    public void run_sagaIsStartedAndIsFinishedAndAlreadyStore_deleteState() {
+        // given
+        final String sagaId = RandomStringUtils.randomAlphanumeric(10);
+        when(saga.isFinished()).thenReturn(true);
+        when(state.getSagaId()).thenReturn(sagaId);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
+        when(context.hasBeenStored(saga.state().getSagaId())).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        verify(storage).delete(sagaId);
+    }
+
+    @Test
+    public void run_sagaIsStartedAndIsFinishedAndAlreadyStore_cancelTimeout() {
+        // given
+        final String sagaId = RandomStringUtils.randomAlphanumeric(10);
+        when(saga.isFinished()).thenReturn(true);
+        when(state.getSagaId()).thenReturn(sagaId);
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
+        when(context.hasBeenStored(saga.state().getSagaId())).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        verify(timeoutManager).cancelTimeouts(sagaId);
     }
 
     /**

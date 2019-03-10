@@ -21,8 +21,10 @@ import com.codebullets.sagalib.Saga;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +36,7 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     private Object message;
     private Saga saga;
     private Map<HeaderName<?>, Object> headers = new HashMap<>();
+    private Set<String> storedSagas = new HashSet<>();
 
     @Nullable
     private ExecutionContext parentContext;
@@ -132,5 +135,28 @@ public class SagaExecutionContext implements CurrentExecutionContext {
     @Override
     public void setError(@Nullable final Exception error) {
         this.error = error;
+    }
+
+    @Override
+    public void recordSagaStateStored(final String sagaId) {
+        // always store in parent context if available.
+        if (parentContext instanceof CurrentExecutionContext) {
+            ((CurrentExecutionContext) parentContext).recordSagaStateStored(sagaId);
+        } else {
+            storedSagas.add(sagaId);
+        }
+    }
+
+    @Override
+    public boolean hasBeenStored(final String sagaId) {
+        boolean hasBeenStored;
+
+        if (parentContext instanceof CurrentExecutionContext) {
+            hasBeenStored = ((CurrentExecutionContext) parentContext).hasBeenStored(sagaId);
+        } else {
+            hasBeenStored = storedSagas.contains(sagaId);
+        }
+
+        return hasBeenStored;
     }
 }

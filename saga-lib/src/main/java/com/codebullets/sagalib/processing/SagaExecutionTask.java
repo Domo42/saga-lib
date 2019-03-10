@@ -144,7 +144,7 @@ class SagaExecutionTask implements ExecutedRunnable {
                 // call interceptor handler finished hooks
                 interceptorHandlingExecuted(saga, context, invokeParam);
                 interceptorFinished(saga, context);
-                updateStateStorage(sagaDescription);
+                updateStateStorage(sagaDescription, context);
 
                 if (context.dispatchingStopped()) {
                     LOG.debug("Handler dispatching stopped after invoking saga {}.", sagaDescription.getSaga().getClass().getSimpleName());
@@ -198,18 +198,32 @@ class SagaExecutionTask implements ExecutedRunnable {
     /**
      * Updates the state storage depending on whether the saga is completed or keeps on running.
      */
-    private void updateStateStorage(final SagaInstanceInfo description) {
+    private void updateStateStorage(final SagaInstanceInfo description, final CurrentExecutionContext context) {
         Saga saga = description.getSaga();
+        String sagaId = saga.state().getSagaId();
 
         // if saga has finished delete existing state and possible timeouts
         // if saga has just been created state has never been save and there
         // is no need to delete it.
         if (saga.isFinished() && !description.isStarting()) {
-            env.storage().delete(saga.state().getSagaId());
-            env.timeoutManager().cancelTimeouts(saga.state().getSagaId());
-        } else if (!saga.isFinished()) {
+            cleanupSagaSate(sagaId);
+        } else if (saga.isFinished() && description.isStarting()) {
+            // check storage on whether saga has been saved via
+            // a recursive child contexts.
+            if (context.hasBeenStored(sagaId)) {
+                cleanupSagaSate(sagaId);
+            }
+        }
+
+        if (!saga.isFinished()) {
+            context.recordSagaStateStored(sagaId);
             env.storage().save(saga.state());
         }
+    }
+
+    private void cleanupSagaSate(final String sagaId) {
+        env.storage().delete(sagaId);
+        env.timeoutManager().cancelTimeouts(sagaId);
     }
 
     /**
