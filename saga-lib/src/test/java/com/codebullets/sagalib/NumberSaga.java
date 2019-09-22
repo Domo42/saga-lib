@@ -26,7 +26,7 @@ public class NumberSaga extends AbstractSingleEventSaga {
     /**
      * Generates a new instance of NumberSaga.
      */
-    public NumberSaga(Set<Number> numbers) {
+    NumberSaga(Set<Number> numbers) {
         this.numbers = numbers;
     }
 

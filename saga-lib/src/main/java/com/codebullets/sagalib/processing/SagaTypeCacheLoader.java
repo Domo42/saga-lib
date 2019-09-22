@@ -51,14 +51,13 @@ class SagaTypeCacheLoader extends CacheLoader<Class, Collection<SagaType>> {
      * {@inheritDoc}
      */
     @Override
-    @SuppressWarnings("unchecked")
     public Collection<SagaType> load(final Class messageClass) throws Exception {
         Iterable<Class<?>> matchingTypes = allMessageTypes(messageClass);
         Collection<SagaType> matchingSagas = findAllSagas(matchingTypes);
 
         Collection<SagaType> resultList;
         if (matchingSagas.isEmpty()) {
-            resultList = Collections.EMPTY_LIST;
+            resultList = Collections.emptyList();
         } else {
             resultList = sortAccordingToPreference(matchingSagas);
         }

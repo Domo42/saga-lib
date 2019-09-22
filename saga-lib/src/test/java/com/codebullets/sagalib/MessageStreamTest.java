@@ -16,7 +16,6 @@
 package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.SagaExecutionContext;
-import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
 import com.codebullets.sagalib.storage.MemoryStorage;
@@ -37,7 +36,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -345,57 +343,6 @@ public class MessageStreamTest {
             sagas.add(DeadMessageSaga.class);
 
             return sagas;
-        }
-    }
-
-    private static class TestSagaProviderFactory implements SagaProviderFactory {
-        private final TimeoutManager timeoutManager;
-        private final Set<Number> numbers;
-        private final Set<String> calledSagas;
-
-        /**
-         * Generates a new instance of MessageStreamTest$TestSagaProviderFactory.
-         */
-        public TestSagaProviderFactory(TimeoutManager timeoutManager, Set<Number> numbers, final Set<String> calledSagas) {
-            this.timeoutManager = timeoutManager;
-            this.numbers = numbers;
-            this.calledSagas = calledSagas;
-        }
-
-        @Override
-        public Provider<? extends Saga> createProvider(final Class sagaClass) {
-            Provider<? extends Saga> provider = null;
-
-            if (sagaClass.equals(TestSaga.class)) {
-                provider = new Provider<TestSaga>() {
-                    @Override
-                    public TestSaga get() {
-                        return new TestSaga(timeoutManager);
-                    }
-                };
-            } else if (sagaClass.equals(NumberSaga.class)) {
-                provider = new Provider<NumberSaga>() {
-                    public NumberSaga get() {
-                        return new NumberSaga(numbers);
-                    }
-                };
-            } else if (sagaClass.equals(IntegerSaga.class)) {
-                provider = new Provider<Saga>() {
-                        @Override
-                        public Saga get() {
-                            return new IntegerSaga(calledSagas);
-                        }
-                    };
-            } else if (sagaClass.equals(DeadMessageSaga.class)) {
-                provider = new Provider<Saga>() {
-                        @Override
-                        public Saga get() {
-                            return new DeadMessageSaga();
-                        }
-                    };
-            }
-
-            return provider;
         }
     }
 
