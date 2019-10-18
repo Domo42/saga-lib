@@ -8,10 +8,11 @@ package com.codebullets.sagalib.handling;
 import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.EventHandler;
 import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.KeyReaders;
 import com.codebullets.sagalib.StartsSaga;
 import com.codebullets.sagalib.TestSagaState;
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SameMessageSaga extends AbstractSaga<TestSagaState> {
@@ -42,6 +43,7 @@ public class SameMessageSaga extends AbstractSaga<TestSagaState> {
 
     @Override
     public Collection<KeyReader> keyReaders() {
-        return Collections.emptyList();
+        return ImmutableSet.of(
+                KeyReaders.forMessage(StartMessage.class, StartMessage::getInstanceKey));
     }
 }

@@ -8,9 +8,6 @@ package com.codebullets.sagalib.handling;
 public class StartMessage {
     private String instanceKey;
 
-    public StartMessage() {
-    }
-
     public StartMessage(final String instanceKey) {
         this.instanceKey = instanceKey;
     }
