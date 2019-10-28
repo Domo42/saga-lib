@@ -27,6 +27,8 @@ import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.invocation.DefaultModuleCoordinator;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.InvocationContext;
+import com.codebullets.sagalib.processing.invocation.InvocationHandlerType;
 import com.codebullets.sagalib.processing.invocation.SagaExecutionErrorsException;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
@@ -38,6 +40,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import javax.inject.Provider;
@@ -89,13 +92,15 @@ public class SagaExecutionTaskTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
-    public void init() {
+    public void init() throws InvocationTargetException, IllegalAccessException {
         saga = mock(Saga.class, withSettings().extraInterfaces(NeedContext.class));
         state = mock(SagaState.class);
         timeoutManager = mock(TimeoutManager.class);
         storage = mock(StateStorage.class);
         instanceResolver = mock(InstanceResolver.class);
         invoker = mock(HandlerInvoker.class);
+        doThrow(new IllegalStateException("Expected invoke(context) to be called.")).when(invoker).invoke(any(), any());
+
         sagaInstanceInfo = mock(SagaInstanceInfo.class);
         module = mock(SagaModule.class);
         interceptor = mock(SagaLifetimeInterceptor.class);
@@ -300,7 +305,7 @@ public class SagaExecutionTaskTest {
         InOrder inOrder = inOrder(context, invoker);
 
         inOrder.verify(context).setMessage(theMessage);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
     }
 
     /**
@@ -315,11 +320,47 @@ public class SagaExecutionTaskTest {
         // given, when
         sut.run();
 
-        // when
+        // then
         InOrder inOrder = inOrder(context, invoker);
 
         inOrder.verify(context).setSaga(saga);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
+    }
+
+    @Test
+    public void run_sagaIsStarted_invokedWithExpectedContext() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceInfo.isStarting()).thenReturn(true);
+
+        // when
+        sut.run();
+
+        // then
+        ArgumentCaptor<InvocationContext> captor = ArgumentCaptor.forClass(InvocationContext.class);
+        verify(invoker).invoke(captor.capture());
+
+        assertThat("Expected saga to be set on the invocation context.", captor.getValue().saga(), equalTo(saga));
+        assertThat("Expected message to be set on the invocation context.", captor.getValue().message(), equalTo(theMessage));
+        assertThat("Expected context to be set on the invocation context.", captor.getValue().context(), equalTo(context));
+        assertThat("Expected context to indicate a starting saga.", captor.getValue().handlerType(), equalTo(InvocationHandlerType.START));
+    }
+
+    @Test
+    public void run_sagaIsContinued_invokedWithExpectedContext() throws InvocationTargetException, IllegalAccessException {
+        // given
+        when(sagaInstanceInfo.isStarting()).thenReturn(false);
+
+        // when
+        sut.run();
+
+        // then
+        ArgumentCaptor<InvocationContext> captor = ArgumentCaptor.forClass(InvocationContext.class);
+        verify(invoker).invoke(captor.capture());
+
+        assertThat("Expected saga to be set on the invocation context.", captor.getValue().saga(), equalTo(saga));
+        assertThat("Expected message to be set on the invocation context.", captor.getValue().message(), equalTo(theMessage));
+        assertThat("Expected context to be set on the invocation context.", captor.getValue().context(), equalTo(context));
+        assertThat("Expected context to indicate a starting saga.", captor.getValue().handlerType(), equalTo(InvocationHandlerType.CONTINUE));
     }
 
     /**
@@ -393,7 +434,7 @@ public class SagaExecutionTaskTest {
         // then
         InOrder inOrder = inOrder(invoker, module);
         inOrder.verify(module).onStart(context);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
     }
 
     /**
@@ -410,7 +451,7 @@ public class SagaExecutionTaskTest {
 
         // then
         InOrder inOrder = inOrder(invoker, module);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
         inOrder.verify(module).onFinished(context);
     }
 
@@ -481,7 +522,7 @@ public class SagaExecutionTaskTest {
     public void run_invokeThrows_moduleErrorGetsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         NullPointerException npe = new NullPointerException();
-        doThrow(npe).when(invoker).invoke(saga, theMessage);
+        doThrow(npe).when(invoker).invoke(isA(InvocationContext.class));
 
         try {
             // when
@@ -506,7 +547,7 @@ public class SagaExecutionTaskTest {
         thrown.expect(NullPointerException.class);
 
         // given
-        doThrow(NullPointerException.class).when(invoker).invoke(saga, theMessage);
+        doThrow(NullPointerException.class).when(invoker).invoke(any(InvocationContext.class));
 
         // when
         sut.run();
@@ -530,7 +571,7 @@ public class SagaExecutionTaskTest {
         // then
         InOrder inOrder = inOrder(invoker, interceptor);
         inOrder.verify(interceptor).onStarting(saga, context, theMessage);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
     }
 
     /**
@@ -570,7 +611,7 @@ public class SagaExecutionTaskTest {
 
         // then
         InOrder inOrder = inOrder(invoker, interceptor);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
         inOrder.verify(interceptor).onFinished(saga, context);
     }
 
@@ -612,7 +653,7 @@ public class SagaExecutionTaskTest {
         // then
         InOrder inOrder = inOrder(invoker, interceptor);
         inOrder.verify(interceptor).onHandlerExecuting(saga, context, theMessage);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
     }
 
     /**
@@ -632,7 +673,7 @@ public class SagaExecutionTaskTest {
 
         // then
         InOrder inOrder = inOrder(invoker, interceptor);
-        inOrder.verify(invoker).invoke(saga, theMessage);
+        inOrder.verify(invoker).invoke(isA(InvocationContext.class));
         inOrder.verify(interceptor).onHandlerExecuted(saga, context, theMessage);
     }
 
@@ -655,13 +696,13 @@ public class SagaExecutionTaskTest {
         sut.run();
 
         // then
-        verify(invoker, never()).invoke(saga, theMessage);
+        verify(invoker, never()).invoke(isA(InvocationContext.class));
     }
 
     @Test
     public void run_invokerAndModuleFinishThrow_throwsSagaExecutionExceptions() throws InvocationTargetException, IllegalAccessException {
         // given
-        doThrow(ArithmeticException.class).when(invoker).invoke(saga, theMessage);
+        doThrow(ArithmeticException.class).when(invoker).invoke(isA(InvocationContext.class));
         doThrow(NullPointerException.class).when(module).onFinished(any(ExecutionContext.class));
 
         // when
@@ -698,6 +739,7 @@ public class SagaExecutionTaskTest {
         when(contextProvider.get()).thenReturn(context);
 
         when(context.error()).thenReturn(Optional.empty());
+        when(context.saga()).thenReturn(saga);
 
         doAnswer(invocationOnMock -> {
             Object message = invocationOnMock.getArguments()[0];

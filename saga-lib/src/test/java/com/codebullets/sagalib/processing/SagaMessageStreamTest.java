@@ -21,20 +21,24 @@ import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
 import com.codebullets.sagalib.processing.invocation.DefaultModuleCoordinator;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.InvocationContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,7 +122,11 @@ public class SagaMessageStreamTest {
         sut.handle(message);
 
         // then
-        verify(invoker).invoke(isA(Saga.class), same(message));
+        ArgumentCaptor<InvocationContext> captor = ArgumentCaptor.forClass(InvocationContext.class);
+        verify(invoker).invoke(captor.capture());
+
+        assertThat("Expected saga instance to be set.", captor.getValue().saga(), instanceOf(Saga.class));
+        assertThat("Expected message on invoker context.", captor.getValue().message(), equalTo(message));
     }
 
     @Test

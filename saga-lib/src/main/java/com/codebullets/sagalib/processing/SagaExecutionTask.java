@@ -25,6 +25,7 @@ import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
+import com.codebullets.sagalib.processing.invocation.InvocationHandlerType;
 import com.codebullets.sagalib.processing.invocation.ModuleCoordinator;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -129,17 +130,22 @@ class SagaExecutionTask implements ExecutedRunnable {
         if (context.dispatchingStopped()) {
             LOG.debug("Handler dispatching stopped before invoking any saga.");
         } else {
+            // we are use to be executed on a the same thread -> re-use instance to
+            // reduce some of the GC pressure
+            HandlerInvocationContext invocationContext = new HandlerInvocationContext(context);
+
             for (SagaInstanceInfo sagaDescription : sagaDescriptions) {
                 Saga saga = sagaDescription.getSaga();
                 context.setSaga(saga);
                 setSagaExecutionContext(saga, context);
+                invocationContext.setHandlerType(sagaDescription.isStarting() ? InvocationHandlerType.START : InvocationHandlerType.CONTINUE);
 
                 // call interceptor pre handling hooks
                 interceptorStart(sagaDescription, context, invokeParam);
                 interceptorHandling(saga, context, invokeParam);
 
                 // perform actual saga invoke
-                invoker.invoke(saga, invokeParam);
+                invoker.invoke(invocationContext);
 
                 // call interceptor handler finished hooks
                 interceptorHandlingExecuted(saga, context, invokeParam);

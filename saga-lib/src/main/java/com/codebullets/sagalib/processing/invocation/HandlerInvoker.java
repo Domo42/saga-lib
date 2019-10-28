@@ -32,4 +32,21 @@ public interface HandlerInvoker {
      * @throws IllegalAccessException Thrown when access to the handler method fails.
      */
     void invoke(Saga saga, Object message) throws InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Invokes the handler method on the target saga. If no handler is found do nothing.
+     *
+     * <p>This method provides more information compared to {@link #invoke(Saga, Object)},
+     * which is called as part of the default implementation. Implementors can use this method
+     * to obtain more information about the expected invocation.</p>
+     *
+     * <p>This is the method called to trigger the actual invocation. If custom implementations choose to
+     * override this method it is expected that {@link #invoke(Saga, Object)} does nothing.</p>
+     *
+     * @throws InvocationTargetException Thrown when invocation of the handler method fails.
+     * @throws IllegalAccessException Thrown when access to the handler method fails.
+     */
+    default void invoke(InvocationContext invocationContext) throws InvocationTargetException, IllegalAccessException {
+        invoke(invocationContext.saga(), invocationContext.message());
+    }
 }
