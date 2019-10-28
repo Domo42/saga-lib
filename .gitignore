@@ -3,3 +3,8 @@ target/
 .idea
 *.iml
 .DS_Store
+
+# eclipse
+.settings
+.project
+.classpath
