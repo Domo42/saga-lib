@@ -4,7 +4,7 @@
 
     <groupId>com.codebullets.saga-lib</groupId>
     <artifactId>saga-lib-root</artifactId>
-    <version>3.4.0</version>
+    <version>3.4.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
