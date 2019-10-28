@@ -53,21 +53,27 @@ public class ReflectionInvoker implements HandlerInvoker {
      * {@inheritDoc}
      */
     @Override
-    public void invoke(final Saga saga, final Object message) throws InvocationTargetException, IllegalAccessException {
+    public void invoke(final Saga saga, final Object message) {
+    }
+
+    @Override
+    public void invoke(final InvocationContext invocationContext) throws InvocationTargetException, IllegalAccessException {
+        Saga<?> saga = invocationContext.saga();
+
         if (saga instanceof DescribesHandlers) {
-            ((DescribesHandlers) saga).describeHandlers().handler().accept(message);
+            ((DescribesHandlers) saga).describeHandlers().handler().accept(invocationContext.message());
         } else {
-            invokeUsingReflection(saga, message);
+            invokeUsingReflection(invocationContext);
         }
     }
 
-    private void invokeUsingReflection(final Saga saga, final Object message) throws InvocationTargetException, IllegalAccessException {
-        InvokerKey key = InvokerKey.create(saga, message);
+    private void invokeUsingReflection(final InvocationContext invocationContext) throws InvocationTargetException, IllegalAccessException {
+        InvokerKey key = InvokerKey.create(invocationContext);
         InvocationMethod method = tryGetMethod(key);
         if (method != null) {
             Optional<Method> reflectionMethod = method.invocationMethod();
             if (reflectionMethod.isPresent()) {
-                reflectionMethod.get().invoke(saga, message);
+                reflectionMethod.get().invoke(invocationContext.saga(), invocationContext.message());
             } else {
                 LOG.warn("No annotated handler method found and saga is not self describing. key = {}", key);
             }
@@ -101,12 +107,12 @@ public class ReflectionInvoker implements HandlerInvoker {
         }
 
         @Override
-        public InvocationMethod load(final InvokerKey key) throws Exception {
+        public InvocationMethod load(final InvokerKey key) {
             InvocationMethod invocationMethod = null;
             SagaHandlersMap handlers = handlersMapMap.get(key.getSagaClass());
             if (handlers != null) {
                 for (MessageHandler handler : handlers.messageHandlers()) {
-                    if (handler.getMessageType().isAssignableFrom(key.getMsgClass())) {
+                    if (matchesCallingContext(key, handler) && handler.getMessageType().isAssignableFrom(key.getMsgClass())) {
                         final Optional<Method> method = handler.getMethodToInvoke();
                         invocationMethod = method.map(InvocationMethod::reflectionInvoked)
                                 .orElse(InvocationMethod.selfDescribed());
@@ -117,6 +123,18 @@ public class ReflectionInvoker implements HandlerInvoker {
 
             return invocationMethod;
         }
+
+        private boolean matchesCallingContext(final InvokerKey invokerKey, final MessageHandler handler) {
+            boolean isMatch;
+
+            if (invokerKey.handlerType == InvocationHandlerType.START) {
+                isMatch = handler.getStartsSaga();
+            } else {
+                isMatch = !handler.getStartsSaga();
+            }
+
+            return isMatch;
+        }
     }
 
     /**
@@ -125,10 +143,12 @@ public class ReflectionInvoker implements HandlerInvoker {
     private static class InvokerKey {
         private final Class sagaClazz;
         private final Class msgClazz;
+        private final InvocationHandlerType handlerType;
 
-        InvokerKey(final Class sagaClazz, final Class msgClazz) {
+        InvokerKey(final Class sagaClazz, final Class msgClazz, final InvocationHandlerType handlerType) {
             this.sagaClazz = sagaClazz;
             this.msgClazz = msgClazz;
+            this.handlerType = handlerType;
         }
 
         private Class getSagaClass() {
@@ -151,14 +171,15 @@ public class ReflectionInvoker implements HandlerInvoker {
             if (obj instanceof InvokerKey) {
                 InvokerKey other = (InvokerKey) obj;
                 isEqual = Objects.equals(msgClazz, other.msgClazz)
-                       && Objects.equals(sagaClazz, other.sagaClazz);
+                       && Objects.equals(sagaClazz, other.sagaClazz)
+                       && Objects.equals(this.handlerType, other.handlerType);
             }
 
             return isEqual;
         }
 
-        public static InvokerKey create(final Saga sagaInstance, final Object msgInstance) {
-            return new InvokerKey(sagaInstance.getClass(), msgInstance.getClass());
+        public static InvokerKey create(final InvocationContext invocationContext) {
+            return new InvokerKey(invocationContext.saga().getClass(), invocationContext.message().getClass(), invocationContext.handlerType());
         }
 
         @Override
