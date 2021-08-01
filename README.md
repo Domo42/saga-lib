@@ -56,7 +56,7 @@ further handlers need to be annotated with *@EventHandler*. There can only be
 one message starting a saga. There is no limit to the number of further
 event handlers.
 
-This saga is using annoations to define the handlers, but there is also an
+This saga is using annotations to define the handlers, but there is also an
 option to use a direct [Fluent API] api.
 
 ```java
