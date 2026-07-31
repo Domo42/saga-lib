@@ -20,14 +20,14 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
-import org.junit.Before;
-import org.junit.Test;
 
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.inject.Provider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -38,12 +38,12 @@ import static org.hamcrest.Matchers.equalTo;
  *
  */
 @SuppressWarnings("unchecked")
-public class InheritanceTests {
+class InheritanceTests {
     private MessageStream sagaLib;
     private MarkerInterfaceHandler markerHandler;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         markerHandler = new MarkerInterfaceHandler();
 
         sagaLib = EventStreamBuilder.configure()
@@ -60,7 +60,7 @@ public class InheritanceTests {
      * </pre>
      */
     @Test
-    public void handle_concreteMessage_handlerForInterfaceOnBaseClassIsCalled() throws InvocationTargetException, IllegalAccessException {
+    void handle_concreteMessage_handlerForInterfaceOnBaseClassIsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         ConcreteMessage message = new ConcreteMessage();
 

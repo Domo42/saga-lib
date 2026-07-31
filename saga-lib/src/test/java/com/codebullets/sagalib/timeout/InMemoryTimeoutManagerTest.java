@@ -18,16 +18,15 @@ package com.codebullets.sagalib.timeout;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.context.SagaExecutionContext;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -44,15 +43,15 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link InMemoryTimeoutManager} class.
  */
-public class InMemoryTimeoutManagerTest {
+class InMemoryTimeoutManagerTest {
     private static final HeaderName<String> DEFAULT_HEADER = HeaderName.forName("defaultHeaderName");
     private static final String DEFAULT_HEADER_VALUE = "ContextHeaderValue";
     private InMemoryTimeoutManager sut;
     private ScheduledExecutorService executor;
     private Clock clock;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         executor = mock(ScheduledExecutorService.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(mock(ScheduledFuture.class));
 
@@ -68,7 +67,7 @@ public class InMemoryTimeoutManagerTest {
      * Then  => Add timed task to scheduler.
      */
     @Test
-    public void requestTimeout_TimeoutMessage_schedulesTimeoutTask() {
+    void requestTimeout_TimeoutMessage_schedulesTimeoutTask() {
         // given
         long timeoutInSec = 5;
 
@@ -88,7 +87,7 @@ public class InMemoryTimeoutManagerTest {
      * Then  => callback handler method is triggered.
      */
     @Test
-    public void timeoutTriggered_callbackAdded_callbackTriggered() {
+    void timeoutTriggered_callbackAdded_callbackTriggered() {
         // given
         int delayInSec = 5;
         Object expectedData = new Object();
@@ -116,7 +115,7 @@ public class InMemoryTimeoutManagerTest {
      * Then  => callback handler method is triggered.
      */
     @Test
-    public void timeoutTriggered_contextCallbackAdded_callbackTriggered() {
+    void timeoutTriggered_contextCallbackAdded_callbackTriggered() {
         // given
         int delayInSec = 5;
         Object expectedData = new Object();
@@ -138,7 +137,7 @@ public class InMemoryTimeoutManagerTest {
      * Then  => callback handler method is triggered.
      */
     @Test
-    public void timeoutTriggered_headerValue_headerValuePartOfCallback() {
+    void timeoutTriggered_headerValue_headerValuePartOfCallback() {
         // given
         TimeoutExpirationCallback expiredCallback = mock(TimeoutExpirationCallback.class);
         sut.addExpiredCallback(expiredCallback);
@@ -160,7 +159,7 @@ public class InMemoryTimeoutManagerTest {
      * Then  => All registered callbacks are informed.
      */
     @Test
-    public void timeoutTriggered_multipleCallbacksAdded_allRegisteredCallbacksAreTriggered() {
+    void timeoutTriggered_multipleCallbacksAdded_allRegisteredCallbacksAreTriggered() {
         // given
         TimeoutExpired callback1 = mock(TimeoutExpired.class);
         TimeoutExpired callback2 = mock(TimeoutExpired.class);
@@ -183,7 +182,7 @@ public class InMemoryTimeoutManagerTest {
      * </pre>
      */
     @Test
-    public void timeoutCanceled_timeoutHasBeenAdded_timeoutRemovedFromSchedule() {
+    void timeoutCanceled_timeoutHasBeenAdded_timeoutRemovedFromSchedule() {
         // given
         ScheduledFuture future = mock(ScheduledFuture.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
@@ -204,7 +203,7 @@ public class InMemoryTimeoutManagerTest {
      * </pre>
      */
     @Test
-    public void timeoutCanceled_multipleTimeoutAdded_doesNotThrowConcurrencyException() {
+    void timeoutCanceled_multipleTimeoutAdded_doesNotThrowConcurrencyException() {
         // given
         ScheduledFuture future = mock(ScheduledFuture.class);
         when(executor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
@@ -225,7 +224,7 @@ public class InMemoryTimeoutManagerTest {
      * </pre>
      */
     @Test
-    public void cancelTimeouts_multipleTimeoutHaveBeenAdded_timeoutRemovedFromSchedule() {
+    void cancelTimeouts_multipleTimeoutHaveBeenAdded_timeoutRemovedFromSchedule() {
         // given
         String sagaId = "sagaId_" + RandomStringUtils.randomAlphanumeric(5);
         ScheduledFuture future = mock(ScheduledFuture.class);
@@ -247,7 +246,7 @@ public class InMemoryTimeoutManagerTest {
      * </pre>
      */
     @Test
-    public void cancelTimeouts_multipleTimeoutHaveBeenAdded_noConcurrentViolationException() {
+    void cancelTimeouts_multipleTimeoutHaveBeenAdded_noConcurrentViolationException() {
         // given
         String sagaId = "sagaId_" + RandomStringUtils.randomAlphanumeric(5);
         ScheduledFuture future = mock(ScheduledFuture.class);
@@ -262,7 +261,7 @@ public class InMemoryTimeoutManagerTest {
     }
 
     @Test
-    public void close_always_shutdownExecutorService() {
+    void close_always_shutdownExecutorService() {
         // when
         sut.close();
 

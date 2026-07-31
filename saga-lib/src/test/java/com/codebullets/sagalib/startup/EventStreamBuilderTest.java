@@ -1,15 +1,12 @@
 package com.codebullets.sagalib.startup;
 
-
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
-import org.junit.Test;
-
-import javax.inject.Provider;
-
 import java.util.Collections;
+import javax.inject.Provider;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
@@ -21,9 +18,9 @@ import static org.mockito.Mockito.withSettings;
 /**
  * Tests for {@link EventStreamBuilder} class.
  */
-public class EventStreamBuilderTest {
+class EventStreamBuilderTest {
     @Test
-    public void configure_always_returnsStreamBuilderInstance() {
+    void configure_always_returnsStreamBuilderInstance() {
         // given
 
         // when
@@ -39,7 +36,7 @@ public class EventStreamBuilderTest {
      * Then  => close has been called on timeout manager.
      */
     @Test
-    public void close_timeOutManagerIsCloseable_callsClose() throws Exception {
+    void close_timeOutManagerIsCloseable_callsClose() throws Exception {
         // given
         TimeoutManager manager = mock(TimeoutManager.class, withSettings().extraInterfaces(AutoCloseable.class));
         StreamBuilder streamBuilder = EventStreamBuilder.configure()
@@ -62,7 +59,7 @@ public class EventStreamBuilderTest {
      * Then  => close has been called on timeout manager.
      */
     @Test
-    public void close_storageIsCloseable_callsClose() throws Exception {
+    void close_storageIsCloseable_callsClose() throws Exception {
         // given
         StateStorage storage = mock(StateStorage.class, withSettings().extraInterfaces(AutoCloseable.class));
         StreamBuilder streamBuilder = EventStreamBuilder.configure().usingStorage(storage)

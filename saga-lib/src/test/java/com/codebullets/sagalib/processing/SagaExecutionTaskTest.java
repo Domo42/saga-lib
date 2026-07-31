@@ -16,12 +16,12 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaLifetimeInterceptor;
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.context.NeedContext;
 import com.codebullets.sagalib.context.SagaExecutionContext;
@@ -35,20 +35,18 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.inject.Provider;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
@@ -58,6 +56,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
@@ -74,7 +73,7 @@ import static org.mockito.Mockito.withSettings;
  * tests involving this class are not here but are integration tests.
  */
 @SuppressWarnings("unchecked")
-public class SagaExecutionTaskTest {
+class SagaExecutionTaskTest {
     private SagaExecutionTask sut;
     private TimeoutManager timeoutManager;
     private StateStorage storage;
@@ -88,11 +87,8 @@ public class SagaExecutionTaskTest {
     private SagaModule module;
     private SagaLifetimeInterceptor interceptor;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Before
-    public void init() throws InvocationTargetException, IllegalAccessException {
+    @BeforeEach
+    void init() throws InvocationTargetException, IllegalAccessException {
         saga = mock(Saga.class, withSettings().extraInterfaces(NeedContext.class));
         state = mock(SagaState.class);
         timeoutManager = mock(TimeoutManager.class);
@@ -129,7 +125,7 @@ public class SagaExecutionTaskTest {
      * Then  => Saga state is saved.
      */
     @Test
-    public void run_sagaNotCompleted_saveSagaState() {
+    void run_sagaNotCompleted_saveSagaState() {
         // given
         when(saga.isFinished()).thenReturn(false);
 
@@ -141,7 +137,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_sagaNotCompleted_rememberStoredIdInContext() {
+    void run_sagaNotCompleted_rememberStoredIdInContext() {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
@@ -160,7 +156,7 @@ public class SagaExecutionTaskTest {
      * Then  => Does not save state.
      */
     @Test
-    public void run_sagaIsStartedAndFinished_doesNotSaveSate() {
+    void run_sagaIsStartedAndFinished_doesNotSaveSate() {
         // given
         when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
@@ -181,7 +177,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_sagaIsStartedAndFinished_doesNotDeleteSate() {
+    void run_sagaIsStartedAndFinished_doesNotDeleteSate() {
         // given
         when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
@@ -201,7 +197,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_sagaHasContinuedAndIsFinished_deleteSagaState() {
+    void run_sagaHasContinuedAndIsFinished_deleteSagaState() {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
@@ -223,7 +219,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_sagaHasContinuedAndIsFinished_cancelTimeouts() {
+    void run_sagaHasContinuedAndIsFinished_cancelTimeouts() {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(state.getSagaId()).thenReturn(sagaId);
@@ -245,7 +241,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_sagaIsStartedAndIsFinished_doNotCancelTimeouts() {
+    void run_sagaIsStartedAndIsFinished_doNotCancelTimeouts() {
         // given
         when(saga.isFinished()).thenReturn(true);
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
@@ -258,7 +254,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_sagaIsStartedAndIsFinishedAndAlreadyStore_deleteState() {
+    void run_sagaIsStartedAndIsFinishedAndAlreadyStore_deleteState() {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(saga.isFinished()).thenReturn(true);
@@ -274,7 +270,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_sagaIsStartedAndIsFinishedAndAlreadyStore_cancelTimeout() {
+    void run_sagaIsStartedAndIsFinishedAndAlreadyStore_cancelTimeout() {
         // given
         final String sagaId = RandomStringUtils.randomAlphanumeric(10);
         when(saga.isFinished()).thenReturn(true);
@@ -297,7 +293,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_messageParam_messageIsSetOnContext() throws InvocationTargetException, IllegalAccessException {
+    void run_messageParam_messageIsSetOnContext() throws InvocationTargetException, IllegalAccessException {
         // given, when
         sut.run();
 
@@ -316,7 +312,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_sagaToInvoke_sagaIsSetOnContext() throws InvocationTargetException, IllegalAccessException {
+    void run_sagaToInvoke_sagaIsSetOnContext() throws InvocationTargetException, IllegalAccessException {
         // given, when
         sut.run();
 
@@ -328,7 +324,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_sagaIsStarted_invokedWithExpectedContext() throws InvocationTargetException, IllegalAccessException {
+    void run_sagaIsStarted_invokedWithExpectedContext() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
@@ -346,7 +342,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_sagaIsContinued_invokedWithExpectedContext() throws InvocationTargetException, IllegalAccessException {
+    void run_sagaIsContinued_invokedWithExpectedContext() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(false);
 
@@ -371,7 +367,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_headerValuesProvided_contextContainsHeader() {
+    void run_headerValuesProvided_contextContainsHeader() {
         // given
         CurrentExecutionContext context = new SagaExecutionContext();
         HeaderName<String> headerName = HeaderName.forName("headerKey");
@@ -403,7 +399,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_parentContextProvided_contextHasParentContext() {
+    void run_parentContextProvided_contextHasParentContext() {
         // given
         CurrentExecutionContext context = new SagaExecutionContext();
         ExecutionContext parentContext = mock(ExecutionContext.class);
@@ -427,7 +423,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingModule_moduleStartedBeforeSaga() throws InvocationTargetException, IllegalAccessException {
+    void run_usingModule_moduleStartedBeforeSaga() throws InvocationTargetException, IllegalAccessException {
         // given, when
         sut.run();
 
@@ -445,7 +441,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingModule_moduleFinishedAfterSaga() throws InvocationTargetException, IllegalAccessException {
+    void run_usingModule_moduleFinishedAfterSaga() throws InvocationTargetException, IllegalAccessException {
         // given, when
         sut.run();
 
@@ -463,7 +459,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_invokeThrows_moduleFinishedGetsCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_invokeThrows_moduleFinishedGetsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         doThrow(NullPointerException.class).when(invoker).invoke(saga, theMessage);
 
@@ -479,7 +475,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_moduleStartThrows_moduleFinishedGetsCalled() throws Exception {
+    void run_moduleStartThrows_moduleFinishedGetsCalled() throws Exception {
         // given
         doThrow(NullPointerException.class).when(module).onStart(context);
 
@@ -495,7 +491,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_moduleStartThrows_moduleErrorGetsCalled() throws Exception {
+    void run_moduleStartThrows_moduleErrorGetsCalled() throws Exception {
         // given
         NullPointerException expected = new NullPointerException();
         doThrow(expected).when(module).onStart(context);
@@ -519,7 +515,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_invokeThrows_moduleErrorGetsCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_invokeThrows_moduleErrorGetsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         NullPointerException npe = new NullPointerException();
         doThrow(npe).when(invoker).invoke(isA(InvocationContext.class));
@@ -543,14 +539,15 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_invokeThrows_publicRunThrows() throws InvocationTargetException, IllegalAccessException {
-        thrown.expect(NullPointerException.class);
-
+    void run_invokeThrows_publicRunThrows() throws InvocationTargetException, IllegalAccessException {
         // given
         doThrow(NullPointerException.class).when(invoker).invoke(any(InvocationContext.class));
 
         // when
-        sut.run();
+        Executable action = () -> sut.run();
+
+        // then
+        assertThrows(NullPointerException.class, action);
     }
 
     /**
@@ -561,7 +558,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingInterceptor_interceptorStartCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_usingInterceptor_interceptorStartCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
@@ -582,7 +579,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingInterceptor_interceptorNotCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_usingInterceptor_interceptorNotCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(false);
 
@@ -601,7 +598,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingInterceptorSagaFinished_interceptorFinishedCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_usingInterceptorSagaFinished_interceptorFinishedCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
         when(saga.isFinished()).thenReturn(true);
@@ -623,7 +620,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingInterceptorSagaNotFinished_interceptorFinishedNotCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_usingInterceptorSagaNotFinished_interceptorFinishedNotCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
         when(saga.isFinished()).thenReturn(false);
@@ -643,7 +640,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingInterceptor_interceptorHandlerExecutingCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_usingInterceptor_interceptorHandlerExecutingCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
@@ -664,7 +661,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_usingInterceptor_interceptorHandlerExecutedCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_usingInterceptor_interceptorHandlerExecutedCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         when(sagaInstanceInfo.isStarting()).thenReturn(true);
 
@@ -685,7 +682,7 @@ public class SagaExecutionTaskTest {
      * </pre>
      */
     @Test
-    public void run_sagaModuleStopsDispatching_invokeShallNotBeCalled() throws InvocationTargetException, IllegalAccessException {
+    void run_sagaModuleStopsDispatching_invokeShallNotBeCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         doAnswer(invocationOnMock -> {
             ((ExecutionContext) invocationOnMock.getArguments()[0]).stopDispatchingCurrentMessageToHandlers();
@@ -700,7 +697,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void run_invokerAndModuleFinishThrow_throwsSagaExecutionExceptions() throws InvocationTargetException, IllegalAccessException {
+    void run_invokerAndModuleFinishThrow_throwsSagaExecutionExceptions() throws InvocationTargetException, IllegalAccessException {
         // given
         doThrow(ArithmeticException.class).when(invoker).invoke(isA(InvocationContext.class));
         doThrow(NullPointerException.class).when(module).onFinished(any(ExecutionContext.class));
@@ -716,7 +713,7 @@ public class SagaExecutionTaskTest {
     }
 
     @Test
-    public void getHeaderValue_headerValueSet_returnValue() {
+    void getHeaderValue_headerValueSet_returnValue() {
         // given
         HeaderName<Integer> contextHeader = HeaderName.forType(Integer.class, "contextId");
         Map<HeaderName<?>, Object> headers = ImmutableMap.of(contextHeader, 42);

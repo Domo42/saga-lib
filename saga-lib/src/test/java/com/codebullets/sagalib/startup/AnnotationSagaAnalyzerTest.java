@@ -3,12 +3,12 @@ package com.codebullets.sagalib.startup;
 import com.codebullets.sagalib.FinishMessage;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.TestSaga;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -24,12 +24,12 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for SagaAnalyzer class.
  */
-public class AnnotationSagaAnalyzerTest {
+class AnnotationSagaAnalyzerTest {
     private Collection<Class<? extends Saga>> sagaTypes;
     private AnnotationSagaAnalyzer sut;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         sagaTypes = new ArrayList<>();
 
         TypeScanner scanner = mock(TypeScanner.class);
@@ -44,7 +44,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Method returns empty list.
      */
     @Test
-    public void scanHandledMessageTypes_noTypesFound_returnsEmptyMap() {
+    void scanHandledMessageTypes_noTypesFound_returnsEmptyMap() {
         // given
         sagaTypes.clear();
 
@@ -61,7 +61,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Returns the result with one entry containing expected handlers.
      */
     @Test
-    public void scanHandledMessageTypes_testSagaFound_returnsEntryWithHandlers() {
+    void scanHandledMessageTypes_testSagaFound_returnsEntryWithHandlers() {
         // given
         sagaTypes.add(TestSaga.class);
 
@@ -82,7 +82,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Returns a start handler with handling type string.
      */
     @Test
-    public void scanHandledMessageTypes_testSagaFound_returnsStartHandlerOfTypeString() throws NoSuchMethodException {
+    void scanHandledMessageTypes_testSagaFound_returnsStartHandlerOfTypeString() throws NoSuchMethodException {
         // given
         sagaTypes.add(TestSaga.class);
 
@@ -103,7 +103,7 @@ public class AnnotationSagaAnalyzerTest {
      * Then  => Returns a normal handler with handling type Integer.
      */
     @Test
-    public void scanHandledMessageTypes_testSagaFound_returnsNormalHandlerOfTypeFinishedMessage() throws NoSuchMethodException {
+    void scanHandledMessageTypes_testSagaFound_returnsNormalHandlerOfTypeFinishedMessage() throws NoSuchMethodException {
         // given
         sagaTypes.add(TestSaga.class);
 
@@ -119,7 +119,7 @@ public class AnnotationSagaAnalyzerTest {
     }
 
     @Test
-    public void scanHandledMessageTypes_sagaWithCustomAnnotation_returnsHandlerForType() {
+    void scanHandledMessageTypes_sagaWithCustomAnnotation_returnsHandlerForType() {
         // given
         sut.addHandlerAnnotation(CustomHandlerAnnotation.class);
         sagaTypes.add(SagaWithCustomHandlerAnnotation.class);

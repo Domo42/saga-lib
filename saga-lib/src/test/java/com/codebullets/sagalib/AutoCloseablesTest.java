@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
@@ -25,10 +25,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class AutoCloseablesTest {
+class AutoCloseablesTest {
 
     @Test
-    public void closeQuietly_anAutoCloseable_close() throws Exception {
+    void closeQuietly_anAutoCloseable_close() throws Exception {
         // given
         AutoCloseable closeable = mock(AutoCloseable.class);
 
@@ -40,7 +40,7 @@ public class AutoCloseablesTest {
     }
 
     @Test
-    public void closeQuietly_autoCloseableThrows_doNotPropagate() throws Exception {
+    void closeQuietly_autoCloseableThrows_doNotPropagate() throws Exception {
         // given
         AutoCloseable closeable = mock(AutoCloseable.class);
         doThrow(IllegalStateException.class).when(closeable).close();
@@ -53,7 +53,7 @@ public class AutoCloseablesTest {
     }
 
     @Test
-    public void closeQuietly_nullInstance_noException() throws Exception {
+    void closeQuietly_nullInstance_noException() throws Exception {
         // given
         final AutoCloseable closeable = null;
 
@@ -65,7 +65,7 @@ public class AutoCloseablesTest {
     }
 
     @Test
-    public void closeQuietly_anObjectImplementingAutoCloseable_close() throws Exception {
+    void closeQuietly_anObjectImplementingAutoCloseable_close() throws Exception {
         // given
         AutoCloseable closeable = mock(AutoCloseable.class);
         Object anyObject = closeable;
@@ -78,7 +78,7 @@ public class AutoCloseablesTest {
     }
 
     @Test
-    public void closeQuietly_anObjectNotImplementingAutoCloseable_close() throws Exception {
+    void closeQuietly_anObjectNotImplementingAutoCloseable_close() throws Exception {
         // given
         Object anyObject = new Object();
 

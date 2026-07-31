@@ -25,8 +25,9 @@ import java.util.Set;
  * properties expected from {@link SagaState}.</p>
  *
  * <p>The instance key method is intentionally missing. This one should
- * be modelled and implemented individually for each saga.
- * @param <KEY> The type of the instance to match state and messages.</p>
+ * be modelled and implemented individually for each saga.</p>
+ *
+ * @param <KEY> The type of the instance to match state and messages.
  */
 public abstract class AbstractSagaState<KEY> implements SagaState<KEY>, Serializable {
     private static final long serialVersionUID = 1L;

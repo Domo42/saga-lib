@@ -17,11 +17,11 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.context.LookupContext;
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -34,13 +34,13 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link StrategyInstanceResolver} class.
  */
-public class StrategyInstanceResolverTest {
+class StrategyInstanceResolverTest {
     private StrategyInstanceResolver sut;
 
     private StrategyFinder strategyFinder;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         strategyFinder = mock(StrategyFinder.class);
         sut = new StrategyInstanceResolver(strategyFinder);
     }
@@ -53,7 +53,7 @@ public class StrategyInstanceResolverTest {
      * </pre>
      */
     @Test
-    public void resolve_finderReturnsStrategy_callResolveOnStrategy() {
+    void resolve_finderReturnsStrategy_callResolveOnStrategy() {
         // given
         LookupContext context = mock(LookupContext.class);
         ResolveStrategy strategy = mockStrategy(context);
@@ -73,7 +73,7 @@ public class StrategyInstanceResolverTest {
      * </pre>
      */
     @Test
-    public void resolve_strategyReturnsInstance_instanceReturnedWithReturnValue() {
+    void resolve_strategyReturnsInstance_instanceReturnedWithReturnValue() {
         // given
         ResolveStrategy strategy = mockStrategy();
         SagaInstanceInfo instanceInfo = new SagaInstanceInfo(null, true);
@@ -94,7 +94,7 @@ public class StrategyInstanceResolverTest {
      * </pre>
      */
     @Test
-    public void resolve_strategyReturnsEmptyList_resolveReturnListIsEmpty() {
+    void resolve_strategyReturnsEmptyList_resolveReturnListIsEmpty() {
         // given
         ResolveStrategy strategy = mockStrategy();
         when(strategy.resolve(any(LookupContext.class))).thenReturn(Collections.<SagaInstanceInfo>emptyList());

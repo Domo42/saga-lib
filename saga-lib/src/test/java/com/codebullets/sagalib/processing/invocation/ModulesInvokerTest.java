@@ -17,13 +17,12 @@ package com.codebullets.sagalib.processing.invocation;
 
 import com.codebullets.sagalib.SagaModule;
 import com.codebullets.sagalib.context.CurrentExecutionContext;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -38,7 +37,7 @@ import static org.mockito.Mockito.when;
 public class ModulesInvokerTest {
     private List<SagaModule> modules;
 
-    @Before
+    @BeforeEach
     public void initModulesInvokerTest() {
         modules = new ArrayList<>();
         modules.add(mock(SagaModule.class));

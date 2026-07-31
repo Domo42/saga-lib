@@ -23,11 +23,11 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
-import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -38,14 +38,14 @@ import static org.hamcrest.Matchers.sameInstance;
 /**
  * Tests for {@link SagaModuleBuilder} class.
  */
-public class SagaModuleBuilderTest {
+class SagaModuleBuilderTest {
     /**
      * Given => Guice injector created with saga lib defaults.
      * When  => getInstance is called.
      * Then  => Guice returns message stream instances.
      */
     @Test
-    public void getInstance_defaultSettings_guiceReturnsMessageStream() {
+    void getInstance_defaultSettings_guiceReturnsMessageStream() {
         // given
         Module module = SagaModuleBuilder.configure().build();
         Injector injector = Guice.createInjector(module);
@@ -63,7 +63,7 @@ public class SagaModuleBuilderTest {
      * Then  => Monitor reports saga as started.
      */
     @Test
-    public void handleString_defaultSettings_sagaHasBeenStarted() throws InvocationTargetException, IllegalAccessException {
+    void handleString_defaultSettings_sagaHasBeenStarted() throws InvocationTargetException, IllegalAccessException {
         // given
         Module sagaModule = SagaModuleBuilder.configure().build();
         Injector injector = Guice.createInjector(sagaModule, new CustomModule());
@@ -85,7 +85,7 @@ public class SagaModuleBuilderTest {
      * </pre>
      */
     @Test
-    public void handleString_moduleIsConfigured_moduleStartHasBeenExecuted() throws InvocationTargetException, IllegalAccessException {
+    void handleString_moduleIsConfigured_moduleStartHasBeenExecuted() throws InvocationTargetException, IllegalAccessException {
         // given
         Module sagaModule = SagaModuleBuilder.configure().callModule(TestSagaModule.class).build();
         Injector injector = Guice.createInjector(sagaModule, new CustomModule());
@@ -107,7 +107,7 @@ public class SagaModuleBuilderTest {
      * </pre>
      */
     @Test
-    public void getInstance_executionContext_alwaysReturnNewContext() {
+    void getInstance_executionContext_alwaysReturnNewContext() {
         // given
         Module sagaModule = SagaModuleBuilder.configure().build();
         Injector injector = Guice.createInjector(sagaModule, new CustomModule());
@@ -129,7 +129,7 @@ public class SagaModuleBuilderTest {
      * </pre>
      */
     @Test
-    public void handleString_sagaHandledAsynchronous_isExecutedInBackground() throws InterruptedException {
+    void handleString_sagaHandledAsynchronous_isExecutedInBackground() throws InterruptedException {
         // given
         Module sagaModule = SagaModuleBuilder.configure().callModule(TestSagaModule.class).build();
         Injector injector = Guice.createInjector(sagaModule, new CustomModule());
@@ -153,7 +153,7 @@ public class SagaModuleBuilderTest {
      * </pre>
      */
     @Test
-    public void handleString_interceptorConfigured_interceptorIsCalled() throws InvocationTargetException, IllegalAccessException {
+    void handleString_interceptorConfigured_interceptorIsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         Module sagaModule = SagaModuleBuilder.configure().callInterceptor(CustomInterceptor.class).build();
         Injector injector = Guice.createInjector(sagaModule, new CustomModule());
@@ -176,7 +176,7 @@ public class SagaModuleBuilderTest {
      * </pre>
      */
     @Test
-    public void handleString_interceptorConfigured_interceptorHandlingIsCalled() throws InvocationTargetException, IllegalAccessException {
+    void handleString_interceptorConfigured_interceptorHandlingIsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         Module sagaModule = SagaModuleBuilder.configure().callInterceptor(CustomInterceptor.class).build();
         Injector injector = Guice.createInjector(sagaModule, new CustomModule());

@@ -15,16 +15,19 @@
  */
 package com.codebullets.sagalib.processing;
 
-import com.codebullets.sagalib.*;
+import com.codebullets.sagalib.ContextKeyExtractFunction;
+import com.codebullets.sagalib.FunctionKeyReader;
+import com.codebullets.sagalib.KeyReadFunction;
 import com.codebullets.sagalib.KeyReader;
+import com.codebullets.sagalib.KeyReaders;
+import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.LookupContext;
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import javax.annotation.Nullable;
 import javax.inject.Provider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -36,13 +39,13 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link SagaKeyReaderExtractor} class.
  */
-public class SagaKeyReaderExtractorTest {
+class SagaKeyReaderExtractorTest {
     private SagaKeyReaderExtractor sut;
     private Saga testSaga;
 
-    @Before
+    @BeforeEach
     @SuppressWarnings("unchecked")
-    public void init() {
+    void init() {
         testSaga = mock(Saga.class);
 
         SagaProviderFactory providerFactory = mock(SagaProviderFactory.class);
@@ -59,7 +62,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader.
      */
     @Test
-    public void findSagaInstanceKey_sagaHasReaderWithExactMessage_returnsDefinedKey() {
+    void findSagaInstanceKey_sagaHasReaderWithExactMessage_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader reader = FunctionKeyReader.create(String.class, new KeyReadFunction<String>() {
@@ -85,7 +88,7 @@ public class SagaKeyReaderExtractorTest {
      * </pre>
      */
     @Test
-    public void findSagaInstanceKey_sagaCalledWithContext_contextUsedAsReaderParameter() {
+    void findSagaInstanceKey_sagaCalledWithContext_contextUsedAsReaderParameter() {
         // given
         LookupContext originalContext = SagaLookupContext.forMessage("my input event message");
         final LookupContext[] providedReaderContext = new LookupContext[1];
@@ -113,7 +116,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns null value.
      */
     @Test
-    public void findSagaInstanceKey_readerForMessageNotPartOfSaga_returnsNull() {
+    void findSagaInstanceKey_readerForMessageNotPartOfSaga_returnsNull() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader reader = FunctionKeyReader.create(Integer.class, new KeyReadFunction<Integer>() {
@@ -137,7 +140,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from correct reader.
      */
     @Test
-    public void findSagaInstanceKey_searchAlreadyDoneForOtherType_returnsDefinedKey() {
+    void findSagaInstanceKey_searchAlreadyDoneForOtherType_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader intReader = FunctionKeyReader.create(Integer.class, new KeyReadFunction<Integer>() {
@@ -153,7 +156,7 @@ public class SagaKeyReaderExtractorTest {
             }
         });
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader, intReader));
-        sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage(new Integer(5)));
+        sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage(Integer.valueOf(5)));
 
         // when
         Object foundKey = sut.findSagaInstanceKey(Saga.class, SagaLookupContext.forMessage("my input event message"));
@@ -168,7 +171,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader.
      */
     @Test
-    public void findSagaInstanceKey_sagaHasReaderWithSuperclassOfMessage_returnsDefinedKey() {
+    void findSagaInstanceKey_sagaHasReaderWithSuperclassOfMessage_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader reader = FunctionKeyReader.create(Number.class, new KeyReadFunction<Number>() {
@@ -192,7 +195,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader, preferring message class.
      */
     @Test
-    public void findSagaInstanceKey_sagaHasBothReadesrWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
+    void findSagaInstanceKey_sagaHasBothReadesrWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader numberReader = FunctionKeyReader.create(Number.class, new KeyReadFunction<Number>() {
@@ -222,7 +225,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader.
      */
     @Test
-    public void findSagaInstanceKey_sagaHasReaderWithInterfaceImplementedByMessage_returnsDefinedKey() {
+    void findSagaInstanceKey_sagaHasReaderWithInterfaceImplementedByMessage_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader reader = FunctionKeyReader.create(CharSequence.class, new KeyReadFunction<CharSequence>() {
@@ -246,7 +249,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader, preferring message class.
      */
     @Test
-    public void findSagaInstanceKey_sagaHasBothReadesrWithInterfaceImplementedByMessageAndMessageClass_returnsDefinedKey() {
+    void findSagaInstanceKey_sagaHasBothReadesrWithInterfaceImplementedByMessageAndMessageClass_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader reader = FunctionKeyReader.create(CharSequence.class, new KeyReadFunction<CharSequence>() {
@@ -276,7 +279,7 @@ public class SagaKeyReaderExtractorTest {
      * Then  => Returns key from reader, preferring message class.
      */
     @Test
-    public void findSagaInstanceKey_sagaHasBothReadersWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
+    void findSagaInstanceKey_sagaHasBothReadersWithSuperclassOfMessageAndMessageClass_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
         KeyReader comparableReader = FunctionKeyReader.create(Comparable.class, new KeyReadFunction<Comparable>() {

@@ -22,24 +22,23 @@ import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
 import com.google.common.collect.ImmutableList;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.inject.Provider;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-public class DirectDescriptionIntegrationTests {
+class DirectDescriptionIntegrationTests {
     private MessageStream messageStream;
     private Map<String, String> context;
 
-    @Before
-    public void initDirectDescriptionIntegrationTests() {
+    @BeforeEach
+    void initDirectDescriptionIntegrationTests() {
         context = new HashMap<>();
 
         messageStream = EventStreamBuilder.configure()
@@ -48,15 +47,15 @@ public class DirectDescriptionIntegrationTests {
                 .build();
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() throws Exception {
         if (messageStream != null) {
             messageStream.close();
         }
     }
 
     @Test
-    public void handle_startHandlerDescribed_callsStartedHandler() throws InvocationTargetException, IllegalAccessException {
+    void handle_startHandlerDescribed_callsStartedHandler() throws InvocationTargetException, IllegalAccessException {
         // given
         final String theMessage = "theStartingMessage";
 
@@ -68,7 +67,7 @@ public class DirectDescriptionIntegrationTests {
     }
 
     @Test
-    public void handle_handlerDescribed_callsStartedThenContinueHandler() throws InvocationTargetException, IllegalAccessException {
+    void handle_handlerDescribed_callsStartedThenContinueHandler() throws InvocationTargetException, IllegalAccessException {
         // given
         final String theMessage = "42";
         final Integer continueMessage = 42;
@@ -83,7 +82,7 @@ public class DirectDescriptionIntegrationTests {
     }
 
     @Test
-    public void handle_simpleHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
+    void handle_simpleHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
         // given
         final String theMessage = "42";
 
@@ -95,7 +94,7 @@ public class DirectDescriptionIntegrationTests {
     }
 
     @Test
-    public void handle_baseTypeHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
+    void handle_baseTypeHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
         // given
         final Float theMessage = 42.0f;
 
@@ -107,7 +106,7 @@ public class DirectDescriptionIntegrationTests {
     }
 
     @Test
-    public void handle_autoTypedHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
+    void handle_autoTypedHandler_callsHandlerMethod() throws InvocationTargetException, IllegalAccessException {
         // given
         final Double theMessage = 42.0;
 

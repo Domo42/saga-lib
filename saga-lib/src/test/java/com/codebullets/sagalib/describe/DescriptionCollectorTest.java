@@ -17,16 +17,16 @@
 package com.codebullets.sagalib.describe;
 
 import com.codebullets.sagalib.timeout.Timeout;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 
-public class DescriptionCollectorTest {
+class DescriptionCollectorTest {
     @Test
-    public void handle_singleStartHandler_executesStartHandler() {
+    void handle_singleStartHandler_executesStartHandler() {
         // given
         boolean[] handlerExecuted = new boolean[1];
         HandlerDescription description = HandlerDescriptions.startedBy(String.class).usingMethod(s -> handlerExecuted[0] = true)
@@ -40,7 +40,7 @@ public class DescriptionCollectorTest {
     }
 
     @Test
-    public void handle_startAndContinueHandlerCallContinue_executesOnlyContinueHandler() {
+    void handle_startAndContinueHandlerCallContinue_executesOnlyContinueHandler() {
         // given
         boolean[] startHandlerExecuted = new boolean[1];
         boolean[] continueHandlerExecuted = new boolean[1];
@@ -58,7 +58,7 @@ public class DescriptionCollectorTest {
     }
 
     @Test
-    public void handle_startAndContinueHandlerCallStart_executesOnlyStartHandler() {
+    void handle_startAndContinueHandlerCallStart_executesOnlyStartHandler() {
         // given
         boolean[] startHandlerExecuted = new boolean[1];
         boolean[] continueHandlerExecuted = new boolean[1];
@@ -76,7 +76,7 @@ public class DescriptionCollectorTest {
     }
 
     @Test
-    public void handlerTypes_startAndContinueHandler_handlerListHasStartAndContinue() {
+    void handlerTypes_startAndContinueHandler_handlerListHasStartAndContinue() {
         // given
         HandlerDescription description = HandlerDescriptions
                 .startedBy(String.class).usingMethod(s -> {})
@@ -92,7 +92,7 @@ public class DescriptionCollectorTest {
     }
 
     @Test
-    public void startedBy_startAndContinueHandler_startedByMatchesConfig() {
+    void startedBy_startAndContinueHandler_startedByMatchesConfig() {
         // given
         HandlerDescription description = HandlerDescriptions
                 .startedBy(String.class).usingMethod(s -> {})
@@ -107,7 +107,7 @@ public class DescriptionCollectorTest {
     }
 
     @Test
-    public void handle_startContinueTimeout_executesOnlyTimeout() {
+    void handle_startContinueTimeout_executesOnlyTimeout() {
         // given
         boolean[] startHandlerExecuted = new boolean[1];
         boolean[] continueHandlerExecuted = new boolean[1];

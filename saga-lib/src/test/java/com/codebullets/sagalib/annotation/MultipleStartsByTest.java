@@ -20,15 +20,14 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.inject.Provider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -37,12 +36,12 @@ import static org.hamcrest.Matchers.hasItem;
  * Tests whether multiple {@link com.codebullets.sagalib.StartsSaga} annotations work on
  * same saga class.
  */
-public class MultipleStartsByTest {
+class MultipleStartsByTest {
     private MessageStream msgStream;
     private Set<String> recorder;
 
-    @Before
-    public void initTest() {
+    @BeforeEach
+    void initTest() {
         recorder = new TreeSet<>();
 
         msgStream = EventStreamBuilder.configure()
@@ -59,7 +58,7 @@ public class MultipleStartsByTest {
      * </pre>
      */
     @Test
-    public void handle_stringMessage_stringMessageHasBeenHandled() throws InvocationTargetException, IllegalAccessException {
+    void handle_stringMessage_stringMessageHasBeenHandled() throws InvocationTargetException, IllegalAccessException {
         // given
         String message = "anyString";
 
@@ -78,7 +77,7 @@ public class MultipleStartsByTest {
      * </pre>
      */
     @Test
-    public void handle_integerMessage_integerMessageHasBeenHandled() throws InvocationTargetException, IllegalAccessException {
+    void handle_integerMessage_integerMessageHasBeenHandled() throws InvocationTargetException, IllegalAccessException {
         // given
         Integer message = 42;
 

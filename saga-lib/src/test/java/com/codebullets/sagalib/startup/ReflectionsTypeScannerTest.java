@@ -18,12 +18,11 @@ package com.codebullets.sagalib.startup;
 import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.TestSaga;
-import org.junit.Test;
-import org.reflections.Reflections;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import org.junit.jupiter.api.Test;
+import org.reflections.Reflections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -37,14 +36,14 @@ import static org.mockito.Mockito.when;
  * Tests for {@link ReflectionsTypeScanner} class.
  */
 @SuppressWarnings("unchecked")
-public class ReflectionsTypeScannerTest {
+class ReflectionsTypeScannerTest {
     /**
      * Given => Scanner is created with default ctor.
      * When  => sanForSagas is called.
      * Then  => Returns TestSaga from class path.
      */
     @Test
-    public void scanForSagas_defaultCtor_returnsTestSaga() {
+    void scanForSagas_defaultCtor_returnsTestSaga() {
         // given
         ReflectionsTypeScanner sut = new ReflectionsTypeScanner();
 
@@ -61,7 +60,7 @@ public class ReflectionsTypeScannerTest {
      * Then  => Does not return abstract base class of saga.
      */
     @Test
-    public void scanForSagas_defaultCtor_doesNotReturnAbstractBaseClass() {
+    void scanForSagas_defaultCtor_doesNotReturnAbstractBaseClass() {
         // given
         ReflectionsTypeScanner sut = new ReflectionsTypeScanner();
 
@@ -78,7 +77,7 @@ public class ReflectionsTypeScannerTest {
      * Then  => Returns empty list as mock does not return values.
      */
     @Test
-    public void scanForSagas_reflectionsCtor_returnsEmptyListFromReflectionsParam() {
+    void scanForSagas_reflectionsCtor_returnsEmptyListFromReflectionsParam() {
         // given
         Reflections reflections = mock(Reflections.class);
         when(reflections.getSubTypesOf(any(Class.class))).thenReturn(new HashSet<>());

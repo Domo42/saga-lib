@@ -18,15 +18,14 @@ package com.codebullets.sagalib.storage;
 import com.codebullets.sagalib.SagaState;
 import com.codebullets.sagalib.TestSaga;
 import com.codebullets.sagalib.TestSagaState;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -38,11 +37,11 @@ import static org.hamcrest.Matchers.sameInstance;
 /**
  * Tests for {@link MemoryStorage class}.
  */
-public class MemoryStorageTest {
+class MemoryStorageTest {
     private MemoryStorage sut;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         sut = new MemoryStorage();
     }
 
@@ -52,7 +51,7 @@ public class MemoryStorageTest {
      * Then  => Returns saved state.
      */
     @Test
-    public void load_stateSaved_returnsSavedState() {
+    void load_stateSaved_returnsSavedState() {
         // given
         TestSagaState state = buildState();
         sut.save(state);
@@ -70,7 +69,7 @@ public class MemoryStorageTest {
      * Then  => Returns state instance with matching id.
      */
     @Test
-    public void load_multipleStatesSaved_returnsStateWithRequestedId() {
+    void load_multipleStatesSaved_returnsStateWithRequestedId() {
         // Given
         TestSagaState expectedState = buildState();
         TestSagaState otherState = buildState();
@@ -90,7 +89,7 @@ public class MemoryStorageTest {
      * Then  => Returns a null value when loading.
      */
     @Test
-    public void load_stateSavedAndDeleted_returnsNullInstance() {
+    void load_stateSavedAndDeleted_returnsNullInstance() {
         // given
         TestSagaState sagaState = buildState();
         sut.save(sagaState);
@@ -109,7 +108,7 @@ public class MemoryStorageTest {
      * Then  => Returns added state.
      */
     @Test
-    public void loadByKey_stateWithKeySaved_returnsSavedKey() {
+    void loadByKey_stateWithKeySaved_returnsSavedKey() {
         // given
         SagaState expectedState = buildState();
         SagaState state = buildState();
@@ -130,7 +129,7 @@ public class MemoryStorageTest {
      * Then  => Returns list with same key.
      */
     @Test
-    public void loadByKey_multipleEntriesWithSameKeyAdded_returnsAllEntriesWithKey() {
+    void loadByKey_multipleEntriesWithSameKeyAdded_returnsAllEntriesWithKey() {
         // given
         TestSagaState newState = addNewTestState();
         addNewTestState();
@@ -152,7 +151,7 @@ public class MemoryStorageTest {
      * Then  => Item no longer returned after deletion.
      */
     @Test
-    public void loadByKey_itemSavedAndDeleted_noLongerReturnsKey() {
+    void loadByKey_itemSavedAndDeleted_noLongerReturnsKey() {
         // given
         TestSagaState saga = addNewTestState();
         String instanceKey = saga.instanceKeys().iterator().next();
@@ -173,7 +172,7 @@ public class MemoryStorageTest {
      * </pre>
      */
     @Test
-    public void loadByKey_itemSavedWithMultipleKey_returnsInstanceWithEitherKey() {
+    void loadByKey_itemSavedWithMultipleKey_returnsInstanceWithEitherKey() {
         // given
         String key1 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
         String key2 = "key2_" + RandomStringUtils.randomAlphanumeric(10);
@@ -197,7 +196,7 @@ public class MemoryStorageTest {
      * </pre>
      */
     @Test
-    public void loadByKey_keyHasBeenRemovedWithSecondSave_returnsEmptyList() {
+    void loadByKey_keyHasBeenRemovedWithSecondSave_returnsEmptyList() {
         // given
         String key1 = "key1_" + RandomStringUtils.randomAlphanumeric(10);
         String key2 = "key2_" + RandomStringUtils.randomAlphanumeric(10);

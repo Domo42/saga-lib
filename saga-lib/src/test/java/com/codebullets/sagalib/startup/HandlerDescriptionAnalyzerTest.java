@@ -24,14 +24,14 @@ import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.describe.HandlerDescriptions;
 import com.codebullets.sagalib.describe.HandlerTypeDefinition;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -39,13 +39,13 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HandlerDescriptionAnalyzerTest {
+class HandlerDescriptionAnalyzerTest {
     private HandlerDescriptionAnalyzer sut;
     private TypeScanner typeScanner;
     private SagaInstanceCreator instanceCreator;
 
-    @Before
-    public void initDirectDescriptionAnalyzerTest() {
+    @BeforeEach
+    void initDirectDescriptionAnalyzerTest() {
         typeScanner = mock(TypeScanner.class);
         instanceCreator = mock(SagaInstanceCreator.class);
 
@@ -53,7 +53,7 @@ public class HandlerDescriptionAnalyzerTest {
     }
 
     @Test
-    public void scanHandledMessageTypes_sagaWithHandler_returnsHandler() throws ExecutionException {
+    void scanHandledMessageTypes_sagaWithHandler_returnsHandler() throws ExecutionException {
         // given
         mockSaga(String.class);
 
@@ -69,7 +69,7 @@ public class HandlerDescriptionAnalyzerTest {
     }
 
     @Test
-    public void scanHandledMessageTypes_sagaWithContinueHandler_returnsHandler() throws ExecutionException {
+    void scanHandledMessageTypes_sagaWithContinueHandler_returnsHandler() throws ExecutionException {
         // given
         mockSaga(String.class, Integer.class);
 
@@ -86,7 +86,7 @@ public class HandlerDescriptionAnalyzerTest {
     }
 
     @Test
-    public void scanHandledMessageTypes_sagaNotImplementingDescription_returnsEmpty() throws ExecutionException {
+    void scanHandledMessageTypes_sagaNotImplementingDescription_returnsEmpty() throws ExecutionException {
         // given
         when(typeScanner.scanForSagas()).thenReturn(Collections.singleton(com.codebullets.sagalib.TestSaga.class));
 
@@ -98,7 +98,7 @@ public class HandlerDescriptionAnalyzerTest {
     }
 
     @Test
-    public void scanHandledMessageTypes_sagaIsAbstract_returnsEmpty() throws ExecutionException {
+    void scanHandledMessageTypes_sagaIsAbstract_returnsEmpty() throws ExecutionException {
         // given
         when(typeScanner.scanForSagas()).thenReturn(Collections.singleton(AbstractHandler.class));
 

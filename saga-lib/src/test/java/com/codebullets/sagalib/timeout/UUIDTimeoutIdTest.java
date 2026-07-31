@@ -15,21 +15,18 @@
  */
 package com.codebullets.sagalib.timeout;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for {@link UUIDTimeoutId} class.
  */
-public class UUIDTimeoutIdTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+class UUIDTimeoutIdTest {
 
     /**
      * <pre>
@@ -39,7 +36,7 @@ public class UUIDTimeoutIdTest {
      * </pre>
      */
     @Test
-    public void equals_twoDifferentInstancesSameId_returnsTrue() {
+    void equals_twoDifferentInstancesSameId_returnsTrue() {
         // given
         UUID uuid = UUID.randomUUID();
         UUIDTimeoutId instance1 = new UUIDTimeoutId(uuid);
@@ -60,7 +57,7 @@ public class UUIDTimeoutIdTest {
      * </pre>
      */
     @Test
-    public void equals_twoDifferentInstancesDifferentIds_returnsFalse() {
+    void equals_twoDifferentInstancesDifferentIds_returnsFalse() {
         // given
         UUIDTimeoutId instance1 = UUIDTimeoutId.generateNewId();
         UUIDTimeoutId instance2 = UUIDTimeoutId.generateNewId();
@@ -80,7 +77,7 @@ public class UUIDTimeoutIdTest {
      * </pre>
      */
     @Test
-    public void equals_sameInstance_returnsTrue() {
+    void equals_sameInstance_returnsTrue() {
         // given
         UUIDTimeoutId instance = UUIDTimeoutId.generateNewId();
 
@@ -99,7 +96,7 @@ public class UUIDTimeoutIdTest {
      * </pre>
      */
     @Test
-    public void hashCode_twoDifferentInstancesSameId_haveSameHashCode() {
+    void hashCode_twoDifferentInstancesSameId_haveSameHashCode() {
         // given
         UUID uuid = UUID.randomUUID();
         UUIDTimeoutId instance1 = new UUIDTimeoutId(uuid);
@@ -121,13 +118,14 @@ public class UUIDTimeoutIdTest {
      * </pre>
      */
     @Test
-    public void ctor_nullParam_throwsException() {
-        thrown.expect(Exception.class);
-
+    void ctor_nullParam_throwsException() {
         // given
         UUID ctorParam = null;
 
         // when
-        new UUIDTimeoutId(ctorParam);
+        Executable action = () -> new UUIDTimeoutId(ctorParam);
+
+        // then
+        assertThrows(Exception.class, action);
     }
 }

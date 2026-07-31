@@ -26,13 +26,12 @@ import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutExpired;
 import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link SagaMessageStream} class.
  */
-public class SagaMessageStreamTest {
+class SagaMessageStreamTest {
     private TimeoutManager timeoutManager;
     private StateStorage storage;
     private SagaMessageStream sut;
@@ -54,8 +53,8 @@ public class SagaMessageStreamTest {
     private HandlerInvoker invoker;
     private ExecutorService executorService;
 
-    @Before
-    public void init() {
+    @BeforeEach
+    void init() {
         storage = mock(StateStorage.class);
         timeoutManager = mock(TimeoutManager.class);
         instanceResolver = mock(InstanceResolver.class);
@@ -80,7 +79,7 @@ public class SagaMessageStreamTest {
      * Then  => Registers timeout callback listener.
      */
     @Test
-    public void ctor_always_registerTimeoutCallback() {
+    void ctor_always_registerTimeoutCallback() {
         // given
         // when
         // then
@@ -95,7 +94,7 @@ public class SagaMessageStreamTest {
      * </pre>
      */
     @Test
-    public void add_always_taskAddedToExecutor() {
+    void add_always_taskAddedToExecutor() {
         // given
         String message = "theMessage";
 
@@ -114,7 +113,7 @@ public class SagaMessageStreamTest {
      * </pre>
      */
     @Test
-    public void handle_always_invokesSagaRightAway() throws InvocationTargetException, IllegalAccessException {
+    void handle_always_invokesSagaRightAway() throws InvocationTargetException, IllegalAccessException {
         // given
         String message = "theMessage";
 
@@ -130,7 +129,7 @@ public class SagaMessageStreamTest {
     }
 
     @Test
-    public void close_always_executorShutdown() {
+    void close_always_executorShutdown() {
         // when
         sut.close();
 

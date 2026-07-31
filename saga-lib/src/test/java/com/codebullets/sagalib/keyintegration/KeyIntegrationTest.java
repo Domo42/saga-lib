@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import javax.inject.Provider;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,14 +36,14 @@ import static org.hamcrest.Matchers.equalTo;
 /**
  * Test whether saga lib works with different instance key than String
  */
-public class KeyIntegrationTest {
+class KeyIntegrationTest {
     private static final Logger LOG = LoggerFactory.getLogger(KeyIntegrationTest.class);
 
     private MessageStream messageStream;
     private TestState state;
 
-    @Before
-    public void initTest() {
+    @BeforeEach
+    void initTest() {
         state = new TestState();
 
         messageStream = EventStreamBuilder.configure().usingSagaProviderFactory(new TestSagaProvider(state)).usingScanner(new Scanner())
@@ -58,7 +58,7 @@ public class KeyIntegrationTest {
      * </pre>
      */
     @Test
-    public void handleSaga_messageIsUuid_responseIsHandled() throws InvocationTargetException, IllegalAccessException {
+    void handleSaga_messageIsUuid_responseIsHandled() throws InvocationTargetException, IllegalAccessException {
         // given
         UUID sagaKey = UUID.randomUUID();
 
@@ -71,7 +71,7 @@ public class KeyIntegrationTest {
     }
 
     @Test
-    public void handleSaga_unknownMessage_doNotShowWarning() throws InvocationTargetException, IllegalAccessException {
+    void handleSaga_unknownMessage_doNotShowWarning() throws InvocationTargetException, IllegalAccessException {
         // given
         Integer unknownMessage = 42;
 
@@ -80,7 +80,7 @@ public class KeyIntegrationTest {
     }
 
     @Test
-    public void handleSaga_messageWithNoSagaState_doShowWarning() throws InvocationTargetException, IllegalAccessException {
+    void handleSaga_messageWithNoSagaState_doShowWarning() throws InvocationTargetException, IllegalAccessException {
         messageStream.handle(new ResponseMessage(UUID.randomUUID()));
     }
 

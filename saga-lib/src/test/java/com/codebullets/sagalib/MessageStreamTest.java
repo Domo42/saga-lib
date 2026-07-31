@@ -31,11 +31,6 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +43,10 @@ import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -66,7 +65,7 @@ import static org.mockito.Mockito.when;
 /**
  * Integration Tests for the saga lib message stream interface.
  */
-public class MessageStreamTest {
+class MessageStreamTest {
     private MessageStream sut;
     private StateStorage storage;
     private Set<Number> numbers;
@@ -76,9 +75,9 @@ public class MessageStreamTest {
     private SagaInterceptor interceptor = new SagaInterceptor();
     private Map<HeaderName<?>, Object> foundContextHeaders = new HashMap<>();
 
-    @Before
+    @BeforeEach
     @SuppressWarnings("unchecked")
-    public void init() {
+    void init() {
         storage = new MemoryStorage();
         scheduler = mock(ScheduledExecutorService.class);
         timeout = mock(ScheduledFuture.class);
@@ -106,7 +105,7 @@ public class MessageStreamTest {
      * Then  => Saga is started.
      */
     @Test
-    public void handle_stringMessage_messageIsHandledBySaga() throws InvocationTargetException, IllegalAccessException {
+    void handle_stringMessage_messageIsHandledBySaga() throws InvocationTargetException, IllegalAccessException {
         // given
         String message = "myTestMessage_" + RandomStringUtils.randomAlphanumeric(10);
 
@@ -124,7 +123,7 @@ public class MessageStreamTest {
      * Then  => Saga is completed and therefore no longer in storage.
      */
     @Test
-    public void handle_stringAndIntegerMessage_sagaFinishedAndNoLongerInStateStorage() throws InvocationTargetException, IllegalAccessException {
+    void handle_stringAndIntegerMessage_sagaFinishedAndNoLongerInStateStorage() throws InvocationTargetException, IllegalAccessException {
         // given
         String msg1 = "myTestMessage_" + RandomStringUtils.randomAlphanumeric(10);
         FinishMessage msg2 = new FinishMessage(TestSaga.INSTANCE_KEY);
@@ -144,7 +143,7 @@ public class MessageStreamTest {
      * Then  => Timeout handler is called.
      */
     @Test
-    public void handle_sagaHasBeenStartedTimeoutReceived_timeoutHandlerIsCalled() throws InvocationTargetException, IllegalAccessException {
+    void handle_sagaHasBeenStartedTimeoutReceived_timeoutHandlerIsCalled() throws InvocationTargetException, IllegalAccessException {
         // given
         String msg = "myTestMessage_" + RandomStringUtils.randomAlphanumeric(10);
         sut.handle(msg);
@@ -165,7 +164,7 @@ public class MessageStreamTest {
      * Then  => Timeout is canceled.
      */
     @Test
-    public void handle_sagaIsCompleted_runningTimeoutIsCanceled() throws InvocationTargetException, IllegalAccessException {
+    void handle_sagaIsCompleted_runningTimeoutIsCanceled() throws InvocationTargetException, IllegalAccessException {
         // given
         String startMsg = "startMsg_" + RandomStringUtils.randomAlphanumeric(10);
         FinishMessage msg2 = new FinishMessage(TestSaga.INSTANCE_KEY);
@@ -184,7 +183,7 @@ public class MessageStreamTest {
      * Then  => Timeout is not canceled.
      */
     @Test
-    public void handle_sagaNotCompleted_doNotCancelTimeouts() throws InvocationTargetException, IllegalAccessException {
+    void handle_sagaNotCompleted_doNotCancelTimeouts() throws InvocationTargetException, IllegalAccessException {
         // given
         String startMsg = "startMsg_" + RandomStringUtils.randomAlphanumeric(10);
 
@@ -203,7 +202,7 @@ public class MessageStreamTest {
      * </pre>
      */
     @Test
-    public void handle_integerMessage_callHandlerOfBaseClass() throws InvocationTargetException, IllegalAccessException {
+    void handle_integerMessage_callHandlerOfBaseClass() throws InvocationTargetException, IllegalAccessException {
         // given
         Integer message = new Random().nextInt();
 
@@ -222,7 +221,7 @@ public class MessageStreamTest {
      * </pre>
      */
     @Test
-    public void handle_integerMessage_integerSagaNeverInvoked() throws InvocationTargetException, IllegalAccessException {
+    void handle_integerMessage_integerSagaNeverInvoked() throws InvocationTargetException, IllegalAccessException {
         // given
         Integer message = new Random().nextInt();
 
@@ -241,7 +240,7 @@ public class MessageStreamTest {
      * </pre>
      */
     @Test
-    public void handle_messageWithNoHandler_deadMessageSagaIsStarted() throws InvocationTargetException, IllegalAccessException {
+    void handle_messageWithNoHandler_deadMessageSagaIsStarted() throws InvocationTargetException, IllegalAccessException {
         // given
         Object message = new Object() {};
 
@@ -261,7 +260,7 @@ public class MessageStreamTest {
      * </pre>
      */
     @Test
-    public void handle_timeoutWithNoInstance_doesNotThrow() throws InvocationTargetException, IllegalAccessException {
+    void handle_timeoutWithNoInstance_doesNotThrow() throws InvocationTargetException, IllegalAccessException {
         // given
         Timeout timeout = Timeout.create(UUIDTimeoutId.generateNewId(), "theSagaId", null, new Date());
 
@@ -273,7 +272,7 @@ public class MessageStreamTest {
     }
 
     @Test
-    public void handleMessage_customHeaders_contextContainsHeaders() throws InvocationTargetException, IllegalAccessException {
+    void handleMessage_customHeaders_contextContainsHeaders() throws InvocationTargetException, IllegalAccessException {
         // given
         HeaderName<String> headerName = HeaderName.forName("customHeader");
         String expectedHeaderValue = "expectedHeaderValue";
@@ -288,7 +287,7 @@ public class MessageStreamTest {
     }
 
     @Test
-    public void handleMessage_parentContextWithHeaders_contextContainsMergedHeaders() throws InvocationTargetException, IllegalAccessException {
+    void handleMessage_parentContextWithHeaders_contextContainsMergedHeaders() throws InvocationTargetException, IllegalAccessException {
         // given
         HeaderName<String> header1 = HeaderName.forName("header1");
         HeaderName<String> header2 = HeaderName.forName("header2");

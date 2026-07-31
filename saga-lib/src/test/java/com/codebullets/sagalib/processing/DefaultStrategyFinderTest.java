@@ -20,10 +20,10 @@ import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.Collection;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -38,7 +38,7 @@ public class DefaultStrategyFinderTest {
     private DefaultStrategyFinder sut;
     private TypesForMessageMapper messageMapper;
 
-    @Before
+    @BeforeEach
     public void init() {
         SagaInstanceFactory instanceFactory = mock(SagaInstanceFactory.class);
         KeyExtractor keyExtractor = mock(KeyExtractor.class);
