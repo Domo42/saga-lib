@@ -10,8 +10,11 @@
     <modules>
         <module>saga-lib</module>
         <module>saga-lib-guice</module>
-        <module>jmh-test</module>
     </modules>
+
+    <name>saga-lib</name>
+    <description>Java saga pattern library to organize and handle domain events.</description>
+    <url>https://github.com/Domo42/saga-lib</url>
 
     <licenses>
         <license>
@@ -21,17 +24,29 @@
         </license>
     </licenses>
 
-    <url>https://github.com/Domo42/saga-lib</url>
+    <developers>
+        <developer>
+            <id>domo</id>
+            <name>Stefan Domnanovits</name>
+            <email>stefan@codebullets.com</email>
+            <url>https://github.com/domo42/</url>
+        </developer>
+    </developers>
 
     <issueManagement>
         <system>code.google.com</system>
         <url>https://github.com/Domo42/saga-lib/issues</url>
     </issueManagement>
 
+    <scm>
+        <url>https://github.com/Domo42/saga-lib</url>
+        <connection>https://github.com/Domo42/saga-lib.git</connection>
+        <developerConnection>https://github.com/Domo42/saga-lib.git</developerConnection>
+    </scm>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-
         <junit.jupiter.version>6.1.1</junit.jupiter.version>
     </properties>
 
