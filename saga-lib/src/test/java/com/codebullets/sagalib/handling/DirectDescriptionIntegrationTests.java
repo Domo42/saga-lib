@@ -22,13 +22,14 @@ import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
 import com.google.common.collect.ImmutableList;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

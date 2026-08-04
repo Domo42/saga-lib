@@ -18,8 +18,8 @@ package com.codebullets.sagalib.guice;
 import com.codebullets.sagalib.AbstractSaga;
 import com.codebullets.sagalib.KeyReader;
 import com.codebullets.sagalib.StartsSaga;
+import jakarta.inject.Inject;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 

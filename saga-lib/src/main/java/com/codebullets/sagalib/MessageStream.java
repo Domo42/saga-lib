@@ -15,8 +15,9 @@
  */
 package com.codebullets.sagalib;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
@@ -64,7 +65,7 @@ public interface MessageStream extends AutoCloseable {
     void addMessage(@Nonnull Object message, @Nullable Map<HeaderName<?>, Object> headers);
 
     /**
-     * Handles the given message on synchronously on the the calling thread.
+     * Handles the given message on synchronously on the calling thread.
      * @param message The message to be handled.
      *
      * @throws InvocationTargetException Thrown when invocation of handler method on saga fails.
@@ -73,8 +74,8 @@ public interface MessageStream extends AutoCloseable {
     void handle(@Nonnull Object message) throws InvocationTargetException, IllegalAccessException;
 
     /**
-     * Handles the given message on synchronously on the the calling thread. The parent context
-     * might provides information for handles when saga are executed in a nested fashion.
+     * Handles the given message on synchronously on the calling thread. The parent context
+     * might provide information for handles when saga are executed in a nested fashion.
      *
      * <p>Header values are copied over from the parent context on to the new execution context.</p>
      *

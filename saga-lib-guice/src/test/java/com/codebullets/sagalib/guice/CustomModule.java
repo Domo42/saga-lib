@@ -16,8 +16,7 @@
 package com.codebullets.sagalib.guice;
 
 import com.google.inject.AbstractModule;
-
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Custom Guice module

@@ -18,8 +18,8 @@ package com.codebullets.sagalib.processing;
 import com.codebullets.sagalib.context.LookupContext;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.Timeout;
+import jakarta.inject.Inject;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 

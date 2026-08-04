@@ -18,11 +18,10 @@ package com.codebullets.sagalib.processing.invocation;
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.SagaModule;
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +41,6 @@ import java.util.stream.Stream;
  *     <li>{@code onFinished} will be called for all started and partially started modules.</li>
  * </ul>
  */
-@Immutable
 final class ModulesInvoker {
     private static final Logger LOG = LoggerFactory.getLogger(ModulesInvoker.class);
 
@@ -139,7 +137,6 @@ final class ModulesInvoker {
             this.invoker = modulesInvoker;
         }
 
-        @Nullable
         Optional<Exception> error() {
             return Optional.ofNullable(startError);
         }

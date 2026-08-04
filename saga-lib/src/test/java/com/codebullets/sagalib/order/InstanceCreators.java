@@ -18,8 +18,7 @@ package com.codebullets.sagalib.order;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
-
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 class InstanceCreators implements SagaProviderFactory {
     @Override

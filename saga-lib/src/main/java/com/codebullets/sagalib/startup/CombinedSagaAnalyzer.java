@@ -16,8 +16,8 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.Saga;
+import jakarta.inject.Inject;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -16,7 +16,7 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 /**
  * When asked returns a provider capable of create a new saga instance.

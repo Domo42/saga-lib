@@ -18,8 +18,8 @@ package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import jakarta.inject.Provider;
 
-import javax.inject.Provider;
 import java.util.Set;
 
 class TestSagaProviderFactory implements SagaProviderFactory {

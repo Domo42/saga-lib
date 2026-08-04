@@ -16,8 +16,8 @@
 package com.codebullets.sagalib.timeout;
 
 import com.codebullets.sagalib.ExecutionContext;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 /**

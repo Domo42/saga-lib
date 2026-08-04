@@ -17,20 +17,20 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.AutoCloseables;
 import com.codebullets.sagalib.ExecutionContext;
+import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.Headers;
 import com.codebullets.sagalib.MessageStream;
-import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.processing.invocation.HandlerInvoker;
 import com.codebullets.sagalib.timeout.Timeout;
 import com.codebullets.sagalib.timeout.TimeoutExpirationCallback;
 import com.codebullets.sagalib.timeout.TimeoutExpirationContext;
 import com.google.common.base.Throwables;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;

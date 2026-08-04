@@ -26,9 +26,9 @@ import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import jakarta.inject.Provider;
 import org.openjdk.jmh.infra.Blackhole;
 
-import javax.inject.Provider;
 import java.lang.reflect.InvocationTargetException;
 
 public class SagaLibStream implements AutoCloseable {

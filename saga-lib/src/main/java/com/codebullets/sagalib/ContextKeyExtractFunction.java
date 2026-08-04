@@ -16,8 +16,7 @@
 package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.LookupContext;
-
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Called to extract a saga instance key. The returned instance key is used

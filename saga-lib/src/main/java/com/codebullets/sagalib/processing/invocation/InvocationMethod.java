@@ -15,7 +15,8 @@
  */
 package com.codebullets.sagalib.processing.invocation;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
+
 import java.lang.reflect.Method;
 import java.util.Optional;
 

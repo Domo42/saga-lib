@@ -20,14 +20,14 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
+import jakarta.inject.Provider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.inject.Provider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -94,12 +94,7 @@ class InheritanceTests {
             Provider provider = null;
 
             if (sagaClass.equals(MarkerInterfaceHandler.class)) {
-                provider = new Provider<MarkerInterfaceHandler>() {
-                        @Override
-                        public MarkerInterfaceHandler get() {
-                            return handler;
-                        }
-                    };
+                provider = (Provider<MarkerInterfaceHandler>) () -> handler;
             }
 
             return provider;

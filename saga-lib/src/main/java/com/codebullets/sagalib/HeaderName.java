@@ -16,7 +16,6 @@
 
 package com.codebullets.sagalib;
 
-import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 
 /**
@@ -27,7 +26,6 @@ import java.util.Objects;
  *
  * @param <T> The type of the value associated with the header.
  */
-@Immutable
 @SuppressWarnings("UnusedDeclaration")
 public final class HeaderName<T> {
     private static final long serialVersionUID = 1L;

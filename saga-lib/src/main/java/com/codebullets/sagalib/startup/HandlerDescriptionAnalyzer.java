@@ -19,10 +19,10 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.describe.DescribesHandlers;
 import com.codebullets.sagalib.describe.HandlerDescription;
 import com.codebullets.sagalib.processing.SagaInstanceCreator;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;

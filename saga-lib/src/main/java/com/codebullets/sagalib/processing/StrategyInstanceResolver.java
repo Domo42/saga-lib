@@ -16,8 +16,8 @@
 package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.context.LookupContext;
+import jakarta.inject.Inject;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 

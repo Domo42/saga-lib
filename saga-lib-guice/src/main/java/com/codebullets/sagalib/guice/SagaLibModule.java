@@ -45,9 +45,9 @@ import com.google.inject.Provides;
 import com.google.inject.Scope;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
+import jakarta.annotation.Nullable;
+import jakarta.inject.Singleton;
 
-import javax.annotation.Nullable;
-import javax.inject.Singleton;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;

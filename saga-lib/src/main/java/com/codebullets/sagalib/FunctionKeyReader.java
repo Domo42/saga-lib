@@ -16,8 +16,7 @@
 package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.LookupContext;
-
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Defines a way to read the saga instance key from a message. This key reader takes

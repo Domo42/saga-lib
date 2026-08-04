@@ -17,10 +17,10 @@ package com.codebullets.sagalib.processing;
 
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.SagaState;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 

@@ -23,16 +23,13 @@ import com.codebullets.sagalib.KeyReaders;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.context.LookupContext;
 import com.google.common.collect.Lists;
-import javax.annotation.Nullable;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,12 +62,7 @@ class SagaKeyReaderExtractorTest {
     void findSagaInstanceKey_sagaHasReaderWithExactMessage_returnsDefinedKey() {
         // given
         final String keyValue = "theKeyValue";
-        KeyReader reader = FunctionKeyReader.create(String.class, new KeyReadFunction<String>() {
-                @Override
-                public String key(final String s) {
-                    return keyValue;
-                }
-            });
+        KeyReader reader = FunctionKeyReader.create(String.class, s -> keyValue);
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when
@@ -93,14 +85,12 @@ class SagaKeyReaderExtractorTest {
         LookupContext originalContext = SagaLookupContext.forMessage("my input event message");
         final LookupContext[] providedReaderContext = new LookupContext[1];
 
-        KeyReader reader = KeyReaders.forMessage(String.class, new ContextKeyExtractFunction<String, String>() {
-                @Nullable
-                @Override
-                public String key(final String message, final LookupContext context) {
+        KeyReader reader = KeyReaders.forMessage(
+                String.class,
+                (ContextKeyExtractFunction<String, String>) (message, context) -> {
                     providedReaderContext[0] = context;
                     return null;
-                }
-            });
+                });
         when(testSaga.keyReaders()).thenReturn(Lists.newArrayList(reader));
 
         // when

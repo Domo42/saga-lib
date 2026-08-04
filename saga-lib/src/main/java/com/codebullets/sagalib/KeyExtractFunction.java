@@ -15,7 +15,7 @@
  */
 package com.codebullets.sagalib;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Extract an instance key of a specific type for a specific message.

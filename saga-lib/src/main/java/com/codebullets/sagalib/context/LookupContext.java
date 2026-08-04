@@ -17,8 +17,8 @@ package com.codebullets.sagalib.context;
 
 import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.HeaderName;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;

@@ -16,8 +16,8 @@
 package com.codebullets.sagalib.startup;
 
 import com.codebullets.sagalib.describe.DescribesHandlers;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Optional;
 

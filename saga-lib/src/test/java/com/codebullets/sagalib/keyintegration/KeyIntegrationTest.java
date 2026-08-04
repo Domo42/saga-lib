@@ -20,15 +20,14 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
+import jakarta.inject.Provider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-import javax.inject.Provider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -37,8 +36,6 @@ import static org.hamcrest.Matchers.equalTo;
  * Test whether saga lib works with different instance key than String
  */
 class KeyIntegrationTest {
-    private static final Logger LOG = LoggerFactory.getLogger(KeyIntegrationTest.class);
-
     private MessageStream messageStream;
     private TestState state;
 
@@ -107,19 +104,9 @@ class KeyIntegrationTest {
             Provider provider = null;
 
             if (sagaClass.equals(StatefulSaga.class)) {
-                provider = new Provider<StatefulSaga>() {
-                    @Override
-                    public StatefulSaga get() {
-                        return new StatefulSaga(state);
-                    }
-                };
+                provider = (Provider<StatefulSaga>) () -> new StatefulSaga(state);
             } else if (sagaClass.equals(DeadMessageSaga.class)) {
-                provider = new Provider<DeadMessageSaga>() {
-                    @Override
-                    public DeadMessageSaga get() {
-                        return new DeadMessageSaga();
-                    }
-                };
+                provider = (Provider<DeadMessageSaga>) DeadMessageSaga::new;
             }
 
             return provider;

@@ -21,9 +21,9 @@ import com.codebullets.sagalib.timeout.TimeoutManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
 import java.util.concurrent.ExecutionException;
 
 /**

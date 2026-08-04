@@ -20,14 +20,15 @@ import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.startup.EventStreamBuilder;
 import com.codebullets.sagalib.startup.TypeScanner;
+import jakarta.inject.Provider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.inject.Provider;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -107,12 +108,7 @@ class MultipleStartsByTest {
 
         @Override
         public Provider<? extends Saga> createProvider(final Class sagaClass) {
-            return new Provider<Saga>() {
-                    @Override
-                    public Saga get() {
-                        return new StartedBySeveralTypesSaga(recorder);
-                    }
-                };
+            return (Provider<Saga>) () -> new StartedBySeveralTypesSaga(recorder);
         }
     }
 }

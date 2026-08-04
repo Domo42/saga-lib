@@ -16,8 +16,7 @@
 package com.codebullets.sagalib;
 
 import com.codebullets.sagalib.context.LookupContext;
-
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Encapsulates a {@link KeyExtractFunction} within a {@link ContextKeyExtractFunction}.

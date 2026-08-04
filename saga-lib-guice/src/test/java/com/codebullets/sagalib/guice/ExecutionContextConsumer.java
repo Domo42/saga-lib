@@ -6,8 +6,8 @@
 package com.codebullets.sagalib.guice;
 
 import com.codebullets.sagalib.ExecutionContext;
-import javax.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 public class ExecutionContextConsumer {
     private final Provider<ExecutionContext> contextProvider;

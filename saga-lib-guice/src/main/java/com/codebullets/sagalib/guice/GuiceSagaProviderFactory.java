@@ -18,9 +18,8 @@ package com.codebullets.sagalib.guice;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.google.inject.Injector;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
 
 /**
  * <p>Creates saga provider based on Guice dependency injection container.</p>

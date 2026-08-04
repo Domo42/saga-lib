@@ -18,10 +18,10 @@ package com.codebullets.sagalib.startup;
 import com.codebullets.sagalib.EventHandler;
 import com.codebullets.sagalib.Saga;
 import com.codebullets.sagalib.StartsSaga;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

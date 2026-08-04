@@ -19,8 +19,8 @@ import com.codebullets.sagalib.ExecutionContext;
 import com.codebullets.sagalib.HeaderName;
 import com.codebullets.sagalib.Headers;
 import com.codebullets.sagalib.context.LookupContext;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

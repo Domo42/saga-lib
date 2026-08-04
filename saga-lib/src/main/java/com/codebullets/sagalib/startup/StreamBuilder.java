@@ -23,8 +23,8 @@ import com.codebullets.sagalib.processing.SagaProviderFactory;
 import com.codebullets.sagalib.processing.invocation.ModuleCoordinatorFactory;
 import com.codebullets.sagalib.storage.StateStorage;
 import com.codebullets.sagalib.timeout.TimeoutManager;
+import jakarta.inject.Provider;
 
-import javax.inject.Provider;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Executor;
 
