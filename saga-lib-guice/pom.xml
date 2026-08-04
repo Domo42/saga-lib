@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>saga-lib-guice</artifactId>
+    <name>saga-lib-guice</name>
 
     <dependencies>
         <dependency>
