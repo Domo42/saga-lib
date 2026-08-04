@@ -53,5 +53,5 @@ public interface TimeoutManager {
     /**
      * Cancel a specific timeout. If no timeout is found does nothing.
      */
-    void cancelTimeout(final TimeoutId id);
+    void cancelTimeout(TimeoutId id);
 }

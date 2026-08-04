@@ -25,5 +25,5 @@ public interface HandlerMethodDefinition<T> {
     /**
      * Defines the method to call when handling the message of T.
      */
-    HandlerTypeDefinition usingMethod(final Consumer<T> handlerMethod);
+    HandlerTypeDefinition usingMethod(Consumer<T> handlerMethod);
 }

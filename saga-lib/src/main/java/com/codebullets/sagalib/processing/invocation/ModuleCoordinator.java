@@ -47,7 +47,7 @@ public interface ModuleCoordinator {
      *
      * @throws Exception Re-throws the exception encountered in any of the start error handlers.
      */
-    void start(final ExecutionContext context) throws Exception;
+    void start(ExecutionContext context) throws Exception;
 
     /**
      * This method is called in case there has been an exception during
@@ -60,7 +60,7 @@ public interface ModuleCoordinator {
      * to report an error during their modules error handling it can do it as
      * part of the finish handler.</p>
      */
-    void onError(final ExecutionContext context, Object message, Exception error);
+    void onError(ExecutionContext context, Object message, Exception error);
 
     /**
      * Is called after all saga handlers have been executed. In case of
@@ -68,5 +68,5 @@ public interface ModuleCoordinator {
      *
      * @throws Exception Throws an exception in case of errors during either finish or error handlers.
      */
-    void finish(final ExecutionContext context) throws Exception;
+    void finish(ExecutionContext context) throws Exception;
 }

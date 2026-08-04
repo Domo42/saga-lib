@@ -135,5 +135,5 @@ public interface StreamBuilder extends AutoCloseable {
      * <p>This is a very low level hook, allowing custom execution and error handling of
      * saga modules. Be very cautious when overwriting the default behavior with this.</p>
      */
-    StreamBuilder usingModuleCoordinator(final ModuleCoordinatorFactory coordinatorFactory);
+    StreamBuilder usingModuleCoordinator(ModuleCoordinatorFactory coordinatorFactory);
 }

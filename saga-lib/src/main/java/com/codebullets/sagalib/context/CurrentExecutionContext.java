@@ -30,13 +30,13 @@ public interface CurrentExecutionContext extends ExecutionContext {
     /**
      * Sets optional error information, that occurred during handling.
      */
-    void setError(final Exception error);
+    void setError(Exception error);
 
     /**
      * Records the identifier of the saga stored. This includes the current
      * and parent context.
      */
-    void recordSagaStateStored(final String sagaId);
+    void recordSagaStateStored(String sagaId);
 
     /**
      * Checks whether a saga state was stored as part of full execution chain.
@@ -46,5 +46,5 @@ public interface CurrentExecutionContext extends ExecutionContext {
      * deletion in case the saga is finished, but has already been saved in
      * possible recursive executions.</p>
      */
-    boolean hasBeenStored(final String sagaId);
+    boolean hasBeenStored(String sagaId);
 }

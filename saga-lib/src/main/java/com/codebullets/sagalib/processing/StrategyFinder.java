@@ -27,5 +27,5 @@ public interface StrategyFinder {
     /**
      * Finds one or more strategies for a particular message.
      */
-    Collection<ResolveStrategy> find(final LookupContext context);
+    Collection<ResolveStrategy> find(LookupContext context);
 }

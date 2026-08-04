@@ -23,7 +23,7 @@ public interface HandlerTypeDefinition {
      * Add an additional message type to be handled into the resulting description.
      * @param <T> This is the type of message to be handled.
      */
-    <T> HandlerMethodDefinition<T> handleMessage(final Class<T> messageType);
+    <T> HandlerMethodDefinition<T> handleMessage(Class<T> messageType);
 
     /**
      * Finishes up the message mapping, resulting in a read only description.

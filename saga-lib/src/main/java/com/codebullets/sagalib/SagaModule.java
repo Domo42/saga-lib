@@ -26,17 +26,17 @@ public interface SagaModule {
     /**
      * Is called before any saga handler is executed.
      */
-    void onStart(final ExecutionContext context);
+    void onStart(ExecutionContext context);
 
     /**
      * Is called after all saga handlers have been executed.
      */
-    void onFinished(final ExecutionContext context);
+    void onFinished(ExecutionContext context);
 
     /**
      * This method is called in case there has been an exception during
      * the execution of saga handlers. It is executed before {@link #onFinished(ExecutionContext)}.
      * <p>If there is no error this method will not be called.</p>
      */
-    void onError(final ExecutionContext context, Object message, Throwable error);
+    void onError(ExecutionContext context, Object message, Throwable error);
 }

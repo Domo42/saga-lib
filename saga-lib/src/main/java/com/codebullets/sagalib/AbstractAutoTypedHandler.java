@@ -44,7 +44,7 @@ public abstract class AbstractAutoTypedHandler<T> implements Saga, DescribesHand
      * Override this method in your custom handler class to
      * handle saga-lib events of type {@code T}.
      */
-    public abstract void handle(final T event);
+    public abstract void handle(T event);
 
     @Override
     public HandlerDescription describeHandlers() {

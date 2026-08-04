@@ -26,5 +26,5 @@ public interface ModuleCoordinatorFactory {
     /**
      * Create a new instance of a module coordinator.
      */
-    ModuleCoordinator create(final Iterable<SagaModule> modules);
+    ModuleCoordinator create(Iterable<SagaModule> modules);
 }
