@@ -46,12 +46,12 @@
         <!--
             JMH version to use with this project.
           -->
-        <jmh.version>1.15</jmh.version>
+        <jmh.version>1.37</jmh.version>
 
         <!--
             Java source/target to use for compilation.
           -->
-        <javac.target>1.8</javac.target>
+        <javac.target>21</javac.target>
 
         <!--
             Name of the benchmark Uber-JAR to generate.
@@ -111,7 +111,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
                 <configuration>
                     <skip>true</skip>
                     <enableRulesSummary>false</enableRulesSummary>
@@ -141,7 +140,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
+                    <version>3.12.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
